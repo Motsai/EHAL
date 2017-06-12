@@ -30,8 +30,8 @@ Modified by         Date            Description
 
 ----------------------------------------------------------------------------*/
 
-#ifndef NRF52_ESB_H
-#define NRF52_ESB_H
+#ifndef NRF52_RTC_H
+#define NRF52_RTC_H
 
 /**********************************************************************************/
 
@@ -39,65 +39,21 @@ Modified by         Date            Description
 
 /**********************************************************************************/
 
-typedef void ( *ESBEventHandler )( void );
-
-typedef enum {
-    ESB_MODE_RX,
-    ESB_MODE_TX
-} esb_mode_t;
-
-typedef enum {
-    ESB_BITRATE_2MBPS,
-    ESB_BITRATE_1MBPS,
-    ESB_BITRATE_250KBPS
-} esb_bitrate_t;
-
-typedef enum {
-    ESB_TX_POWER_4DBM,
-    ESB_TX_POWER_0DBM,
-    ESB_TX_POWER_NEG4DBM,
-    ESB_TX_POWER_NEG8DBM,
-    ESB_TX_POWER_NEG12DBM,
-    ESB_TX_POWER_NEG16DBM,
-    ESB_TX_POWER_NEG20DBM,
-    ESB_TX_POWER_NEG30DBM
-} esb_tx_power_t;
-
-typedef struct {
-    bool acknowledge;
-    uint8_t address_base[8];
-    uint8_t address_prefix[8];
-    esb_bitrate_t   bitrate;
-    esb_mode_t  mode;
-    esb_tx_power_t tx_power;
-} esb_cfg_t;
-
-typedef struct {
-    ESBEventHandler handler;
-} esb_dev_t;
-
-/**********************************************************************************/
-
 #ifdef __cplusplus
 
-class nRF52_ESB
+class nRF52_RTC
 {
 public:
-    bool init( const esb_cfg_t& prCfg, const esb_dev_t& prDev );
-    void uninit();
+    static void reset( uint8_t pIndex );
+    static bool start( uint8_t pIndex );
+    static void stop( uint8_t pIndex );
 
-    uint32_t read( uint8_t* ppData, uint32_t pSize );
-    uint32_t write( const uint8_t* const ppData, uint32_t pSize );
-
-    void flushRx();
-    void flushTx();
-
-private:
-    esb_dev_t mDev;
+    /// Set RTC timeout in microseconds (us)
+    static void setTimeout( uint8_t pIndex, uint32_t pTimeout );
 };
 
 #endif // __cplusplus
 
 /**********************************************************************************/
 
-#endif // NRF52_ESB_H
+#endif // NRF52_RTC_H

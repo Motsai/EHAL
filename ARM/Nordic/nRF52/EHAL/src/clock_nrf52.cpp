@@ -1,5 +1,5 @@
 /*--------------------------------------------------------------------------
-File   : saadc_nrf52.h
+File   : saadc_nrf52.cpp
 
 Author : Simon Ouellet
 
@@ -30,74 +30,45 @@ Modified by         Date            Description
 
 ----------------------------------------------------------------------------*/
 
-#ifndef NRF52_ESB_H
-#define NRF52_ESB_H
+#include "clock_nrf52.h"
+
+extern "C" {
+#include "nrf.h"
+}
 
 /**********************************************************************************/
 
-#include <stdint.h>
-
-/**********************************************************************************/
-
-typedef void ( *ESBEventHandler )( void );
-
-typedef enum {
-    ESB_MODE_RX,
-    ESB_MODE_TX
-} esb_mode_t;
-
-typedef enum {
-    ESB_BITRATE_2MBPS,
-    ESB_BITRATE_1MBPS,
-    ESB_BITRATE_250KBPS
-} esb_bitrate_t;
-
-typedef enum {
-    ESB_TX_POWER_4DBM,
-    ESB_TX_POWER_0DBM,
-    ESB_TX_POWER_NEG4DBM,
-    ESB_TX_POWER_NEG8DBM,
-    ESB_TX_POWER_NEG12DBM,
-    ESB_TX_POWER_NEG16DBM,
-    ESB_TX_POWER_NEG20DBM,
-    ESB_TX_POWER_NEG30DBM
-} esb_tx_power_t;
-
-typedef struct {
-    bool acknowledge;
-    uint8_t address_base[8];
-    uint8_t address_prefix[8];
-    esb_bitrate_t   bitrate;
-    esb_mode_t  mode;
-    esb_tx_power_t tx_power;
-} esb_cfg_t;
-
-typedef struct {
-    ESBEventHandler handler;
-} esb_dev_t;
-
-/**********************************************************************************/
-
-#ifdef __cplusplus
-
-class nRF52_ESB
+void nRF52_Clock::disableLowFrequency()
 {
-public:
-    bool init( const esb_cfg_t& prCfg, const esb_dev_t& prDev );
-    void uninit();
-
-    uint32_t read( uint8_t* ppData, uint32_t pSize );
-    uint32_t write( const uint8_t* const ppData, uint32_t pSize );
-
-    void flushRx();
-    void flushTx();
-
-private:
-    esb_dev_t mDev;
-};
-
-#endif // __cplusplus
+    NRF_CLOCK->TASKS_LFCLKSTOP = 1;
+}
 
 /**********************************************************************************/
 
-#endif // NRF52_ESB_H
+void nRF52_Clock::enableLowFrequency()
+{
+    NRF_CLOCK->LFCLKSRC = CLOCK_LFCLKSRC_SRC_Xtal;
+    NRF_CLOCK->TASKS_LFCLKSTART = 1;
+    while ( NRF_CLOCK->EVENTS_LFCLKSTARTED == 0 );
+}
+
+/**********************************************************************************/
+
+void nRF52_Clock::disableHighFrequency()
+{
+    NRF_CLOCK->TASKS_HFCLKSTOP = 1;
+}
+
+/**********************************************************************************/
+
+void nRF52_Clock::enableHighFrequency()
+{
+    // Start HFCLK and wait for it to start.
+    NRF_CLOCK->EVENTS_HFCLKSTARTED = 0;
+    NRF_CLOCK->TASKS_HFCLKSTART = 1;
+    while ( NRF_CLOCK->EVENTS_HFCLKSTARTED == 0 );
+}
+
+/**********************************************************************************/
+
+
