@@ -816,6 +816,11 @@
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/drivers_nrf/hal/nrf_nvmc.c</locationURI>
 		</link>
 		<link>
+			<name>src/nRF5_SDK/components/drivers_nrf/hal/nrf_saadc.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/drivers_nrf/hal/nrf_saadc.c</locationURI>
+		</link>
+		<link>
 			<name>src/nRF5_SDK/components/drivers_nrf/power/nrf_drv_power.c</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/drivers_nrf/power/nrf_drv_power.c</locationURI>

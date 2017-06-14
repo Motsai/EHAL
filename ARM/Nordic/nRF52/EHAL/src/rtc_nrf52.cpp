@@ -67,7 +67,7 @@ void nRF52_RTC::reset( uint8_t pIndex )
     if ( pIndex < NRF52_RTC_COUNT ) {
         gpRegister[pIndex]->EVTENSET = ( RTC_EVTENSET_COMPARE0_Enabled << RTC_EVTENSET_COMPARE0_Pos );
         gpRegister[pIndex]->INTENSET = ( RTC_INTENSET_COMPARE0_Enabled << RTC_INTENSET_COMPARE0_Pos );
-        gpRegister[pIndex]->CC[0]    = 0;
+        gpRegister[pIndex]->EVENTS_COMPARE[0] = 0;
     }
 }
 

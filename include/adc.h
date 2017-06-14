@@ -29,6 +29,10 @@ typedef struct {
     uint32_t resolution;
     uint32_t oversample;
     uint32_t priority;
+} adc_cfg_t;
+
+typedef struct {
+    uint8_t channelNo;
     uint32_t acquisitionTime;
     uint32_t resistorP;
     uint32_t resistorN;
@@ -38,12 +42,8 @@ typedef struct {
     uint32_t burst;
     uint32_t pinP;
     uint32_t pinN;
-} adc_cfg_t;
-
-typedef struct {
-    uint8_t channelNo;
     adc_event_handler_t handler;
-} adc_dev_t;
+} adc_channel_cfg_t;
 
 /**********************************************************************************/
 
@@ -52,7 +52,10 @@ typedef struct {
 class ADC
 {
 public:
-    virtual bool init( const adc_cfg_t& prCfg, const adc_dev_t& prDev ) = 0;
+    virtual void disable() = 0;
+    virtual void enable() = 0;
+
+    virtual bool init( const adc_cfg_t* ppCfg, const adc_channel_cfg_t* ppChannel, uint32_t pChannelCount ) = 0;
 
     /// Asynchronous non-blocking read.
     /// When read is complete, ADCEventHandler callback is called.
@@ -60,8 +63,6 @@ public:
 
     /// Synchronuous blocking read.
     virtual bool read( uint8_t pChannel, int16_t& prValue ) = 0;
-
-    virtual void uninit() = 0;
 };
 
 #endif // __cplusplus

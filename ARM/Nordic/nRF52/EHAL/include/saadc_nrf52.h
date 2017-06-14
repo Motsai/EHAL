@@ -44,7 +44,13 @@ Modified by         Date            Description
 class nRF52_SAADC : public ADC
 {
 public:
-    virtual bool init( const adc_cfg_t& prCfg, const adc_dev_t& prDev ) override;
+    virtual void disable() override;
+    virtual void disable( uint8_t pChannelNo );
+
+    virtual void enable() override;
+    virtual void enable( uint8_t pChannelNo );
+
+    virtual bool init( const adc_cfg_t* prCfg, const adc_channel_cfg_t* ppChannel, uint32_t pChannelCount ) override;
 
     /// Asynchronous non-blocking read.
     /// When read is complete, ADCEventHandler callback is called.
@@ -53,7 +59,13 @@ public:
     /// Synchronuous blocking read.
     virtual bool read( uint8_t pChannel, int16_t& prValue ) override;
 
-    virtual void uninit() override;
+private:
+    const adc_cfg_t* mpCfg;
+    const adc_channel_cfg_t* mpChannelCfg;
+    uint32_t mChannelCount;
+
+    bool init();
+    bool initChannel( const adc_channel_cfg_t& prCfg );
 };
 
 #endif // __cplusplus
