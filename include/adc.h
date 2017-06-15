@@ -23,12 +23,13 @@
 
 /**********************************************************************************/
 
-typedef void (*adc_event_handler_t)( int16_t pValue );
+typedef void (*adc_event_handler_t)( const int16_t* const ppValue, uint8_t pSize );
 
 typedef struct {
     uint32_t resolution;
     uint32_t oversample;
     uint32_t priority;
+    adc_event_handler_t event_handler;
 } adc_cfg_t;
 
 typedef struct {
@@ -42,7 +43,6 @@ typedef struct {
     uint32_t burst;
     uint32_t pinP;
     uint32_t pinN;
-    adc_event_handler_t handler;
 } adc_channel_cfg_t;
 
 /**********************************************************************************/

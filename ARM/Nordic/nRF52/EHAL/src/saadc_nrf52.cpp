@@ -38,35 +38,32 @@ extern "C" {
 
 /**********************************************************************************/
 
+#define     NRF52_SAADC_BUFFER_COUNT    1
 #define     NRF52_SAADC_COUNT           8
 
 /**********************************************************************************/
 
-/*static adc_dev_t gsDev[NRF52_SAADC_COUNT] = { { 0, nullptr },
-                                              { 1, nullptr },
-                                              { 2, nullptr },
-                                              { 3, nullptr },
-                                              { 4, nullptr },
-                                              { 5, nullptr },
-                                              { 6, nullptr },
-                                              { 7, nullptr } };*/
+static adc_event_handler_t gEventHandler = nullptr;
 
-static nrf_saadc_value_t gsBuffer[2][NRF52_SAADC_COUNT];
+static nrf_saadc_value_t gsBuffer[NRF52_SAADC_BUFFER_COUNT][NRF52_SAADC_COUNT];
 
 /**********************************************************************************/
 
 void nRF52_SAADC_EventHandler( nrf_drv_saadc_evt_t const* ppEvent )
 {
-    static uint32_t lCount = 0;
     switch ( ppEvent->type )
     {
     case NRF_DRV_SAADC_EVT_DONE:
-        lCount++;
-        nrf_drv_saadc_buffer_convert(ppEvent->data.done.p_buffer, NRF52_SAADC_COUNT);
+        if ( gEventHandler != nullptr ) {
+            gEventHandler( ppEvent->data.done.p_buffer, ppEvent->data.done.size );
+        }
 
-        /*if ( gsDev.handler != nullptr ) {
-            gsDev.handler( *ppEvent->data.done.p_buffer );
-        }*/
+        nrf_drv_saadc_buffer_convert( ppEvent->data.done.p_buffer, NRF52_SAADC_COUNT );
+        break;
+    case NRF_DRV_SAADC_EVT_CALIBRATEDONE:
+        for ( int i = 0; i < NRF52_SAADC_BUFFER_COUNT; i++ ) {
+            nrf_drv_saadc_buffer_convert( gsBuffer[i], NRF52_SAADC_COUNT );
+        }
         break;
     }
 }
@@ -75,18 +72,14 @@ void nRF52_SAADC_EventHandler( nrf_drv_saadc_evt_t const* ppEvent )
 
 void nRF52_SAADC::disable()
 {
-    nrf_saadc_task_trigger( NRF_SAADC_TASK_STOP );
-    nrf_saadc_disable();
-    for ( uint32_t i = 0; i < mChannelCount; ++i ) {
-        nrf_saadc_channel_input_set( i, NRF_SAADC_INPUT_DISABLED, NRF_SAADC_INPUT_DISABLED );
-    }
+    nrf_drv_saadc_uninit();
 }
 
 /**********************************************************************************/
 
 void nRF52_SAADC::disable( uint8_t pChannelNo )
 {
-    nrf_saadc_channel_input_set( pChannelNo, NRF_SAADC_INPUT_DISABLED, NRF_SAADC_INPUT_DISABLED );
+    nrf_drv_saadc_channel_uninit( pChannelNo );
 }
 
 /**********************************************************************************/
@@ -121,14 +114,15 @@ bool nRF52_SAADC::init()
     if ( lErrCode != NRF_SUCCESS ) return false;
 
     for ( int i = 0; i < mChannelCount; i++ ) {
-        initChannel( mpChannelCfg[i] );
+        if ( !initChannel( mpChannelCfg[i] ) ) return false;
     }
 
-    for ( int i = 0; i < 2; i++ )
-    {
+    for ( int i = 0; i < NRF52_SAADC_BUFFER_COUNT; i++ ) {
         uint32_t lErrCode = nrf_drv_saadc_buffer_convert( gsBuffer[i], NRF52_SAADC_COUNT );
         if ( lErrCode != NRF_SUCCESS ) return false;
     }
+
+    gEventHandler = mpCfg->event_handler;
 
     return true;
 }
@@ -164,7 +158,7 @@ bool nRF52_SAADC::init( const adc_cfg_t* ppCfg, const adc_channel_cfg_t* ppChann
     mpChannelCfg = ppChannel;
     mChannelCount = pChannelCount;
 
-    return true;
+    return init();
 }
 
 /**********************************************************************************/
