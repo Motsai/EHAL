@@ -53,6 +53,7 @@ Modified by          Date              Description
 #include "uart_nrf5x.h"
 #include "idelay.h"
 #include "atomic.h"
+#include "iopinctrl.h"
 
 extern char s_Buffer[];	// defined in sbuffer.c
 extern int s_BufferSize;
@@ -401,6 +402,10 @@ bool UARTInit(UARTDEV *pDev, const UARTCFG *pCfg)
 	}
 
 	IOPINCFG *pincfg = (IOPINCFG*)pCfg->pIoMap;
+
+	// Fixed possible bug or undocumented feature.
+	// Prevent dummy byte (0x00 or 0xFF) to be sent when configuring UART TX
+	IOPinSet( pincfg[UARTPIN_TX_IDX].PortNo, pincfg[UARTPIN_TX_IDX].PinNo );
 
 	//NRF_GPIO->OUTSET = (1 << pincfg[UARTPIN_TX_IDX].PinNo);
 	IOPinCfg(pincfg, pCfg->IoMapLen);
