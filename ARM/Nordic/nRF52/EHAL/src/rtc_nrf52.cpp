@@ -46,7 +46,7 @@ static NRF_RTC_Type* gpRegister[NRF52_RTC_COUNT] = { NRF_RTC0, NRF_RTC1, NRF_RTC
 /**********************************************************************************/
 
 /* Converts the specified microsecond time to the closest prior RTC unit. */
-static void convert( uint32_t pTimeUs, uint32_t* pUnitsRTC, uint32_t* pUnitsUs)
+static void convert( uint32_t pTimeUs, uint32_t* pUnitsRTC, uint32_t* pUnitsUs )
 {
    uint32_t u1, u2, t1, t2, t3;
 
@@ -62,13 +62,54 @@ static void convert( uint32_t pTimeUs, uint32_t* pUnitsRTC, uint32_t* pUnitsUs)
 
 /**********************************************************************************/
 
-void nRF52_RTC::reset( uint8_t pIndex )
+bool nRF52_RTC::isCompareTriggered( uint8_t pRTCIndex, uint8_t pCompareIndex )
 {
-    if ( pIndex < NRF52_RTC_COUNT ) {
-        gpRegister[pIndex]->EVTENSET = ( RTC_EVTENSET_COMPARE0_Enabled << RTC_EVTENSET_COMPARE0_Pos );
-        gpRegister[pIndex]->INTENSET = ( RTC_INTENSET_COMPARE0_Enabled << RTC_INTENSET_COMPARE0_Pos );
-        gpRegister[pIndex]->EVENTS_COMPARE[0] = 0;
+    if ( pRTCIndex < NRF52_RTC_COUNT ) {
+        NRF_RTC_Type* lpRegister = gpRegister[pRTCIndex];
+        switch ( pCompareIndex ) {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+            return ( lpRegister->EVENTS_COMPARE[pCompareIndex] );
+        default:
+            return false;
+        }
     }
+    return false;
+}
+
+/**********************************************************************************/
+
+bool nRF52_RTC::reset( uint8_t pRTCIndex, uint8_t pCompareIndex )
+{
+    if ( pRTCIndex < NRF52_RTC_COUNT ) {
+        NRF_RTC_Type* lpRegister = gpRegister[pRTCIndex];
+
+        switch ( pCompareIndex ) {
+        case 0:
+            lpRegister->EVTENSET = ( RTC_EVTENSET_COMPARE0_Enabled << RTC_EVTENSET_COMPARE0_Pos );
+            lpRegister->INTENSET = ( RTC_INTENSET_COMPARE0_Enabled << RTC_INTENSET_COMPARE0_Pos );
+            break;
+        case 1:
+            lpRegister->EVTENSET = ( RTC_EVTENSET_COMPARE1_Enabled << RTC_EVTENSET_COMPARE1_Pos );
+            lpRegister->INTENSET = ( RTC_INTENSET_COMPARE1_Enabled << RTC_INTENSET_COMPARE1_Pos );
+            break;
+        case 2:
+            lpRegister->EVTENSET = ( RTC_EVTENSET_COMPARE2_Enabled << RTC_EVTENSET_COMPARE2_Pos );
+            lpRegister->INTENSET = ( RTC_INTENSET_COMPARE2_Enabled << RTC_INTENSET_COMPARE2_Pos );
+            break;
+        case 3:
+            lpRegister->EVTENSET = ( RTC_EVTENSET_COMPARE3_Enabled << RTC_EVTENSET_COMPARE3_Pos );
+            lpRegister->INTENSET = ( RTC_INTENSET_COMPARE3_Enabled << RTC_INTENSET_COMPARE3_Pos );
+            break;
+        default:
+            return false;
+        }
+        lpRegister->EVENTS_COMPARE[pCompareIndex] = 0;
+        return true;
+    }
+    return false;
 }
 
 /**********************************************************************************/
@@ -88,7 +129,7 @@ bool nRF52_RTC::start( uint8_t pIndex )
 
 /**********************************************************************************/
 
-void nRF52_RTC::stop( uint8_t pIndex )
+bool nRF52_RTC::stop( uint8_t pIndex )
 {
     if ( pIndex < NRF52_RTC_COUNT ) {
         NVIC_ClearPendingIRQ( gpIRQ[pIndex] );
@@ -96,21 +137,45 @@ void nRF52_RTC::stop( uint8_t pIndex )
 
         gpRegister[pIndex]->TASKS_CLEAR = 1;
         gpRegister[pIndex]->TASKS_STOP = 1;
+        return true;
     }
+    return false;
 }
 
 /**********************************************************************************/
 
-void nRF52_RTC::setTimeout( uint8_t pIndex, uint32_t pTimeout )
+bool nRF52_RTC::setTimeout( uint8_t pRTCIndex, uint8_t pCompareIndex, uint32_t pTimeout )
 {
-    if ( pIndex < NRF52_RTC_COUNT ) {
+    if ( pRTCIndex < NRF52_RTC_COUNT ) {
         uint32_t rtc_units, us_units;
         convert( pTimeout, &rtc_units, &us_units );
 
-        gpRegister[pIndex]->CC[0]    = rtc_units;
-        gpRegister[pIndex]->EVTENSET = ( RTC_EVTENSET_COMPARE0_Enabled << RTC_EVTENSET_COMPARE0_Pos );
-        gpRegister[pIndex]->INTENSET = ( RTC_INTENSET_COMPARE0_Enabled << RTC_INTENSET_COMPARE0_Pos );
+        NRF_RTC_Type* lpRegister = gpRegister[pRTCIndex];
+        lpRegister->CC[pCompareIndex] = rtc_units;
+
+        switch ( pCompareIndex ) {
+        case 0:
+            lpRegister->EVTENSET = ( RTC_EVTENSET_COMPARE0_Enabled << RTC_EVTENSET_COMPARE0_Pos );
+            lpRegister->INTENSET = ( RTC_INTENSET_COMPARE0_Enabled << RTC_INTENSET_COMPARE0_Pos );
+            break;
+        case 1:
+            lpRegister->EVTENSET = ( RTC_EVTENSET_COMPARE1_Enabled << RTC_EVTENSET_COMPARE1_Pos );
+            lpRegister->INTENSET = ( RTC_INTENSET_COMPARE1_Enabled << RTC_INTENSET_COMPARE1_Pos );
+            break;
+        case 2:
+            lpRegister->EVTENSET = ( RTC_EVTENSET_COMPARE2_Enabled << RTC_EVTENSET_COMPARE2_Pos );
+            lpRegister->INTENSET = ( RTC_INTENSET_COMPARE2_Enabled << RTC_INTENSET_COMPARE2_Pos );
+            break;
+        case 3:
+            lpRegister->EVTENSET = ( RTC_EVTENSET_COMPARE3_Enabled << RTC_EVTENSET_COMPARE3_Pos );
+            lpRegister->INTENSET = ( RTC_INTENSET_COMPARE3_Enabled << RTC_INTENSET_COMPARE3_Pos );
+            break;
+        default:
+            return false;
+        }
+        return true;
     }
+    return false;
 }
 
 /**********************************************************************************/

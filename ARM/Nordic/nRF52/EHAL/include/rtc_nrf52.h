@@ -44,12 +44,14 @@ Modified by         Date            Description
 class nRF52_RTC
 {
 public:
-    static void reset( uint8_t pIndex );
-    static bool start( uint8_t pIndex );
-    static void stop( uint8_t pIndex );
+    static bool isCompareTriggered( uint8_t pRTCIndex, uint8_t pCompareIndex );
+
+    static bool reset( uint8_t pRTCIndex, uint8_t pCompareIndex );
+    static bool start( uint8_t pRTCIndex );
+    static bool stop( uint8_t pRTCIndex );
 
     /// Set RTC timeout in microseconds (us)
-    static void setTimeout( uint8_t pIndex, uint32_t pTimeout );
+    static bool setTimeout( uint8_t pRTCIndex, uint8_t pCompareIndex, uint32_t pTimeout );
 };
 
 #endif // __cplusplus
