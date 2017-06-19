@@ -129,6 +129,36 @@ bool nRF52_SAADC::init()
 
 /**********************************************************************************/
 
+bool nRF52_SAADC::init( uint8_t pChannel )
+{
+    if ( pChannel < mChannelCount ) {
+        uint32_t lErrCode;
+
+        nrf_drv_saadc_config_t config;
+        config.resolution = (nrf_saadc_resolution_t)mpCfg->resolution;
+        config.oversample = (nrf_saadc_oversample_t)mpCfg->oversample;
+        config.interrupt_priority = (uint8_t)mpCfg->priority;
+        config.low_power_mode = true;
+
+        lErrCode = nrf_drv_saadc_init( &config, nRF52_SAADC_EventHandler );
+        if ( lErrCode != NRF_SUCCESS ) return false;
+
+        if ( !initChannel( mpChannelCfg[pChannel] ) ) return false;
+
+        for ( int i = 0; i < NRF52_SAADC_BUFFER_COUNT; i++ ) {
+            uint32_t lErrCode = nrf_drv_saadc_buffer_convert( gsBuffer[i], NRF52_SAADC_COUNT );
+            if ( lErrCode != NRF_SUCCESS ) return false;
+        }
+
+        gEventHandler = mpCfg->event_handler;
+
+        return true;
+    }
+    return false;
+}
+
+/**********************************************************************************/
+
 bool nRF52_SAADC::initChannel( const adc_channel_cfg_t& prCfg )
 {
     uint32_t lErrCode;
@@ -165,6 +195,9 @@ bool nRF52_SAADC::init( const adc_cfg_t* ppCfg, const adc_channel_cfg_t* ppChann
 
 void nRF52_SAADC::read()
 {
+    for ( int i = 0; i < NRF52_SAADC_BUFFER_COUNT; i++ ) {
+        nrf_drv_saadc_buffer_convert( gsBuffer[i], NRF52_SAADC_COUNT );
+    }
     nrf_drv_saadc_sample();
 }
 

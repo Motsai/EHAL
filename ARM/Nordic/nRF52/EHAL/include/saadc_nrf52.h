@@ -65,6 +65,7 @@ private:
     uint32_t mChannelCount;
 
     bool init();
+    bool init( uint8_t pChannel );
     bool initChannel( const adc_channel_cfg_t& prCfg );
 };
 
