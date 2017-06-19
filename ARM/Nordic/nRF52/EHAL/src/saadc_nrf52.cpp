@@ -38,7 +38,7 @@ extern "C" {
 
 /**********************************************************************************/
 
-#define     NRF52_SAADC_BUFFER_COUNT    1
+#define     NRF52_SAADC_BUFFER_COUNT    2
 #define     NRF52_SAADC_COUNT           8
 
 /**********************************************************************************/
@@ -93,14 +93,19 @@ void nRF52_SAADC::enable()
 
 void nRF52_SAADC::enable( uint8_t pChannelNo )
 {
-    if ( pChannelNo < mChannelCount ) {
-        initChannel( mpChannelCfg[pChannelNo] );
-    }
+    init( pChannelNo );
 }
 
 /**********************************************************************************/
 
 bool nRF52_SAADC::init()
+{
+    return init( 0xFF );
+}
+
+/**********************************************************************************/
+
+bool nRF52_SAADC::init( uint8_t pChannel )
 {
     uint32_t lErrCode;
 
@@ -113,48 +118,33 @@ bool nRF52_SAADC::init()
     lErrCode = nrf_drv_saadc_init( &config, nRF52_SAADC_EventHandler );
     if ( lErrCode != NRF_SUCCESS ) return false;
 
-    for ( int i = 0; i < mChannelCount; i++ ) {
-        if ( !initChannel( mpChannelCfg[i] ) ) return false;
-    }
+    if ( pChannel < mChannelCount ) {
+        if ( !initChannel( mpChannelCfg[pChannel] ) ) {
+            return false;
+        }
 
-    for ( int i = 0; i < NRF52_SAADC_BUFFER_COUNT; i++ ) {
-        uint32_t lErrCode = nrf_drv_saadc_buffer_convert( gsBuffer[i], NRF52_SAADC_COUNT );
-        if ( lErrCode != NRF_SUCCESS ) return false;
+        for ( int i = 0; i < NRF52_SAADC_BUFFER_COUNT; i++ ) {
+            uint32_t lErrCode = nrf_drv_saadc_buffer_convert( gsBuffer[i], 1 );
+            if ( lErrCode != NRF_SUCCESS ) return false;
+        }
+    }
+    else {
+        for ( int i = 0; i < mChannelCount; i++ ) {
+            if ( !initChannel( mpChannelCfg[i] ) ) {
+                return false;
+            }
+        }
+
+        for ( int i = 0; i < NRF52_SAADC_BUFFER_COUNT; i++ ) {
+            uint32_t lErrCode = nrf_drv_saadc_buffer_convert( gsBuffer[i], mChannelCount );
+            if ( lErrCode != NRF_SUCCESS ) return false;
+        }
+
     }
 
     gEventHandler = mpCfg->event_handler;
 
     return true;
-}
-
-/**********************************************************************************/
-
-bool nRF52_SAADC::init( uint8_t pChannel )
-{
-    if ( pChannel < mChannelCount ) {
-        uint32_t lErrCode;
-
-        nrf_drv_saadc_config_t config;
-        config.resolution = (nrf_saadc_resolution_t)mpCfg->resolution;
-        config.oversample = (nrf_saadc_oversample_t)mpCfg->oversample;
-        config.interrupt_priority = (uint8_t)mpCfg->priority;
-        config.low_power_mode = true;
-
-        lErrCode = nrf_drv_saadc_init( &config, nRF52_SAADC_EventHandler );
-        if ( lErrCode != NRF_SUCCESS ) return false;
-
-        if ( !initChannel( mpChannelCfg[pChannel] ) ) return false;
-
-        for ( int i = 0; i < NRF52_SAADC_BUFFER_COUNT; i++ ) {
-            uint32_t lErrCode = nrf_drv_saadc_buffer_convert( gsBuffer[i], NRF52_SAADC_COUNT );
-            if ( lErrCode != NRF_SUCCESS ) return false;
-        }
-
-        gEventHandler = mpCfg->event_handler;
-
-        return true;
-    }
-    return false;
 }
 
 /**********************************************************************************/
@@ -188,7 +178,7 @@ bool nRF52_SAADC::init( const adc_cfg_t* ppCfg, const adc_channel_cfg_t* ppChann
     mpChannelCfg = ppChannel;
     mChannelCount = pChannelCount;
 
-    return init();
+    return true;
 }
 
 /**********************************************************************************/

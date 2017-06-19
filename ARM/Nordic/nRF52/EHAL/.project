@@ -651,29 +651,39 @@
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/ble/peer_manager/security_manager.c</locationURI>
 		</link>
 		<link>
-			<name>src/nRF5_SDK/drivers_nrf/clock/nrf_drv_clock.c</name>
-			<type>1</type>
-			<locationURI>$%7BPARENT-5-PROJECT_LOC%7D/external/nRF5_SDK/components/drivers_nrf/clock/nrf_drv_clock.c</locationURI>
+			<name>src/nRF5_SDK/components/drivers_nrf/clock</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>src/nRF5_SDK/drivers_nrf/common/nrf_drv_common.c</name>
-			<type>1</type>
-			<locationURI>$%7BPARENT-5-PROJECT_LOC%7D/external/nRF5_SDK/components/drivers_nrf/common/nrf_drv_common.c</locationURI>
+			<name>src/nRF5_SDK/components/drivers_nrf/common</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>src/nRF5_SDK/drivers_nrf/hal/nrf_nvmc.c</name>
-			<type>1</type>
-			<locationURI>$%7BPARENT-5-PROJECT_LOC%7D/external/nRF5_SDK/components/drivers_nrf/hal/nrf_nvmc.c</locationURI>
+			<name>src/nRF5_SDK/components/drivers_nrf/hal</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>src/nRF5_SDK/drivers_nrf/power/nrf_drv_power.c</name>
-			<type>1</type>
-			<locationURI>$%7BPARENT-5-PROJECT_LOC%7D/external/nRF5_SDK/components/drivers_nrf/power/nrf_drv_power.c</locationURI>
+			<name>src/nRF5_SDK/components/drivers_nrf/power</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>src/nRF5_SDK/drivers_nrf/rng/nrf_drv_rng.c</name>
-			<type>1</type>
-			<locationURI>$%7BPARENT-5-PROJECT_LOC%7D/external/nRF5_SDK/components/drivers_nrf/rng/nrf_drv_rng.c</locationURI>
+			<name>src/nRF5_SDK/components/drivers_nrf/rng</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/components/drivers_nrf/saadc</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/components/proprietary_rf/esb</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/drivers_nrf/saadc/nrf_drv_saadc.c</name>
@@ -809,6 +819,46 @@
 			<name>src/nRF5_SDK/ble/ble_services/ble_dis/ble_dis.c</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/ble/ble_services/ble_dis/ble_dis.c</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/components/drivers_nrf/clock/nrf_drv_clock.c</name>
+			<type>1</type>
+			<locationURI>$%7BPARENT-5-PROJECT_LOC%7D/external/nRF5_SDK/components/drivers_nrf/clock/nrf_drv_clock.c</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/components/drivers_nrf/common/nrf_drv_common.c</name>
+			<type>1</type>
+			<locationURI>$%7BPARENT-5-PROJECT_LOC%7D/external/nRF5_SDK/components/drivers_nrf/common/nrf_drv_common.c</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/components/drivers_nrf/hal/nrf_nvmc.c</name>
+			<type>1</type>
+			<locationURI>$%7BPARENT-5-PROJECT_LOC%7D/external/nRF5_SDK/components/drivers_nrf/hal/nrf_nvmc.c</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/components/drivers_nrf/hal/nrf_saadc.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/drivers_nrf/hal/nrf_saadc.c</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/components/drivers_nrf/power/nrf_drv_power.c</name>
+			<type>1</type>
+			<locationURI>$%7BPARENT-5-PROJECT_LOC%7D/external/nRF5_SDK/components/drivers_nrf/power/nrf_drv_power.c</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/components/drivers_nrf/rng/nrf_drv_rng.c</name>
+			<type>1</type>
+			<locationURI>$%7BPARENT-5-PROJECT_LOC%7D/external/nRF5_SDK/components/drivers_nrf/rng/nrf_drv_rng.c</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/components/drivers_nrf/saadc/nrf_drv_saadc.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/drivers_nrf/saadc/nrf_drv_saadc.c</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/components/proprietary_rf/esb/nrf_esb.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/proprietary_rf/esb/nrf_esb.c</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/libraries/bootloader/dfu/nrf_dfu_flash.c</name>
