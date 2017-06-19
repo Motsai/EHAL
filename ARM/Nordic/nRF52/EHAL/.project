@@ -421,17 +421,17 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>src/nRF5_SDK/components</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>src/nRF5_SDK/libraries</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/micro-ecc</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/proprietary_rf</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -481,12 +481,7 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>src/nRF5_SDK/components/drivers_nrf</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>src/nRF5_SDK/components/proprietary_rf</name>
+			<name>src/nRF5_SDK/drivers_nrf/saadc</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -547,6 +542,11 @@
 		</link>
 		<link>
 			<name>src/nRF5_SDK/micro-ecc/micro-ecc</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/proprietary_rf/esb</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -651,16 +651,6 @@
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/ble/peer_manager/security_manager.c</locationURI>
 		</link>
 		<link>
-			<name>src/nRF5_SDK/components/drivers_nrf/saadc</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>src/nRF5_SDK/components/proprietary_rf/esb</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>src/nRF5_SDK/drivers_nrf/clock/nrf_drv_clock.c</name>
 			<type>1</type>
 			<locationURI>$%7BPARENT-5-PROJECT_LOC%7D/external/nRF5_SDK/components/drivers_nrf/clock/nrf_drv_clock.c</locationURI>
@@ -684,6 +674,11 @@
 			<name>src/nRF5_SDK/drivers_nrf/rng/nrf_drv_rng.c</name>
 			<type>1</type>
 			<locationURI>$%7BPARENT-5-PROJECT_LOC%7D/external/nRF5_SDK/components/drivers_nrf/rng/nrf_drv_rng.c</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/drivers_nrf/saadc/nrf_drv_saadc.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/drivers_nrf/saadc/nrf_drv_saadc.c</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/libraries/bootloader/dfu</name>
@@ -801,6 +796,11 @@
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/external/micro-ecc/micro-ecc/uECC.c</locationURI>
 		</link>
 		<link>
+			<name>src/nRF5_SDK/proprietary_rf/esb/nrf_esb.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/proprietary_rf/esb/nrf_esb.c</locationURI>
+		</link>
+		<link>
 			<name>src/nRF5_SDK/softdevice/common/softdevice_handler</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -809,16 +809,6 @@
 			<name>src/nRF5_SDK/ble/ble_services/ble_dis/ble_dis.c</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/ble/ble_services/ble_dis/ble_dis.c</locationURI>
-		</link>
-		<link>
-			<name>src/nRF5_SDK/components/drivers_nrf/saadc/nrf_drv_saadc.c</name>
-			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/drivers_nrf/saadc/nrf_drv_saadc.c</locationURI>
-		</link>
-		<link>
-			<name>src/nRF5_SDK/components/proprietary_rf/esb/nrf_esb.c</name>
-			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/proprietary_rf/esb/nrf_esb.c</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/libraries/bootloader/dfu/nrf_dfu_flash.c</name>
