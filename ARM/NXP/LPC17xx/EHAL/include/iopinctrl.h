@@ -1,14 +1,14 @@
 /*--------------------------------------------------------------------------
 File   : iopinctrl.h
 
-Author : Hoang Nguyen Hoan          June. 2, 2014
+Author : Hoang Nguyen Hoan          Nov. 20, 2011
 
 Desc   : General I/O pin control implementation specific 
 		 This file must be named iopinctrl.h no matter which target
 
-		 This is nRF52 implementation
+		 This is LPC11xx implementation
 
-Copyright (c) 2014, I-SYST inc., all rights reserved
+Copyright (c) 2011, I-SYST inc., all rights reserved
 
 Permission to use, copy, modify, and distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright
@@ -38,45 +38,60 @@ Modified by          Date              Description
 #define __IOPINCTRL_H__
 
 #include <stdint.h>
-#include "nrf52.h"
-#include "iopincfg.h"
+#include "LPC17xx.h"
 
 static inline void IOPinSetDir(int PortNo, int PinNo, IOPINDIR Dir)
 {
 	if (Dir == IOPINDIR_OUTPUT)
-		NRF_P0->DIRSET = (1 << PinNo);
+		LPC_GPIO0[PortNo].FIODIR |= 1L << PinNo;
 	else if (Dir == IOPINDIR_INPUT)
-		NRF_P0->DIRCLR = (1 << PinNo);
+		LPC_GPIO0[PortNo].FIODIR &= ~(1L << PinNo);
 }
 
 static inline int IOPinRead(int PortNo, int PinNo)
 {
-	return (NRF_P0->IN >> PinNo) & 1;
+
+	return ((LPC_GPIO0[PortNo].FIOPIN >> PinNo ) & 1);
 }
 
 static inline void IOPinSet(int PortNo, int PinNo)
 {
-	NRF_P0->OUTSET = (1 << PinNo);
+	LPC_GPIO0[PortNo].FIOSET = (1 << PinNo);
 }
 
 static inline void IOPinClear(int PortNo, int PinNo)
 {
-	NRF_P0->OUTCLR = (1 << PinNo);
+	LPC_GPIO0[PortNo].FIOCLR = (1 << PinNo);
 }
 
 static inline void IOPinToggle(int PortNo, int PinNo)
 {
-	NRF_P0->OUT = NRF_P0->OUT ^ (1 << PinNo);
+	LPC_GPIO0[PortNo].FIOPIN = LPC_GPIO0[PortNo].FIOPIN ^ (1 << PinNo);
 }
 
 static inline uint32_t IOPinReadPort(int PortNo)
 {
-	return NRF_P0->IN;
+	return LPC_GPIO0[PortNo].FIOPIN;
 }
 
 static inline void IOPinWritePort(int PortNo, uint32_t Data)
 {
-	NRF_P0->OUT = Data;
+	LPC_GPIO0[PortNo].FIOPIN = Data;
+}
+
+static inline void IOPinWrite8Port(int PortNo, uint8_t Data)
+{
+	LPC_GPIO0[PortNo].FIOPIN0 = Data;
+}
+
+static inline void IOPinWrite16Port(int PortNo, uint16_t Data)
+{
+	LPC_GPIO0[PortNo].FIOPINL = Data & 0xFF;
+}
+
+static inline void IOPinWrite32Port(int PortNo, uint32_t Data)
+{
+	LPC_GPIO0[PortNo].FIOPIN = Data;
 }
 
 #endif	// __IOPINCTRL_H__
