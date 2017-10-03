@@ -150,13 +150,11 @@ SECTIONS {
 	
 	.eh_frame : ONLY_IF_RW 
 	{ 
-		. = ALIGN(4);
 		*(.eh_frame) 
 	} > RAM
 	
 	.gcc_except_table : ONLY_IF_RW 
 	{ 
-		. = ALIGN(4);
 		*(.gcc_except_table .gcc_except_table.*) 
 	} > RAM
 	
