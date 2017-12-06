@@ -38,6 +38,9 @@ Modified by          Date              Description
 
 #include "ble.h"
 #include "nrf_sdm.h"
+#include "ble_db_discovery.h"
+
+#include "bluetooth/bleadv_mandata.h"
 
 /**< MTU size used in the softdevice enabling and to reply to a BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST event. */
 #if (NRF_SD_BLE_API_VERSION <= 3)
@@ -49,31 +52,28 @@ Modified by          Date              Description
 #endif
 
 #if  defined(BLE_GATT_ATT_MTU_DEFAULT) && !defined(GATT_MTU_SIZE_DEFAULT)
-#define GATT_MTU_SIZE_DEFAULT BLE_GATT_ATT_MTU_DEFAULT
+#define GATT_MTU_SIZE_DEFAULT  			BLE_GATT_ATT_MTU_DEFAULT
 #endif
 
 #define NRF_BLE_MAX_MTU_SIZE            GATT_MTU_SIZE_DEFAULT
 
 #endif
 
-#define BLEAPP_ADV_MANDATA_TYPE_SN		0xFF	// Device Serial Number (8 bytes)
-#define BLEAPP_ADV_MANDATA_TYPE_PTH		1		// PTH Environmental sensor data
-#define BLEAPP_ADV_MANDATA_TYPE_MOTION	2		// Motion sensor data Accel, Gyro, Mag
-
-#pragma pack(push, 1)
-// I-SYST Manufacture specific data format in advertisement
-typedef struct _BleAppAdvManData {
-	uint8_t Type;		// Data types (see defined code
-	uint8_t Data[1];	// type specific data follows can be more than 1 bytes
-} BLEAPP_ADV_MANDATA;
-
-#pragma pack(pop)
+typedef enum __BleAppAdvMode {
+	BLEAPP_ADVMODE_IDLE,			// no connectable advertising is ongoing.
+	BLEAPP_ADVMODE_DIRECTED,		// Directed advertising attempts to connect to the most recently disconnected peer.
+	BLEAPP_ADVMODE_DIRECTED_SLOW,	// Directed advertising (low duty cycle) attempts to connect to the most recently disconnected peer.
+	BLEAPP_ADVMODE_FAST,			// Fast advertising will connect to any peer device, or filter with a whitelist if one exists.
+	BLEAPP_ADVMODE_SLOW				// Slow advertising is similar to fast advertising. By default, it uses a longer
+									// advertising interval and time-out than fast advertising. However, these options are defined by the user.
+} BLEAPP_ADVMODE;
 
 typedef enum _BleAppMode {
-	BLEAPP_MODE_LOOP,		// just main loop, No scheduler, no RTOS
+	BLEAPP_MODE_LOOP,		// just main loop (event mode), No scheduler, no RTOS
 	BLEAPP_MODE_APPSCHED,	// use app_cheduler
 	BLEAPP_MODE_RTOS,		// use RTOS
-	BLEAPP_MODE_NOCONNECT	// Connectionless beacon type of app.
+	BLEAPP_MODE_NOCONNECT,	// Connectionless beacon type of app.
+	BLEAPP_MODE_IBEACON		// Apple iBeacon
 } BLEAPP_MODE;
 
 // Service connection security types
@@ -99,6 +99,12 @@ typedef void (*BLEEVTHANDLER)(ble_evt_t *pEvt);
 
 #pragma pack(push, 4)
 
+typedef struct _BleAppPeripheral {
+	uint16_t ConnHdl;	// Connection handle
+    uint8_t SrvcCnt;	// Number of services
+    ble_gatt_db_srv_t Srvc[BLE_DB_DISCOVERY_MAX_SRV];  // service data
+} BLEAPP_PERIPH;
+
 typedef struct _BleAppDevInfo {
 	const char ModelName[BLEAPP_INFOSTR_MAX_SIZE];	// Model name
 	const char ManufName[BLEAPP_INFOSTR_MAX_SIZE];	// Manufacturer name
@@ -113,8 +119,8 @@ typedef struct _BleAppConfig {
 	int	PeriLinkCount;			// Number of peripheral link
 	BLEAPP_MODE AppMode;		// App use scheduler, rtos
 	const char *pDevName;		// Device name
-	uint16_t VendorID;			// PnP Bluetooth/USB vendor id
-	uint16_t ProductId;			// PnP product ID
+	uint16_t VendorID;			// PnP Bluetooth/USB vendor id. iBeacon mode, this is Major value
+	uint16_t ProductId;			// PnP product ID. iBeacon mode, this is Minor value
 	uint16_t ProductVer;		// PnP product version
 	bool bEnDevInfoService;		// Enable device information service (DIS)
 	const BLEAPP_DEVDESC *pDevDesc;	// Pointer device info descriptor
@@ -133,6 +139,9 @@ typedef struct _BleAppConfig {
 	int ConnLedPort;			// Connection LED port & pin number
 	int ConnLedPin;
 	uint32_t (*SDEvtHandler)(void) ;// Require for BLEAPP_MODE_RTOS
+	int	MaxMtu;					// Max MTU size or 0 for default
+	int PeriphDevCnt;			// Max number of peripheral connection
+	BLEAPP_PERIPH *pPeriphDev;	// Connected peripheral data table
 } BLEAPP_CFG;
 
 #pragma pack(pop)
@@ -202,6 +211,9 @@ bool BleAppInit(const BLEAPP_CFG *pBleAppCfg, bool bEraseBond);
 void BleAppEnterDfu();
 void BleAppRun();
 uint16_t BleAppGetConnHandle();
+void BleAppGapDeviceNameSet(const char* ppDeviceName);
+void BleAppAdvManDataSet(uint8_t *pData, int Len);
+void BleAppAdvStart(BLEAPP_ADVMODE AdvMode);
 
 #ifdef __cplusplus
 }
