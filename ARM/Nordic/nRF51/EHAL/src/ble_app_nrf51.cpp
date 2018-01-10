@@ -398,11 +398,45 @@ static void on_ble_evt(ble_evt_t const * p_ble_evt)
 
         	//g_Uart.printf("Passkey: %s\r\n", passkey);
         } break; // BLE_GAP_EVT_PASSKEY_DISPLAY
+//        case BLE_GAP_EVT_PHY_UPDATE_REQUEST:
+//        {
+//            printf("PHY update request.\r\n");
+//            ble_gap_phys_t const phys =
+//            {
+//                /*.tx_phys =*/ BLE_GAP_PHY_AUTO,
+//                /*.rx_phys =*/ BLE_GAP_PHY_AUTO,
+//            };
+//            err_code = sd_ble_gap_phy_update(p_ble_evt->evt.gap_evt.conn_handle, &phys);
+//            APP_ERROR_CHECK(err_code);
+//        } break;
+
+        case BLE_GAP_EVT_DATA_LENGTH_UPDATE_REQUEST:
+       {
+           ble_gap_data_length_params_t dl_params;
+
+//           printf("BLE_GAP_EVT_DATA_LENGTH_UPDATE_REQUEST\r\n");
+
+           // Clearing the struct will effectivly set members to @ref BLE_GAP_DATA_LENGTH_AUTO
+           memset(&dl_params, 0, sizeof(ble_gap_data_length_params_t));
+           err_code = sd_ble_gap_data_length_update(p_ble_evt->evt.gap_evt.conn_handle, &dl_params, NULL);
+           APP_ERROR_CHECK(err_code);
+       } break;
+
+        case BLE_GAP_EVT_CONN_PARAM_UPDATE:
+        {
+            uint16_t max_con_int = p_ble_evt->evt.gap_evt.params.conn_param_update.conn_params.max_conn_interval;
+            uint16_t min_con_int = p_ble_evt->evt.gap_evt.params.conn_param_update.conn_params.min_conn_interval;
+
+           // m_ble_params_info.con_interval = max_con_int;
+            //ble_its_ble_params_info_send(&m_its, &m_ble_params_info);
+//            printf("Con params updated: CI %i, %i\r\n", (int)min_con_int, (int)max_con_int);
+        } break;
+
 
         case BLE_GATTS_EVT_SYS_ATTR_MISSING:
             // No system attributes have been stored.
-            //err_code = sd_ble_gatts_sys_attr_set(g_ConnHdl, NULL, 0, 0);
-            //APP_ERROR_CHECK(err_code);
+            err_code = sd_ble_gatts_sys_attr_set(g_BleAppData.ConnHdl, NULL, 0, 0);
+            APP_ERROR_CHECK(err_code);
             break; // BLE_GATTS_EVT_SYS_ATTR_MISSING
 
         case BLE_GAP_EVT_TIMEOUT:
