@@ -281,6 +281,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/diskio_impl.cpp</locationURI>
 		</link>
 		<link>
+			<name>src/esb_intrf.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/esb_intrf.cpp</locationURI>
+		</link>
+		<link>
 			<name>src/fatfs.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/fatfs.cpp</locationURI>
@@ -426,6 +431,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>src/nRF5_SDK/proprietary_rf</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>src/nRF5_SDK/softdevice</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -552,6 +562,11 @@
 		</link>
 		<link>
 			<name>src/nRF5_SDK/micro-ecc/micro-ecc</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/proprietary_rf/esb</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -794,6 +809,11 @@
 			<name>src/nRF5_SDK/micro-ecc/micro-ecc/uECC.c</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/external/micro-ecc/micro-ecc/uECC.c</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/proprietary_rf/esb/nrf_esb.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/proprietary_rf/esb/nrf_esb.c</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/softdevice/common/softdevice_handler</name>
