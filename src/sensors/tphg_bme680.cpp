@@ -1,10 +1,58 @@
-/*--------------------------------------------------------------------------
-File   : tphg_bme680.cpp
+/**-------------------------------------------------------------------------
+@file	tphg_bme680.cpp
 
-Author : Hoang Nguyen Hoan          			Oct. 15, 2017
+@brief	Implementation of Bosch #BME680 low power gas, pressure, temperature & humidity sensor.
 
-Desc   : BME680 environment sensor implementation
-			- Temperature, Humidity, Barometric pressure, Gas
+The Air Quality Index is undocumented.  It requires the library
+Bosch Sensortec Environmental Cluster (BSEC) Software. Download from
+https://www.bosch-sensortec.com/bst/products/all_products/bsec and put in
+external folder as indicated on the folder tree.
+
+The BSEC library must be initialized in the main application prior to initializing
+this driver by calling the function
+
+bsec_library_return_t res = bsec_init();
+
+Specs:
+
+The BME680 is a digital 4-in-1 sensor with gas, humidity, pressure and temperature
+measurement based on proven sensing principles. The sensor module is housed in an
+extremely compact metal-lid LGA package with a footprint of only 3.0 × 3.0 mm2 with
+a maximum height of 1.00 mm (0.93 ± 0.07 mm). Its small dimensions and its low power
+consumption enable the integration in battery-powered or frequency-coupled devices,
+such as handsets or wearables.
+
+Key features
+
+- Package : 3.0 mm x 3.0 mm x 0.93 mm metal lid LGA
+- Digital interface : I2C (up to 3.4 MHz) and SPI (3 and 4 wire, up to 10 MHz)
+- Supply voltage : VDD main supply voltage range: 1.71 V to 3.6 V. VDDIO interface voltage range: 1.2 V to 3.6 V
+- Current consumption : 2.1 μA at 1 Hz humidity and temperature. 3.1 μA at 1 Hz pressure and temperature
+3.7 μA at 1 Hz humidity, pressure and temperature. 0.09‒12 mA for p/h/T/gas depending on operation mode. 0.15 μA in sleep mode
+- Operating range : -40‒+85 °C, 0‒100% r.H., 300‒1100 hPa
+- Individual humidity, pressure and gas sensors can be independently enabled/disabled
+
+Key parameters for gas sensor
+
+- Response time (𝜏33−63%) : < 1 s (for new sensors)
+- Power consumption : < 0.1 mA in ultra-low power mode
+- Output data processing : direct indoor air quality (IAQ) index output
+
+Key parameters for humidity sensor
+
+- Response time (𝜏0−63%) : ~8 s
+- Accuracy tolerance : ±3% r.H.
+- Hysteresis : ±1.5% r.H.
+
+Key parameters for pressure sensor
+
+- RMS Noise 0.12 Pa, equiv. to 1.7 cm
+- Offset temperature coefficient ±1.3 Pa/K, equiv. to ±10.9 cm at 1 °C temperature change
+
+@author	Hoang Nguyen Hoan
+@date	Oct. 15, 2017
+
+@license
 
 Copyright (c) 2017, I-SYST inc., all rights reserved
 
@@ -28,9 +76,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 #include <stdint.h>
 #include <string.h>
@@ -43,6 +88,8 @@ Modified by          Date              Description
 #include "device_intrf.h"
 #include "iopincfg.h"
 #include "sensors/tphg_bme680.h"
+#include "bsec_interface.h"
+
 
 // 16 bits binary fixed point
 static const uint32_t s_Bme860GasCalib1[16] = {
@@ -54,6 +101,26 @@ const uint64_t s_Bme860GasCalib2[16] = {
 	524288000000LL, 262144000000LL, 131072000000LL, 65536000000LL, 32735264735LL, 16270109232LL, 8192000000LL, 4129032258LL,
 	2050050050LL, 1024000000LL, 512000000LL, 256000000LL, 128000000LL, 64000000LL, 32000000LL, 16000000LL
 };
+
+#if 0
+// 16 bits binary fixed point
+static const float s_fBme860GasCalib1[16] = {
+	1.0, 1.0, 1.0, 1.0, 1.0, 0.99, 1.0, 0.992, 1.0, 1.0, 0.998, 0.995, 1.0, 0.99, 1.0, 1.0
+};
+
+// 16 bits binary fixed point
+const float s_fBme860GasCalib2[16] = {
+	8000000.0, 4000000.0, 2000000.0, 1000000.0, 499500.4995, 248262.1648, 125000.0, 63004.03226,
+	31281.28128, 15625.0, 7812.5, 3906.25, 1953.125, 976.5625, 488.28125, 244.140625
+};
+#endif
+
+TphgBme680::TphgBme680()
+{
+	vbMeasGas = false;
+	vbGasData = false;
+	vbSpi = false;
+}
 
 // Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123” equals 51.23 DegC.
 // t_fine carries fine temperature as global value
@@ -140,12 +207,26 @@ uint32_t TphgBme680::CalcGas(uint16_t RawAdcGas, uint8_t Range)
 	uint64_t var1;
 	uint64_t var2;
 
-  	var1 = ((1340LL + (5LL * (uint64_t) vCalibData.range_sw_err)) * (uint64_t) s_Bme860GasCalib1[Range]) >> 16LL;
-	var2 = (uint64_t)RawAdcGas - 512LL + var1;
+ 	var1 = ((1340LL + (5LL * (uint64_t) vCalibData.range_sw_err)) * (uint64_t) s_Bme860GasCalib1[Range]);
+	var2 = (((uint64_t)RawAdcGas - 512LL) << 16LL) + var1;
 	gval = (uint32_t)((((var1 * s_Bme860GasCalib2[Range] + (var2 >> 1)) / var2) + 32768LL) >> 16LL);
 
 	return gval;
 }
+#if 0
+float TphgBme680::fCalcGas(uint16_t RawAdcGas, uint8_t Range)
+{
+	float gval;
+	float var1;
+	float var2;
+
+  	var1 = (1340.0 + 5.0 * vCalibData.range_sw_err) * s_fBme860GasCalib1[Range];
+	var2 = (float)RawAdcGas - 512.0 + var1;
+	gval = var1 * s_fBme860GasCalib2[Range] / var2;
+
+	return gval;
+}
+#endif
 
 uint8_t TphgBme680::CalcHeaterResistance(uint16_t Temp)
 {
@@ -173,10 +254,10 @@ bool TphgBme680::Init(const TPHSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *
 	uint8_t regaddr;
 	uint8_t d;
 
-	if (pIntrf != NULL && pIntrf != GetInterface())
+	if (pIntrf != NULL && pIntrf != Interface())
 	{
-		SetInterface(pIntrf);
-		SetDeviceAddess(CfgData.DevAddr);
+		Interface(pIntrf);
+		DeviceAddess(CfgData.DevAddr);
 	}
 
 	if (pTimer != NULL)
@@ -210,6 +291,9 @@ bool TphgBme680::Init(const TPHSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *
 	}
 
 	// Device found
+
+	DeviceID(d);
+	Valid(true);
 
 	Reset();
 
@@ -282,14 +366,10 @@ bool TphgBme680::Init(const TPHSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *
 
 	State(SENSOR_STATE_SLEEP);
 
-	SetMode(CfgData.OpMode, CfgData.Freq);
+	Mode(CfgData.OpMode, CfgData.Freq);
 
-	if (vOpMode == SENSOR_OPMODE_SINGLE)
-	{
-		StartSampling();
-	}
-
-	usDelay(10000);
+	if (CfgData.DataRdyCB != NULL)
+		TphSensor::vDataRdyHandler = CfgData.DataRdyCB;
 
 	return true;
 }
@@ -297,16 +377,44 @@ bool TphgBme680::Init(const TPHSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *
 // Gas sensor init
 bool TphgBme680::Init(const GASSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *pTimer)
 {
-	if (pIntrf != NULL && pIntrf != GetInterface())
+	if (pIntrf != NULL && pIntrf != Interface())
 	{
-		SetInterface(pIntrf);
-		SetDeviceAddess(CfgData.DevAddr);
+		Interface(pIntrf);
+		DeviceAddess(CfgData.DevAddr);
 	}
 
 
 	if (pTimer != NULL)
 	{
 		vpTimer = pTimer;
+	}
+
+	bsec_library_return_t bsec_status;
+
+/*	bsec_status = bsec_init();
+
+	if (bsec_status != BSEC_OK)
+	{
+		return false;
+	}*/
+
+	bsec_sensor_configuration_t requested_virtual_sensors[1];
+	uint8_t n_requested_virtual_sensors = 1;
+
+	requested_virtual_sensors[0].sensor_id = BSEC_OUTPUT_IAQ_ESTIMATE;
+	// the BSEC library does not seems to work with any other setting than BSEC_SAMPLE_RATE_LP
+	requested_virtual_sensors[0].sample_rate = BSEC_SAMPLE_RATE_LP;
+
+	// Allocate a struct for the returned phyisical sensor settings
+	bsec_sensor_configuration_t required_sensor_settings[BSEC_MAX_PHYSICAL_SENSOR];
+	uint8_t  n_required_sensor_settings = BSEC_MAX_PHYSICAL_SENSOR;
+
+    // Call bsec_update_subscription() to enable/disable the requested virtual sensors
+	bsec_status = bsec_update_subscription(requested_virtual_sensors, n_requested_virtual_sensors, required_sensor_settings, &n_required_sensor_settings);
+
+	if (bsec_status != BSEC_OK)
+	{
+		return false;
 	}
 
 	vbMeasGas = true;
@@ -319,11 +427,6 @@ bool TphgBme680::Init(const GASSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *
 	vCtrlGas1Reg = BME680_REG_CTRL_GAS1_RUN_GAS | ((vNbHeatPoint - 1) & BME680_REG_CTRL_GAS1_NB_CONV_MASK);
 
 	Write(&reg, 1, &vCtrlGas1Reg, 1);
-
-	if (vOpMode == SENSOR_OPMODE_SINGLE)
-	{
-		StartSampling();
-	}
 
 	return true;
 }
@@ -410,17 +513,17 @@ SENSOR_STATE TphgBme680::State(SENSOR_STATE State) {
  * 					- TPHSENSOR_OPMODE_SLEEP
  * 					- TPHSENSOR_OPMODE_SINGLE
  * 					- TPHSENSOR_OPMODE_CONTINUOUS
- * @param Freq : Sampling frequency in Hz for continuous mode
+ * @param Freq : Sampling frequency in mHz for continuous mode
  *
  * @return true- if success
  */
-bool TphgBme680::SetMode(SENSOR_OPMODE OpMode, uint32_t Freq)
+bool TphgBme680::Mode(SENSOR_OPMODE OpMode, uint32_t Freq)
 {
-	uint8_t regaddr;
+//	uint8_t regaddr;
 	//uint8_t d = 0;
 
 	vOpMode = OpMode;
-	vSampFreq = Freq;
+	Sensor::SamplingFrequency(Freq);
 
 	// read current ctrl_meas register
 	//regaddr = BME680_REG_CTRL_MEAS;
@@ -448,17 +551,6 @@ bool TphgBme680::SetMode(SENSOR_OPMODE OpMode, uint32_t Freq)
 }
 
 /**
- * @brief	Set sampling frequency.
- * 		The sampling frequency is relevant only in continuous mode.
- *
- * @return	Frequency in Hz
- */
-uint32_t TphgBme680::SamplingFrequency(uint32_t FreqHz)
-{
-
-}
-
-/**
  * @brief	Start sampling data
  *
  * @return	true - success
@@ -475,6 +567,19 @@ bool TphgBme680::StartSampling()
 		regaddr = BME680_REG_CTRL_MEAS;
 		Write(&regaddr, 1, &vCtrlReg, 1);
 		vbSampling = true;
+
+		if (vpTimer)
+		{
+			vSampleTime = vpTimer->uSecond();
+		}
+		else
+		{
+			vSampleTime += vSampPeriod;
+		}
+
+	    bsec_bme_settings_t sensor_settings;
+
+		bsec_library_return_t bsec_status = bsec_sensor_control(vSampleTime * 1000LL, &sensor_settings);
 
 		return true;
 	}
@@ -508,6 +613,10 @@ bool TphgBme680::UpdateData()
 	uint8_t addr = BME680_REG_MEAS_STATUS_0;
 	uint8_t status = 0;
 	uint8_t	gasidx;
+	bsec_input_t inputs[BSEC_MAX_PHYSICAL_SENSOR];
+	uint8_t icnt = 0;
+    bsec_output_t outputs[BSEC_NUMBER_OUTPUTS];
+    uint8_t ocnt = BSEC_NUMBER_OUTPUTS;
 
 	Read(&addr, 1, &status, 1);
 
@@ -527,7 +636,18 @@ bool TphgBme680::UpdateData()
 			vTphData.Temperature = CalcTemperature(t);
 			vTphData.Pressure = CalcPressure(p);
 			vTphData.Humidity = CalcHumidity(h);
+			vTphData.Timestamp = vSampleTime;
 
+			inputs[0].sensor_id = BSEC_INPUT_TEMPERATURE;
+			inputs[0].signal = vTphData.Temperature / 100.0;
+			inputs[0].time_stamp = vSampleTime * 1000LL;
+			inputs[1].sensor_id = BSEC_INPUT_HUMIDITY;
+			inputs[1].signal = vTphData.Humidity / 100.0;
+			inputs[1].time_stamp = inputs[0].time_stamp;
+			inputs[2].sensor_id = BSEC_INPUT_PRESSURE;
+			inputs[2].signal = vTphData.Pressure;
+			inputs[2].time_stamp = inputs[0].time_stamp;
+			icnt = 3;
 		}
 
 		addr = BME680_REG_GAS_R_MSB;
@@ -536,33 +656,40 @@ bool TphgBme680::UpdateData()
 		{
 			int32_t grange = d[1] & BME680_REG_GAS_R_LSB_GAS_RANGE_R;
 			int32_t gadc = (d[1] >> 5) | (d[0] << 2);
-			if ((d[1] & (BME680_REG_GAS_R_LSB_GAS_VALID_R |BME680_REG_GAS_R_LSB_HEAT_STAB_R)) ==
-					(BME680_REG_GAS_R_LSB_GAS_VALID_R |BME680_REG_GAS_R_LSB_HEAT_STAB_R))
+			if (d[1] & BME680_REG_GAS_R_LSB_GAS_VALID_R)// | BME680_REG_GAS_R_LSB_HEAT_STAB_R)) ==
+//					(BME680_REG_GAS_R_LSB_GAS_VALID_R | BME680_REG_GAS_R_LSB_HEAT_STAB_R))
 			{
 				vGasData.GasRes[gasidx] = CalcGas(gadc, grange);
 				vGasData.MeasIdx = gasidx;
 				vbGasData = true;
+				vGasData.Timestamp = vSampleTime;
+				//vGasResInt = iCalcGas(gadc, grange);
+				inputs[icnt].sensor_id = BSEC_INPUT_GASRESISTOR;
+				inputs[icnt].signal = vGasData.GasRes[gasidx];
+				inputs[icnt].time_stamp = vGasData.Timestamp * 1000LL;// g_Timer.mSecond();
+
+				icnt++;
 			}
+
 		}
 
 		vSampleCnt++;
 
-		if (vpTimer)
+		bsec_library_return_t bsec_status = bsec_do_steps(inputs, icnt, outputs, &ocnt);
+		if (bsec_status == BSEC_OK)
 		{
-			vTphData.Timestamp = vpTimer->mSecond();
-		}
-		else
-		{
-			vTphData.Timestamp = vSampleCnt;
+	        for (int i = 0; i < ocnt; i++)
+	        {
+	            if (outputs[i].sensor_id == BSEC_OUTPUT_IAQ_ESTIMATE)
+	            {
+					vGasData.AirQualIdx = outputs[i].signal;
+                   // iaq_accuracy = bsec_outputs[index].accuracy;
+	            }
+	        }
 		}
 
 		vbSampling = false;
-/*
-		if (vOpMode == SENSOR_OPMODE_SINGLE)
-		{
-			StartSampling();
-		}
-*/
+
 		return true;
 	}
 
@@ -594,7 +721,8 @@ bool TphgBme680::Read(GASSENSOR_DATA &GasData)
 
 	uint8_t reg = BME680_REG_CTRL_GAS1;
 
-	Write(&reg, 1, &vCtrlGas1Reg, 1);
+	//if (retval == true)
+		Write(&reg, 1, &vCtrlGas1Reg, 1);
 
 	vbGasData = false;
 

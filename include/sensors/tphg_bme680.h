@@ -1,10 +1,58 @@
-/*--------------------------------------------------------------------------
-File   : tphg_bme680.h
+/**-------------------------------------------------------------------------
+@file	tphg_bme680.h
 
-Author : Hoang Nguyen Hoan          			Oct. 15, 2017
+@brief	Implementation of Bosch #BME680 low power gas, pressure, temperature & humidity sensor.
 
-Desc   : BME680 environment sensor implementation
-			- Temperature, Pressure, Humidity, Gas
+The Air Quality Index is undocumented.  It requires the library
+Bosch Sensortec Environmental Cluster (BSEC) Software. Download from
+https://www.bosch-sensortec.com/bst/products/all_products/bsec and put in
+external folder as indicated on the folder tree.
+
+The BSEC library must be initialized in the main application prior to initializing
+this driver by calling the function
+
+bsec_library_return_t res = bsec_init();
+
+Specs:
+
+The BME680 is a digital 4-in-1 sensor with gas, humidity, pressure and temperature
+measurement based on proven sensing principles. The sensor module is housed in an
+extremely compact metal-lid LGA package with a footprint of only 3.0 × 3.0 mm2 with
+a maximum height of 1.00 mm (0.93 ± 0.07 mm). Its small dimensions and its low power
+consumption enable the integration in battery-powered or frequency-coupled devices,
+such as handsets or wearables.
+
+Key features
+
+- Package : 3.0 mm x 3.0 mm x 0.93 mm metal lid LGA
+- Digital interface : I2C (up to 3.4 MHz) and SPI (3 and 4 wire, up to 10 MHz)
+- Supply voltage : VDD main supply voltage range: 1.71 V to 3.6 V. VDDIO interface voltage range: 1.2 V to 3.6 V
+- Current consumption : 2.1 μA at 1 Hz humidity and temperature. 3.1 μA at 1 Hz pressure and temperature
+3.7 μA at 1 Hz humidity, pressure and temperature. 0.09‒12 mA for p/h/T/gas depending on operation mode. 0.15 μA in sleep mode
+- Operating range : -40‒+85 °C, 0‒100% r.H., 300‒1100 hPa
+- Individual humidity, pressure and gas sensors can be independently enabled/disabled
+
+Key parameters for gas sensor
+
+- Response time (𝜏33−63%) : < 1 s (for new sensors)
+- Power consumption : < 0.1 mA in ultra-low power mode
+- Output data processing : direct indoor air quality (IAQ) index output
+
+Key parameters for humidity sensor
+
+- Response time (𝜏0−63%) : ~8 s
+- Accuracy tolerance : ±3% r.H.
+- Hysteresis : ±1.5% r.H.
+
+Key parameters for pressure sensor
+
+- RMS Noise 0.12 Pa, equiv. to 1.7 cm
+- Offset temperature coefficient ±1.3 Pa/K, equiv. to ±10.9 cm at 1 °C temperature change
+
+@author	Hoang Nguyen Hoan
+@date	Oct. 15, 2017
+
+@license
 
 Copyright (c) 2017, I-SYST inc., all rights reserved
 
@@ -28,9 +76,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 #ifndef __TPHG_BME680_H__
 #define __TPHG_BME680_H__
@@ -46,9 +91,13 @@ Modified by          Date              Description
 #include "tph_sensor.h"
 #include "gas_sensor.h"
 
+/** @addtogroup Sensors
+  * @{
+  */
+
 // Device address depending on SDO wiring
-#define BME680_I2C_DEV_ADDR0			0x76		// SDO to GND
-#define BME680_I2C_DEV_ADDR1			0x77		// SDO to VCC
+#define BME680_I2C_DEV_ADDR0			0x76		// Device address when SDO to GND
+#define BME680_I2C_DEV_ADDR1			0x77		// Device address when SDO to VCC
 
 #define BME680_ID						0x61
 
@@ -193,21 +242,78 @@ typedef struct {
 
 #ifdef __cplusplus
 
-class TphgBme680 : public TPHSensor, public GasSensor {
+/// @brief	Implementation of Bosch #BME680 low power gas, pressure, temperature & humidity sensor.
+///
+/// Key features
+///
+/// - Package : 3.0 mm x 3.0 mm x 0.93 mm metal lid LGA
+/// - Digital interface : I2C (up to 3.4 MHz) and SPI (3 and 4 wire, up to 10 MHz)
+/// - Supply voltage : VDD main supply voltage range: 1.71 V to 3.6 V. VDDIO interface voltage range: 1.2 V to 3.6 V
+/// - Current consumption : 2.1 μA at 1 Hz humidity and temperature. 3.1 μA at 1 Hz pressure and temperature
+/// 3.7 μA at 1 Hz humidity, pressure and temperature. 0.09‒12 mA for p/h/T/gas depending on operation mode. 0.15 μA in sleep mode
+/// - Operating range : -40‒+85 °C, 0‒100% r.H., 300‒1100 hPa
+/// - Individual humidity, pressure and gas sensors can be independently enabled/disabled
+///
+/// Key parameters for gas sensor
+///
+/// - Response time (𝜏33−63%) : < 1 s (for new sensors)
+/// - Power consumption : < 0.1 mA in ultra-low power mode
+/// - Output data processing : direct indoor air quality (IAQ) index output
+///
+/// Key parameters for humidity sensor
+///
+/// - Response time (𝜏0−63%) : ~8 s
+/// - Accuracy tolerance : ±3% r.H.
+/// - Hysteresis : ±1.5% r.H.
+///
+/// Key parameters for pressure sensor
+///
+/// - RMS Noise 0.12 Pa, equiv. to 1.7 cm
+/// - Offset temperature coefficient ±1.3 Pa/K, equiv. to ±10.9 cm at 1 °C temperature change
+class TphgBme680 : public TphSensor, public GasSensor {
 public:
-	TphgBme680() : vbMeasGas(false), vbSampling(false),
-				   vbGasData(false), vbSpi(false) {}
+	TphgBme680();
 	virtual ~TphgBme680() {}
 
 	/**
-	 * Main init, must be call first before initializing Gas sensor
+	 * @brief	Main initialization TPH sensor.
+	 *
+	 * @note	This initialization must be called first.
+	 *
+	 * @param 	CfgData : Reference to configuration data
+	 * @param	pIntrf 	: Pointer to interface to the sensor.
+	 * 					  This pointer will be kept internally
+	 * 					  for all access to device.
+	 * 					  DONOT delete this object externally
+	 * @param	pTimer	: Pointer to timer for retrieval of time stamp (optional)
+	 * 					  This pointer will be kept internally
+	 * 					  for all access to device.
+	 * 					  DONOT delete this object externally
+	 *
+	 * @return
+	 * 			- true	: Success
+	 * 			- false	: Failed
 	 */
-	virtual bool Init(const TPHSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *pTimer);
+	bool Init(const TPHSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *pTimer);
 
 	/**
-	 * Must call init TPH first before calling this function
+	 * @brief	Secondary initialization gas sensor.
+	 *
+	 * @note	Must call TPH initialization first before calling this function.
+	 *
+	 * @param 	CfgData : Reference to configuration data
+	 * @param	pIntrf 	: Pointer to interface to the sensor.
+	 * 					  This pointer will be kept internally
+	 * 					  for all access to device.
+	 * 					  DONOT delete this object externally
+	 * @param	pTimer	: Pointer to timer for retrieval of time stamp (optional)
+	 * 					  This pointer will be kept internally
+	 * 					  for all access to device.
+	 * 					  DONOT delete this object externally
+	 *
+	 * @return	true - Success
 	 */
-	virtual bool Init(const GASSENSOR_CFG &CfgData, DeviceIntrf *pIntrf = NULL, Timer *pTimer = NULL);
+	bool Init(const GASSENSOR_CFG &CfgData, DeviceIntrf *pIntrf = NULL, Timer *pTimer = NULL);
 
 	/**
 	 * @brief	Set current sensor state
@@ -238,19 +344,11 @@ public:
 	 * @param OpMode : Operating mode
 	 * 					- TPHSENSOR_OPMODE_SINGLE
 	 * 					- TPHSENSOR_OPMODE_CONTINUOUS
-	 * @param Freq : Sampling frequency in Hz for continuous mode
+	 * @param Freq : Sampling frequency in mHz for continuous mode
 	 *
 	 * @return true- if success
 	 */
-	virtual bool SetMode(SENSOR_OPMODE OpMode, uint32_t Freq);
-
-	/**
-	 * @brief	Set sampling frequency.
-	 * 		The sampling frequency is relevant only in continuous mode.
-	 *
-	 * @return	Frequency in Hz
-	 */
-	virtual uint32_t SamplingFrequency(uint32_t FreqHz);
+	virtual bool Mode(SENSOR_OPMODE OpMode, uint32_t Freq);
 
 	/**
 	 * @brief	Start sampling data
@@ -337,6 +435,8 @@ public:
 		return (float)tphdata.Humidity / 100.0;
 	}
 
+	uint32_t vGasResInt;
+
 private:
 
 	BME680_CALIB_DATA vCalibData;
@@ -344,6 +444,7 @@ private:
 	uint32_t CalcPressure(int32_t RawPress);
 	int32_t CalcTemperature(int32_t RawTemp);
 	uint32_t CalcHumidity(int32_t RawHum);
+	//float fCalcGas(uint16_t RawGas, uint8_t Range);
 	uint32_t CalcGas(uint16_t RawGas, uint8_t Range);
 	uint8_t CalcHeaterResistance(uint16_t Temp);
 	bool UpdateData();
@@ -357,7 +458,6 @@ private:
 	bool vbSpi;				// Set to true if SPI interfacing
 	int vRegPage;			// Current register page, SPI interface only
 	bool vbMeasGas;			// Do gas measurement
-	bool vbSampling;
 	bool vbGasData;
 	int vNbHeatPoint;		// Number of heating points
 	GASSENSOR_HEAT vHeatPoints[BME680_GAS_HEAT_PROFILE_MAX];
@@ -370,5 +470,7 @@ extern "C" {
 }
 
 #endif	// __cplusplus
+
+/** @} End of group Sensors */
 
 #endif	// __TPHG_BME680_H__

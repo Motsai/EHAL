@@ -1,9 +1,16 @@
-/*--------------------------------------------------------------------------
-File   : device.h
+/**-------------------------------------------------------------------------
+@file	device.h
 
-Author : Hoang Nguyen Hoan          			Feb. 12, 2017
+@brief	Generic device base class
 
-Desc   : Generic device base class
+This is the base class to implement all sort devices, hardware or software.
+For example a sensor device or a software audio decoder.  The device can transfer
+data via it's DeviceIntrf object.
+
+@author	Hoang Nguyen Hoan
+@date	Feb. 12, 2017
+
+@license
 
 Copyright (c) 2017, I-SYST inc., all rights reserved
 
@@ -27,9 +34,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 #ifndef __DEVICE_H__
 #define __DEVICE_H__
@@ -46,12 +50,14 @@ Modified by          Date              Description
 
 #ifdef __cplusplus
 
-//
-//
-//
+/// @brief	Device base class
+///
+/// This is the base class to implement all sort devices, hardware or software.
+/// For example a sensor device or a software audio decoder.  The device can transfer
+/// data via it's DeviceIntrf object.
 class Device {
 public:
-	Device() : vDevAddr(0), vpIntrf(NULL) {}
+	Device();
 
 	//
 	// *** Require implementations ***
@@ -66,15 +72,11 @@ public:
 
 	/**
 	 * @brief	Put device in power down or power saving sleep mode
-	 *
-	 * @return	None
 	 */
 	virtual void Disable() = 0;
 
 	/**
-	 * @brief	Reset device to it initial state
-	 *
-	 * @return	None
+	 * @brief	Reset device to it initial default state
 	 */
 	virtual void Reset() = 0;
 
@@ -83,13 +85,41 @@ public:
 	//
 
 	/**
+	 * @brief	Set device's map address
+	 *
+	 * Device address is dependent of interface and device type. For I2C type it
+	 * would be the 7 bits address, SPI would be CS pin index, other memory mapped
+	 * would be a 32bit address.
+	 *
+	 * @param 	Addr : Device's address or zero based chip select index
+	 */
+	virtual void DeviceAddess(uint32_t Addr) { vDevAddr =  Addr; }
+
+	/**
+	 * @brief	Get device's map address
+	 *
+	 * @return	Address or chip select pin zero based index
+	 */
+	virtual uint32_t DeviceAddress() { return vDevAddr; }
+
+	/**
+	 * @brief	Get device id.
+	 *
+	 * This device id value is implementation specific.  It can store hardware
+	 * device identifier or serial number at the discretion of the implementor
+	 *
+	 * @return	64 Bits device id value
+	 */
+	virtual uint64_t DeviceID() { return vDevId; }
+
+	/**
 	 * @brief	Read device's register/memory block
 	 *
 	 * @param 	pCmdAddr 	: Buffer containing command or address to be written
 	 * 						  prior reading data back
-	 *  		CmdAddrLen 	: Command buffer size
-	 * 			pBuff		: Data buffer container
-	 * 			BuffLen		: Data buffer size
+	 * @param	CmdAddrLen 	: Command buffer size
+	 * @param	pBuff		: Data buffer container
+	 * @param	BuffLen		: Data buffer size
 	 *
 	 * @return	Actual number of bytes read
 	 */
@@ -102,13 +132,13 @@ public:
 	}
 
 	/**
-	 * @brief	Write to device's registery/memory block
+	 * @brief	Write to device's register/memory block
 	 *
 	 * @param 	pCmdAddr 	: Buffer containing command or address to be written
 	 * 						  prior writing data back
-	 *  		CmdAddrLen 	: Command buffer size
-	 * 			pData		: Data buffer to be written to the device
-	 * 			DataLen		: Size of data
+	 * @param	CmdAddrLen 	: Command buffer size
+	 * @param	pData		: Data buffer to be written to the device
+	 * @param	DataLen		: Size of data
 	 *
 	 * @return	Actual number of bytes written
 	 */
@@ -124,11 +154,11 @@ public:
 	 * @brief	Read device's 8 bits register/memory
 	 *
 	 * @param 	pRegAddr	: Buffer containing address location to read
-	 * 			RegAddrLen	: Address buffer size
+	 * @param	RegAddrLen	: Address buffer size
 	 *
 	 * @return	Data read
 	 */
-	virtual uint8_t Rea8(uint8_t *pRegAddr, int RegAddrLen) {
+	virtual uint8_t Read8(uint8_t *pRegAddr, int RegAddrLen) {
 		uint8_t val = 0;
 		Read(pRegAddr, RegAddrLen, &val, 1);
 		return val;
@@ -138,7 +168,7 @@ public:
 	 * @brief	Read device's 16 bits register/memory
 	 *
 	 * @param 	pRegAddr	: Buffer containing address location to read
-	 * 			RegAddrLen	: Address buffer size
+	 * @param	RegAddrLen	: Address buffer size
 	 *
 	 * @return	Data read
 	 */
@@ -152,7 +182,7 @@ public:
 	 * @brief	Read device's 32 bit register/memory
 	 *
 	 * @param 	pRegAddr	: Buffer containing address location to read
-	 * 			RegAddrLen	: Address buffer size
+	 * @param	RegAddrLen	: Address buffer size
 	 *
 	 * @return	Data read
 	 */
@@ -166,8 +196,8 @@ public:
 	 * @brief	Write 8 bits data to device's register/memory
 	 *
 	 * @param 	pRegAddr	: Buffer containing address location to write
-	 * 			RegAddrLen	: Address buffer size
-	 * 			Data		: Data to be written to the device
+	 * @param	RegAddrLen	: Address buffer size
+	 * @param	Data		: Data to be written to the device
 	 *
 	 * @return	true - Success
 	 */
@@ -179,8 +209,8 @@ public:
 	 * @brief	Write 16 bits data to device's register/memory
 	 *
 	 * @param 	pRegAddr	: Buffer containing address location to write
-	 * 			RegAddrLen	: Address buffer size
-	 * 			Data		: Data to be written to the device
+	 * @param	RegAddrLen	: Address buffer size
+	 * @param	Data		: Data to be written to the device
 	 *
 	 * @return	true - Success
 	 */
@@ -192,8 +222,8 @@ public:
 	 * @brief	Write 32 bits data to device's register/memory
 	 *
 	 * @param 	pRegAddr	: Buffer containing address location to write
-	 * 			RegAddrLen	: Address buffer size
-	 * 			Data		: Data to be written to the device
+	 * @param	RegAddrLen	: Address buffer size
+	 * @param	Data		: Data to be written to the device
 	 *
 	 * @return	true - Success
 	 */
@@ -201,31 +231,53 @@ public:
 		return Write(pRegAddr, RegAddrLen, (uint8_t*)&Data, 1) > 3;
 	}
 
+	/**
+	 * @brief	Return availability of the device
+	 *
+	 * This function return true if the device has been detected and ready to use.
+	 *
+	 * @return	true - Device is valid.
+	 */
+	bool Valid() { return vbValid; }
+
 protected:
+	/**
+	 * @brief	Store device id.
+	 *
+	 * This device id value is implementation specific.  It can store hardware
+	 * device identifier or serial number at the discretion of the implementor
+	 *
+	 * @param	DevId : Device id value to store
+	 */
+	void DeviceID(uint64_t DevId) { vDevId = DevId; }
+
+	/**
+	 * @brief	Set device validity.
+	 *
+	 * Set valid to true if device is detect and initialized.  Otherwise set it to false
+	 *
+	 */
+	void Valid(bool bVal) { vbValid = bVal; }
 
 	/**
 	 * @brief	Set device's communication interface
 	 *
-	 * @param pIntrf
+	 * @param 	pIntrf : Pointer to preinitialized static interface.
 	 */
-	void SetInterface(DeviceIntrf *pIntrf) { vpIntrf = pIntrf; }
+	void Interface(DeviceIntrf *pIntrf) { vpIntrf = pIntrf; }
 
 	/**
 	 * @brief	Get device's communication interface
 	 *
-	 * @return
+	 * @return	return pointer to interface in use or NULL
 	 */
-	DeviceIntrf *GetInterface() { return vpIntrf; }
+	DeviceIntrf *Interface() { return vpIntrf; }
 
-	/**
-	 * @brief	Set device's map address or chip select
-	 *
-	 * @param 	Addr : Device's address or zero based chip select index
-	 */
-	void SetDeviceAddess(uint32_t Addr) { vDevAddr =  Addr; }
-
-	uint32_t 	vDevAddr;		// device address or chip select
-	DeviceIntrf *vpIntrf;
+	bool			vbValid;			//!< Device is valid ready to use (passed detection)
+	uint32_t 	vDevAddr;		//!< Device address or chip select
+	DeviceIntrf *vpIntrf;		//!< Device's interface
+	uint64_t		vDevId;			//!< This is implementation specific data for device identifier
+	 	 	 	 	 	 	 	//!< could be value reg from hardware register or serial number
 };
 
 extern "C" {

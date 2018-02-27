@@ -30,6 +30,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>src/ehal_dfu_public_key.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/ehal_dfu_public_key.c</locationURI>
+		</link>
+		<link>
 			<name>src/nRF5_SDK</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -116,6 +121,11 @@
 		</link>
 		<link>
 			<name>src/nRF5_SDK/drivers_nrf/uart</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/libraries/atomic_fifo</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -258,6 +268,11 @@
 			<name>src/nRF5_SDK/drivers_nrf/uart/nrf_drv_uart.c</name>
 			<type>1</type>
 			<locationURI>PARENT-6-PROJECT_LOC/external/nRF5_SDK/components/drivers_nrf/uart/nrf_drv_uart.c</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/libraries/atomic_fifo/nrf_atfifo.c</name>
+			<type>1</type>
+			<locationURI>PARENT-6-PROJECT_LOC/external/nRF5_SDK/components/libraries/atomic_fifo/nrf_atfifo.c</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/libraries/bootloader/ble_dfu</name>
@@ -458,6 +473,11 @@
 			<name>src/nRF5_SDK/libraries/bootloader/dfu/nrf_dfu_settings.c</name>
 			<type>1</type>
 			<locationURI>PARENT-6-PROJECT_LOC/external/nRF5_SDK/components/libraries/bootloader/dfu/nrf_dfu_settings.c</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/libraries/bootloader/dfu/nrf_dfu_settings_svci.c</name>
+			<type>1</type>
+			<locationURI>PARENT-6-PROJECT_LOC/external/nRF5_SDK/components/libraries/bootloader/dfu/nrf_dfu_settings_svci.c</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/libraries/bootloader/dfu/nrf_dfu_svci.c</name>

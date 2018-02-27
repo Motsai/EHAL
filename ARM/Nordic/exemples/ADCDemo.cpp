@@ -1,9 +1,13 @@
-/*--------------------------------------------------------------------------
-File   : ADCDemo.cpp
+/**-------------------------------------------------------------------------
+@example	ADCDemo.cpp
 
-Author : Hoang Nguyen Hoan          June 16, 2017
+@brief	ADC example for nRF52
 
-Desc   : ADC example for nRF52
+
+@author	Hoang Nguyen Hoan
+@date	June 16, 2017
+
+@license
 
 Copyright (c) 2017, I-SYST inc., all rights reserved
 
@@ -27,9 +31,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 
 #include "adc_nrf52_saadc.h"
@@ -42,7 +43,7 @@ Modified by          Date              Description
 //#define ADC_DEMO_INTERRUPT_ENABLE
 
 int nRFUartEvthandler(UARTDEV *pDev, UART_EVT EvtId, uint8_t *pBuffer, int BufferLen);
-void ADVEventHandler(ADCDevice *pDevObj, ADC_EVT Evt);
+void ADVEventHandler(AdcDevice *pDevObj, ADC_EVT Evt);
 
 #define FIFOSIZE			CFIFO_MEMSIZE(256)
 
@@ -111,7 +112,7 @@ static const ADC_CFG s_AdcCfg = {
 	.EvtHandler = ADVEventHandler
 };
 
-ADCnRF52 g_Adc;
+AdcnRF52 g_Adc;
 
 // Define ADC channel
 static const ADC_CHAN_CFG s_ChanCfg[] = {
@@ -160,7 +161,7 @@ static const int s_NbChan = sizeof(s_ChanCfg) / sizeof(ADC_CHAN_CFG);
 
 volatile bool g_bDataReady = false;
 
-void ADVEventHandler(ADCDevice *pAdcDev, ADC_EVT Evt)
+void ADVEventHandler(AdcDevice *pAdcDev, ADC_EVT Evt)
 {
 	if (Evt == ADC_EVT_DATA_READY)
 	{
@@ -206,9 +207,9 @@ int nRFUartEvthandler(UARTDEV *pDev, UART_EVT EvtId, uint8_t *pBuffer, int Buffe
 
 void HardwareInit()
 {
-	g_Uart.Init(s_UartCfg);
-	UARTRetargetEnable(g_Uart, STDIN_FILENO);
-	UARTRetargetEnable(g_Uart, STDOUT_FILENO);
+//	g_Uart.Init(s_UartCfg);
+//	UARTRetargetEnable(g_Uart, STDIN_FILENO);
+//	UARTRetargetEnable(g_Uart, STDOUT_FILENO);
 
 	printf("Init ADC\r\n");
 
@@ -249,8 +250,8 @@ int main()
 		cnt = g_Adc.Read(df, s_NbChan);
 		if (cnt > 0)
 		{
-			g_Uart.printf("%d ADC[0] = %.2fV, ADC[1] = %.2fV, ADC[2] = %.2fV, ADC[3] = %.2fV\r\n",
-					df[0].Timestamp, df[0].Data, df[1].Data, df[2].Data, df[3].Data);
+		//	g_Uart.printf("%d ADC[0] = %.2fV, ADC[1] = %.2fV, ADC[2] = %.2fV, ADC[3] = %.2fV\r\n",
+		//			df[0].Timestamp, df[0].Data, df[1].Data, df[2].Data, df[3].Data);
 		}
 		g_Adc.StartConversion();
 #endif

@@ -119,8 +119,8 @@ bool TphBme280::Init(const TPHSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *p
 
 	if (pIntrf != NULL)
 	{
-		SetInterface(pIntrf);
-		SetDeviceAddess(CfgData.DevAddr);
+		Interface(pIntrf);
+		DeviceAddess(CfgData.DevAddr);
 	}
 
 	if (pTimer != NULL)
@@ -142,9 +142,12 @@ bool TphBme280::Init(const TPHSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *p
 
 	Read((uint8_t*)&regaddr, 1, &d, 1);
 
-	if (d == BME280_ID || d == 0x61)
+	if (d == BME280_ID)
 	{
 		found  = true;
+
+		DeviceID(d);
+		Valid(true);
 
 		Reset();
 
@@ -196,9 +199,9 @@ bool TphBme280::Init(const TPHSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *p
 		vCtrlReg |= (CfgData.TempOvrs << BME280_REG_CTRL_MEAS_OSRS_T_BITPOS) & BME280_REG_CTRL_MEAS_OSRS_T_MASK;
 		Write((uint8_t*)&regaddr, 1, &vCtrlReg, 1);
 
-		SetMode(CfgData.OpMode, CfgData.Freq);
+		Mode(CfgData.OpMode, CfgData.Freq);
 
-		State(SENSOR_STATE_SLEEP);
+		//State(SENSOR_STATE_SLEEP);
 
 		usDelay(10000);
 	}
@@ -235,17 +238,18 @@ SENSOR_STATE TphBme280::State(SENSOR_STATE State) {
  * @param OpMode : Operating mode
  * 					- TPHSENSOR_OPMODE_SINGLE
  * 					- TPHSENSOR_OPMODE_CONTINUOUS
- * @param Freq : Sampling frequency in Hz for continuous mode
+ * @param Freq : Sampling frequency in mHz for continuous mode
  *
  * @return true- if success
  */
-bool TphBme280::SetMode(SENSOR_OPMODE OpMode, uint32_t Freq)
+bool TphBme280::Mode(SENSOR_OPMODE OpMode, uint32_t Freq)
 {
 	uint8_t regaddr;
 	uint8_t d = 0;
 
 	vOpMode = OpMode;
-	vSampFreq = Freq;
+
+	Sensor::SamplingFrequency(Freq);
 
 	// read current ctrl_meas register
 	regaddr = BME280_REG_CTRL_MEAS;
@@ -293,33 +297,48 @@ bool TphBme280::SetMode(SENSOR_OPMODE OpMode, uint32_t Freq)
 		Write(&regaddr, 1, &d, 1);
 	}
 
-	StartSampling();
+	//StartSampling();
 
 	return true;
-}
-
-/**
- * @brief	Set sampling frequency.
- * 		The sampling frequency is relevant only in continuous mode.
- *
- * @return	Frequency in Hz
- */
-uint32_t TphBme280::SamplingFrequency(uint32_t FreqHz)
-{
-
 }
 
 /**
  * @brief	Start sampling data
  *
  * @return	true - success
+ * 			false - Busy
  */
 bool TphBme280::StartSampling()
 {
-	uint8_t regaddr = BME280_REG_CTRL_MEAS;
-	uint8_t d = vCtrlReg | BME280_REG_CTRL_MEAS_MODE_NORMAL;
+	uint8_t regaddr = BME280_REG_STATUS;
+	uint8_t d;
+
+	d = Read8(&regaddr, 1);
+
+	if (d == 0xff)
+	{
+		State(SENSOR_STATE_IDLE);
+		d = Read8(&regaddr, 1);
+	}
+
+	if (d & (BME280_REG_STATUS_MEASURING | BME280_REG_STATUS_IM_UPDATE))
+		return false;
+
+	regaddr = BME280_REG_CTRL_MEAS;
+	d = vCtrlReg | BME280_REG_CTRL_MEAS_MODE_NORMAL;
 
 	Write(&regaddr, 1, &d, 1);
+
+	vbSampling = true;
+
+	if (vpTimer)
+	{
+		vSampleTime = vpTimer->uSecond();
+	}
+	else
+	{
+		vSampleTime += vSampPeriod;
+	}
 
 	return true;
 }
@@ -344,27 +363,15 @@ void TphBme280::Reset()
 	Write(&addr, 1, &d, 1);
 }
 
-bool TphBme280::Read(TPHSENSOR_DATA &TphData)
+bool TphBme280::UpdateData()
 {
 	uint8_t addr = BME280_REG_STATUS;
 	uint8_t status = 0;
 	bool retval = false;
-	int timeout = 20;
-/*
-	if (vOpMode == SENSOR_OPMODE_SINGLE)
-	{
-		StartSampling();
-		usDelay(20000);
-	}
-*/
-	do {
-		Read(&addr, 1, &status, 1);
-		usDelay(1000);
-	} while ((status & 9) != 0 && timeout-- > 0);
 
-//	Read(&addr, 1, &status, 1);
+	Read(&addr, 1, &status, 1);
 
-	if ((status & 9)== 0)
+	if ((status & (BME280_REG_STATUS_MEASURING | BME280_REG_STATUS_IM_UPDATE))== 0)
 	{
 		uint8_t d[8];
 		addr = BME280_REG_PRESS_MSB;
@@ -378,15 +385,22 @@ bool TphBme280::Read(TPHSENSOR_DATA &TphData)
 			vTphData.Temperature = CompenTemp(t);
 			vTphData.Pressure = CompenPress(p);
 			vTphData.Humidity = CompenHum(h);
+			vTphData.Timestamp = vSampleTime;
 
-			if (vpTimer)
-			{
-				vTphData.Timestamp = vpTimer->mSecond();
-			}
+			vSampleCnt++;
+
+			vbSampling = false;
 
 			retval = true;
 		}
 	}
+
+	return retval;
+}
+
+bool TphBme280::Read(TPHSENSOR_DATA &TphData)
+{
+	bool retval = UpdateData();
 
 	memcpy(&TphData, &vTphData, sizeof(TPHSENSOR_DATA));
 

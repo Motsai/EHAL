@@ -77,12 +77,14 @@ bool TphMS8607::Init(const TPHSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *p
 {
 	//TPHSENSOR_CFG *cfg = (TPHSENSOR_CFG*)pCfgData;
 
-	SetInterface(pIntrf);
-	SetDeviceAddess(CfgData.DevAddr);
+	Interface(pIntrf);
+	DeviceAddess(CfgData.DevAddr);
 
 	vpTimer = pTimer;
 
 	Reset();
+
+	Valid(true);
 
 	ReadPtProm();
 
@@ -105,18 +107,18 @@ void TphMS8607::ReadPtProm()
 	}
 
 
-	int crc = crc4_PT(vPTProm);
+//	int crc = crc4_PT(vPTProm);
 }
 
 /**
  * @brief	Set sampling frequency.
  * 		The sampling frequency is relevant only in continuous mode.
  *
- * @return	Frequency in Hz
+ * @return	Frequency in mHz
  */
-uint32_t TphMS8607::SamplingFrequency(uint32_t FreqHz)
+uint32_t TphMS8607::SamplingFrequency(uint32_t Freq)
 {
-
+	return 0;
 }
 
 bool TphMS8607::StartSampling()
@@ -130,11 +132,11 @@ bool TphMS8607::StartSampling()
  * @param OpMode : Operating mode
  * 					- TPHSENSOR_OPMODE_SINGLE
  * 					- TPHSENSOR_OPMODE_CONTINUOUS
- * @param Freq : Sampling frequency in Hz for continuous mode
+ * @param Freq : Sampling frequency in mHz for continuous mode
  *
  * @return true- if success
  */
-bool TphMS8607::SetMode(SENSOR_OPMODE OpMode, uint32_t Freq)
+bool TphMS8607::Mode(SENSOR_OPMODE OpMode, uint32_t Freq)
 {
 	vOpMode = OpMode;
 	vSampFreq = Freq;

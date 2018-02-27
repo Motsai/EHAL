@@ -1,10 +1,33 @@
-/*--------------------------------------------------------------------------
-File   : tph_bme280.h
+/**-------------------------------------------------------------------------
+@file	tph_bme280.h
 
-Author : Hoang Nguyen Hoan          			Feb. 12, 2017
+@brief	TphSensor implementation of Bosch #BME280 Temperature, Pressure, Humidity sensor.
 
-Desc   : BME280 environment sensor implementation
-			- Temperature, Pressure, Humidity
+Key features
+
+- Package : 2.5 mm x 2.5 mm x 0.93 mm metal lid LGA
+- Digital interface : I2C (up to 3.4 MHz) and SPI (3 and 4 wire, up to 10 MHz)
+- Supply voltage : VDD main supply voltage range: 1.71 V to 3.6 V, VDDIO interface voltage range: 1.2 V to 3.6 V
+- Current consumption : 1.8 μA @ 1 Hz humidity and temperature. 2.8 μA @ 1 Hz pressure and temperature.
+3.6 μA @ 1 Hz humidity, pressure and temperature. 0.1 μA in sleep mode
+- Operating range : -40...+85 °C, 0...100 % rel. humidity, 300...1100 hPa
+- Humidity sensor and pressure sensor can be independently enabled / disabled
+- Register and performance compatible to Bosch Sensortec BMP280 digital pressure sensor
+
+Key parameters for humidity sensor1
+- Response time : 1 s
+- Accuracy tolerance : ±3 % relative humidity
+- Hysteresis : ±1% relative humidity
+
+Key parameters for pressure sensor
+
+- RMS Noise 0.2 Pa, equiv. to 1.7 cm
+- Offset temperature coefficient ±1.5 Pa/K, equiv. to ±12.6 cm at 1 °C temperature change
+
+@author	Hoang Nguyen Hoan
+@date	Feb. 12, 2017
+
+@license
 
 Copyright (c) 2017, I-SYST inc., all rights reserved
 
@@ -28,9 +51,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 #ifndef __TPH_BME280_H__
 #define __TPH_BME280_H__
@@ -45,9 +65,13 @@ Modified by          Date              Description
 #include "iopincfg.h"
 #include "tph_sensor.h"
 
+/** @addtogroup Sensors
+  * @{
+  */
+
 // Device address depending on SDO wiring
-#define BME280_I2C_DEV_ADDR0			0x76	// SDO to GND
-#define BME280_I2C_DEV_ADDR1			0x77	// SDO to VCC
+#define BME280_I2C_DEV_ADDR0			0x76	//!< Device address when SDO to GND
+#define BME280_I2C_DEV_ADDR1			0x77	//!< Device address when SDO to VCC
 
 #define BME280_REG_HUM_LSB				0xFE
 #define BME280_REG_HUM_MSB				0xFD
@@ -71,6 +95,10 @@ Modified by          Date              Description
 #define BME280_REG_CTRL_MEAS_OSRS_T_MASK	(7 << BME280_REG_CTRL_MEAS_OSRS_T_BITPOS)
 
 #define BME280_REG_STATUS				0xF3
+
+#define BME280_REG_STATUS_MEASURING			(1<<3)
+#define BME280_REG_STATUS_IM_UPDATE			(1<<0)
+
 #define BME280_REG_CTRL_HUM				0xF2
 #define BME280_REG_CALIB_26_41_START	0xE1
 #define BME280_REG_RESET				0xE0
@@ -111,19 +139,51 @@ typedef struct {
 
 #ifdef __cplusplus
 
-class TphBme280 : public TPHSensor {
+/// @brief	Implementation class of Bosch #BME280 Temperature, Pressure, Humidity sensor.
+///
+/// Key features
+///
+/// - Package : 2.5 mm x 2.5 mm x 0.93 mm metal lid LGA
+/// - Digital interface : I2C (up to 3.4 MHz) and SPI (3 and 4 wire, up to 10 MHz)
+/// - Supply voltage : VDD main supply voltage range: 1.71 V to 3.6 V, VDDIO interface voltage range: 1.2 V to 3.6 V
+/// - Current consumption : 1.8 μA @ 1 Hz humidity and temperature. 2.8 μA @ 1 Hz pressure and temperature.
+/// 3.6 μA @ 1 Hz humidity, pressure and temperature. 0.1 μA in sleep mode
+/// - Operating range : -40...+85 °C, 0...100 % rel. humidity, 300...1100 hPa
+/// - Humidity sensor and pressure sensor can be independently enabled / disabled
+/// - Register and performance compatible to Bosch Sensortec BMP280 digital pressure sensor
+///
+/// Key parameters for humidity sensor1
+/// - Response time : 1 s
+/// - Accuracy tolerance : ±3 % relative humidity
+/// - Hysteresis : ±1% relative humidity
+///
+/// Key parameters for pressure sensor
+///
+/// - RMS Noise 0.2 Pa, equiv. to 1.7 cm
+/// - Offset temperature coefficient ±1.5 Pa/K, equiv. to ±12.6 cm at 1 °C temperature change
+class TphBme280 : public TphSensor {
 public:
 	TphBme280() : vCalibTFine(0), vbSpi(false) {}
 	virtual ~TphBme280() {}
 
 	/**
-	 * @brief	Sensor in initialization
-	 * @param CfgData
-	 * @param pIntrf
-	 * @param pTimer
+	 * @brief	Initialize sensor.
+	 *
+	 * @param 	CfgData : Reference to configuration data
+	 * @param	pIntrf 	: Pointer to interface to the sensor.
+	 * 					  This pointer will be kept internally
+	 * 					  for all access to device.
+	 * 					  DONOT delete this object externally
+	 * @param	pTimer	: Pointer to timer for retrieval of time stamp
+	 * 					  This pointer will be kept internally
+	 * 					  for all access to device.
+	 * 					  DONOT delete this object externally
+	 *
 	 * @return
+	 * 			- true	: Success
+	 * 			- false	: Failed
 	 */
-	virtual bool Init(const TPHSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *pTimer = NULL);
+	bool Init(const TPHSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *pTimer = NULL);
 
 	/**
 	 * @brief	Set current sensor state
@@ -144,19 +204,11 @@ public:
 	 * @param OpMode : Operating mode
 	 * 					- TPHSENSOR_OPMODE_SINGLE
 	 * 					- TPHSENSOR_OPMODE_CONTINUOUS
-	 * @param Freq : Sampling frequency in Hz for continuous mode
+	 * @param Freq : Sampling frequency in mHz for continuous mode
 	 *
 	 * @return true- if success
 	 */
-	virtual bool SetMode(SENSOR_OPMODE OpMode, uint32_t Freq);
-
-	/**
-	 * @brief	Set sampling frequency.
-	 * 		The sampling frequency is relevant only in continuous mode.
-	 *
-	 * @return	Frequency in Hz
-	 */
-	virtual uint32_t SamplingFrequency(uint32_t FreqHz);
+	virtual bool Mode(SENSOR_OPMODE OpMode, uint32_t Freq);
 
 	/**
 	 * @brief	Start sampling data
@@ -223,11 +275,11 @@ private:
 	uint32_t CompenHum(int32_t RawHum);
 	int Read(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pBuff, int BuffLen);
 	int Write(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen);
+	bool UpdateData();
 
 	int32_t vCalibTFine;	// For internal calibration use only
 	BME280_CALIB_DATA vCalibData;
 	uint8_t vCtrlReg;
-//	uint8_t vRegWrMask;
 	bool vbSpi;
 };
 
@@ -238,5 +290,7 @@ extern "C" {
 }
 
 #endif	// __cplusplus
+
+/** @} End of group Sensors */
 
 #endif	// __TPH_BME280_H__

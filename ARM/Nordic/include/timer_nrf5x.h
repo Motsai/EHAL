@@ -1,9 +1,13 @@
-/*--------------------------------------------------------------------------
-File   : timer_nrf5x.h
+/**-------------------------------------------------------------------------
+@file	timer_nrf5x.h
 
-Author : Hoang Nguyen Hoan          				Sep. 7, 2017
+@brief	Timer class implementation on Nordic nRF51 & nRF52 series
 
-Desc   : timer class implementation on Nordic nRF5x series
+
+@author	Hoang Nguyen Hoan
+@date	Sep. 7, 2017
+
+@license
 
 Copyright (c) 2017, I-SYST inc., all rights reserved
 
@@ -27,28 +31,29 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 
 #ifndef __TIMER_NRF5x_H__
 #define __TIMER_NRF5x_H__
 
 #include <stdint.h>
+
+#include "nrf.h"
+
 #include "timer.h"
 
-// *****
-// Low frequency timer using Real Time Counter (RTC) 32768 Hz clock source
-//
+/// Low frequency timer using Real Time Counter (RTC) 32768 Hz clock source.
+///
 #define TIMER_NRF5X_RTC_BASE_FREQ   		32768
 #ifdef NRF52
-#define TIMER_NRF5X_RTC_MAX                 3           // 3 RTC available on nRF52
+#define TIMER_NRF5X_RTC_MAX                 3           //!< 3 RTC available on nRF52
 #else
-#define TIMER_NRF5X_RTC_MAX                 2           // 2 RTC available on nRF51
+#define TIMER_NRF5X_RTC_MAX                 2           //!< 2 RTC available on nRF51
 #endif
-#define TIMER_NRF5X_RTC_MAX_TRIGGER_EVT     4           // Max number of supported counter trigger event
+#define TIMER_NRF5X_RTC_MAX_TRIGGER_EVT     4           //!< Max number of supported counter trigger event
 
+/// Low frequency timer implementation class.
+///
 class TimerLFnRF5x : public Timer {
 public:
 	TimerLFnRF5x();
@@ -62,15 +67,38 @@ public:
 	virtual uint32_t Frequency(void) { return vFreq; }
 	virtual uint64_t TickCount();
     int MaxTimerTrigger() { return TIMER_NRF5X_RTC_MAX_TRIGGER_EVT; }
-    virtual uint64_t EnableTimerTrigger(int TrigNo, uint64_t nsPeriod,
-    									TIMER_TRIG_TYPE Type, TIMER_TRIGCB Handler = NULL);
-	virtual uint32_t EnableTimerTrigger(int TrigNo, uint32_t msPeriod,
-										TIMER_TRIG_TYPE Type, TIMER_TRIGCB Handler = NULL) {
-		return (uint32_t)(EnableTimerTrigger(TrigNo, (uint64_t)msPeriod * 1000000ULL, Type, Handler) / 1000000ULL);
-	}
+    /**
+	 * @brief	Enable millisecond timer trigger event.
+	 *
+	 * @param   TrigNo : Trigger number to enable. Index value starting at 0
+	 * @param   msPeriod : Trigger period in msec.
+	 * @param   Type     : Trigger type single shot or continuous
+	 * @param	Handler	 : Optional Timer trigger user callback
+	 * @param   pContext : Optional pointer to user private data to be passed
+	 *                     to the callback. This could be a class or structure pointer.
+	 *
+	 * @return  real period in nsec based on clock calculation
+	 */
+    virtual uint32_t EnableTimerTrigger(int TrigNo, uint32_t msPeriod, TIMER_TRIG_TYPE Type,
+                                        TIMER_TRIGCB Handler = NULL, void *pContext = NULL);
+
+	/**
+	 * @brief	Enable a specific nanosecond timer trigger event.
+	 *
+	 * @param   TrigNo : Trigger number to enable. Index value starting at 0
+	 * @param   nsPeriod : Trigger period in nsec.
+	 * @param   Type     : Trigger type single shot or continuous
+	 * @param	Handler	 : Optional Timer trigger user callback
+	 * @param   pContext : Optional pointer to user private data to be passed
+	 *                     to the callback. This could be a class or structure pointer.
+	 *
+	 * @return  real period in nsec based on clock calculation
+	 */
+    virtual uint64_t EnableTimerTrigger(int TrigNo, uint64_t nsPeriod, TIMER_TRIG_TYPE Type,
+                                        TIMER_TRIGCB Handler = NULL, void *pContext = NULL);
     virtual void DisableTimerTrigger(int TrigNo);
 
-    int GetFreeTimerTrigger(void);
+    int FindAvailTimerTrigger(void);
 
     void IRQHandler();
 
@@ -78,23 +106,22 @@ protected:
 private:
     NRF_RTC_Type *vpReg;
     uint32_t vCC[TIMER_NRF5X_RTC_MAX_TRIGGER_EVT];
-    //TIMER_TRIG_TYPE vTrigType[TIMER_NRF5X_RTC_MAX_TRIGGER_EVT];
     TIMER_TRIGGER vTrigger[TIMER_NRF5X_RTC_MAX_TRIGGER_EVT];
 };
 
-// *****
-// High frequency timer using Timer 16MHz clock source
-//
+/// High frequency timer using Timer 16MHz clock source.
+///
 #define TIMER_NRF5X_HF_BASE_FREQ   			16000000
 #ifdef NRF52
-#define TIMER_NRF5X_HF_MAX              	5           // 5 high frequency timer available on nRF52
-#define TIMER_NRF5X_HF_MAX_TRIGGER_EVT  	6           // Max number of supported counter trigger event
+#define TIMER_NRF5X_HF_MAX              	5           //!< 5 high frequency timer available on nRF52
+#define TIMER_NRF5X_HF_MAX_TRIGGER_EVT  	6           //!< Max number of supported counter trigger event
 #else
-#define TIMER_NRF5X_HF_MAX              	3           // 3 high frequency timer available on nRF51
-#define TIMER_NRF5X_HF_MAX_TRIGGER_EVT  	4           // Max number of supported counter trigger event
+#define TIMER_NRF5X_HF_MAX              	3           //!< 3 high frequency timer available on nRF51
+#define TIMER_NRF5X_HF_MAX_TRIGGER_EVT  	4           //!< Max number of supported counter trigger event
 #endif
 
-
+/// High frequency timer implementation class
+///
 class TimerHFnRF5x : public Timer {
 public:
     TimerHFnRF5x();
@@ -113,15 +140,38 @@ public:
     	return TIMER_NRF5X_HF_MAX_TRIGGER_EVT;
 #endif
     }
-    virtual uint64_t EnableTimerTrigger(int TrigNo, uint64_t nsPeriod,
-    									TIMER_TRIG_TYPE Type, TIMER_TRIGCB Handler = NULL);
-	virtual uint32_t EnableTimerTrigger(int TrigNo, uint32_t msPeriod,
-										TIMER_TRIG_TYPE Type, TIMER_TRIGCB Handler = NULL) {
-		return (uint32_t)(EnableTimerTrigger(TrigNo, (uint64_t)msPeriod * 1000000ULL, Type, Handler) / 1000000ULL);
-	}
+    /**
+	 * @brief	Enable millisecond timer trigger event.
+	 *
+	 * @param   TrigNo : Trigger number to enable. Index value starting at 0
+	 * @param   msPeriod : Trigger period in msec.
+	 * @param   Type     : Trigger type single shot or continuous
+	 * @param	Handler	 : Optional Timer trigger user callback
+	 * @param   pContext : Optional pointer to user private data to be passed
+	 *                     to the callback. This could be a class or structure pointer.
+	 *
+	 * @return  real period in nsec based on clock calculation
+	 */
+    virtual uint32_t EnableTimerTrigger(int TrigNo, uint32_t msPeriod, TIMER_TRIG_TYPE Type,
+                                        TIMER_TRIGCB Handler = NULL, void *pContext = NULL);
+
+	/**
+	 * @brief	Enable a specific nanosecond timer trigger event.
+	 *
+	 * @param   TrigNo : Trigger number to enable. Index value starting at 0
+	 * @param   nsPeriod : Trigger period in nsec.
+	 * @param   Type     : Trigger type single shot or continuous
+	 * @param	Handler	 : Optional Timer trigger user callback
+	 * @param   pContext : Optional pointer to user private data to be passed
+	 *                     to the callback. This could be a class or structure pointer.
+	 *
+	 * @return  real period in nsec based on clock calculation
+	 */
+    virtual uint64_t EnableTimerTrigger(int TrigNo, uint64_t nsPeriod, TIMER_TRIG_TYPE Type,
+                                        TIMER_TRIGCB Handler = NULL, void *pContext = NULL);
     virtual void DisableTimerTrigger(int TrigNo);
 
-    int GetFreeTimerTrigger(void);
+    int FindAvailTimerTrigger(void);
 
     void IRQHandler();
 
@@ -129,16 +179,9 @@ protected:
 private:
 
     NRF_TIMER_Type *vpReg;
-    int vMaxNbTrigEvt;		// Number of trigger is not the same for all timers.
-//#ifdef NRF52
-//    uint32_t vCC[TIMER_NRF5X_HF_MAX_TRIGGER_EVT + 2];
-    //TIMER_TRIG_TYPE vTrigType[TIMER_NRF5X_HF_MAX_TRIGGER_EVT + 2];
-//    TIMER_TRIGGER vTrigger[TIMER_NRF5X_HF_MAX_TRIGGER_EVT + 2];
-//#else
+    int vMaxNbTrigEvt;		//!< Number of trigger is not the same for all timers.
     uint32_t vCC[TIMER_NRF5X_HF_MAX_TRIGGER_EVT];
-//    TIMER_TRIG_TYPE vTrigType[TIMER_NRF5X_HF_MAX_TRIGGER_EVT];
     TIMER_TRIGGER vTrigger[TIMER_NRF5X_HF_MAX_TRIGGER_EVT];
-//#endif
 };
 
 #endif // __TIMER_NRF5x_H__
