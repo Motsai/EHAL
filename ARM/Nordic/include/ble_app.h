@@ -215,6 +215,7 @@ void BleAppEnterDfu();
 void BleAppRun();
 uint16_t BleAppGetConnHandle();
 void BleAppGapDeviceNameSet(const char* ppDeviceName);
+uint32_t BleAppGapDisconnect();
 void BleAppAdvManDataSet(uint8_t *pData, int Len);
 void BleAppAdvTimeoutHandler();
 void BleAppAdvStart(BLEAPP_ADVMODE AdvMode);

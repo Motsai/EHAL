@@ -967,7 +967,7 @@ void BleAppAdvStart(BLEAPP_ADVMODE AdvMode)
 	else
 	{
 		uint32_t err_code = ble_advertising_start(&g_AdvInstance, (ble_adv_mode_t)AdvMode);
-	    APP_ERROR_CHECK(err_code);
+	    //APP_ERROR_CHECK(err_code);
 	}
 }
 
@@ -1155,6 +1155,18 @@ static void fds_evt_handler(fds_evt_t const * const p_fds_evt)
     {
         printf("GC completed");
     }
+}
+
+uint32_t BleAppGapDisconnect()
+{
+    ret_code_t err_code = NRF_SUCCESS;
+    if ( g_BleAppData.ConnHdl != BLE_CONN_HANDLE_INVALID ) {
+        err_code = sd_ble_gap_disconnect( g_BleAppData.ConnHdl, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION );
+    }
+    else {
+        BleAppAdvStop();
+    }
+    return err_code;
 }
 
 bool BleAppConnectable(const BLEAPP_CFG *pBleAppCfg, bool bEraseBond)
