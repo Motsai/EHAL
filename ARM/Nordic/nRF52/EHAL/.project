@@ -176,6 +176,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/include/prbs.h</locationURI>
 		</link>
 		<link>
+			<name>include/pwm.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/pwm.h</locationURI>
+		</link>
+		<link>
 			<name>include/sdcard.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/include/sdcard.h</locationURI>
@@ -336,6 +341,16 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/fatfs.cpp</locationURI>
 		</link>
 		<link>
+			<name>src/i2c.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/i2c.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/i2c_nrf52.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/i2c_nrf52.cpp</locationURI>
+		</link>
+		<link>
 			<name>src/intelhex.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/intelhex.c</locationURI>
@@ -361,6 +376,11 @@
 			<locationURI>PARENT-2-PROJECT_LOC/src/ledmxio_nrf5x.c</locationURI>
 		</link>
 		<link>
+			<name>src/micro-ecc</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>src/miscdev</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -384,6 +404,11 @@
 			<name>src/prbs.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/prbs.c</locationURI>
+		</link>
+		<link>
+			<name>src/pwm_nrf52.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/pwm_nrf52.cpp</locationURI>
 		</link>
 		<link>
 			<name>src/sbuffer.c</name>
@@ -489,6 +514,11 @@
 			<name>include/converters/dac_device.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/include/converters/dac_device.h</locationURI>
+		</link>
+		<link>
+			<name>include/miscdev/buzzer.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/miscdev/buzzer.h</locationURI>
 		</link>
 		<link>
 			<name>include/miscdev/ledmx.h</name>
@@ -616,6 +646,16 @@
 			<locationURI>PARENT-2-PROJECT_LOC/src/adc_nrf52_saadc.cpp</locationURI>
 		</link>
 		<link>
+			<name>src/micro-ecc/uECC.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/micro-ecc/uECC.c</locationURI>
+		</link>
+		<link>
+			<name>src/miscdev/buzzer.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/buzzer.cpp</locationURI>
+		</link>
+		<link>
 			<name>src/miscdev/ledmx.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/ledmx.c</locationURI>
@@ -642,11 +682,6 @@
 		</link>
 		<link>
 			<name>src/nRF5_SDK/libraries</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>src/nRF5_SDK/micro-ecc</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -842,11 +877,6 @@
 		</link>
 		<link>
 			<name>src/nRF5_SDK/libraries/util</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>src/nRF5_SDK/micro-ecc/micro-ecc</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -1149,11 +1179,6 @@
 			<name>src/nRF5_SDK/libraries/util/sdk_mapped_flags.c</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/libraries/util/sdk_mapped_flags.c</locationURI>
-		</link>
-		<link>
-			<name>src/nRF5_SDK/micro-ecc/micro-ecc/uECC.c</name>
-			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/external/micro-ecc/micro-ecc/uECC.c</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/proprietary_rf/esb/nrf_esb.c</name>
