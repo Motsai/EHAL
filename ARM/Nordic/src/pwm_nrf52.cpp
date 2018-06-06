@@ -327,6 +327,26 @@ bool PWMStart(PWM_DEV *pDev, uint32_t msDur)
 	return true;
 }
 
+bool PWMStartLoop(PWM_DEV *pDev, uint32_t LoopCnt)
+{
+    if (pDev == NULL)
+        return false;
+
+    PWM_NRF_DEV *dev = (PWM_NRF_DEV*)pDev->pDevData;
+
+    if (dev == NULL)
+        return false;
+
+    dev->pReg->EVENTS_STOPPED = 0;
+
+    dev->pReg->SHORTS = PWM_SHORTS_LOOPSDONE_STOP_Enabled << PWM_SHORTS_LOOPSDONE_STOP_Pos;
+    dev->pReg->LOOP = 1;
+    dev->pReg->TASKS_SEQSTART[0] = 1;
+    dev->bStarted = true;
+
+    return true;
+}
+
 void PWMStop(PWM_DEV *pDev)
 {
 	if (pDev != NULL)

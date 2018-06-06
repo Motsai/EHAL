@@ -94,6 +94,7 @@ void PWMDisable(PWM_DEV *pDev);
 bool PWMOpenChannel(PWM_DEV *pDev, const PWM_CHAN_CFG *pChanCfg, int NbChan);
 void PWMCloseChannel(PWM_DEV *pDev, int Chan);
 bool PWMStart(PWM_DEV *pDev, uint32_t msDur);
+bool PWMStartLoop(PWM_DEV *pDev, uint32_t LoopCnt);
 void PWMStop(PWM_DEV *pDev);
 bool PWMSetFrequency(PWM_DEV *pDev, uint32_t Freq);
 bool PWMSetDutyCycle(PWM_DEV *pDev, int Chan, int Percent);
@@ -150,6 +151,8 @@ public:
 	 * @return	true - success
 	 */
 	virtual bool Start(uint32_t msDur = 0) { return PWMStart(&vDev, msDur); }
+
+	virtual bool StartLoop(uint32_t LoopCnt) { return PWMStartLoop(&vDev, LoopCnt); }
 
 	/**
 	 * @brief	Stop PWM
