@@ -46,7 +46,7 @@ DiskIO::DiskIO() : vLastIdx(1), vNbCache(0), vpCacheSect(NULL)
 {
 }
 
-void DiskIO::SetCache(DISKIO_CACHE_DESC *pCacheBlk, int NbCacheBlk)
+void DiskIO::SetCache(DISKIO_CACHE_DESC * const pCacheBlk, int NbCacheBlk)
 {
 	if (pCacheBlk == NULL || NbCacheBlk <= 0)
 		return;
@@ -78,8 +78,10 @@ int	DiskIO::GetCacheSect(uint32_t SectNo, bool bLock)
 	{
 		// Grab first cache
 		vpCacheSect[i].UseCnt++;
-		if (vpCacheSect[0].SectNo == SectNo)
+		if (vpCacheSect[i].SectNo == SectNo)
+		{
 			return i;
+		}
 		// Not requested sector release it
 		vpCacheSect[i].UseCnt--;
 	}
@@ -159,8 +161,12 @@ int DiskIO::Read(uint64_t Offset, uint8_t *pBuff, uint32_t Len)
 		pBuff += l;
 		Len -= l;
 		retval += l;
-		sectno++;
-		sectoff = 0;
+		sectoff += l;
+		if (sectoff >= DISKIO_SECT_SIZE)
+		{
+			sectno++;
+			sectoff = 0;
+		}
 	}
 
 	return retval;
@@ -210,8 +216,12 @@ int DiskIO::Write(uint64_t Offset, uint8_t *pData, uint32_t Len)
 		pData += l;
 		Len -= l;
 		retval += l;
-		sectno++;
-		sectoff = 0;
+		sectoff += l;
+		if (sectoff >= DISKIO_SECT_SIZE)
+		{
+			sectno++;
+			sectoff = 0;
+		}
 	}
 
 	return retval;
