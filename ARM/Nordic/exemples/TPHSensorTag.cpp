@@ -57,18 +57,20 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "bsec_interface.h"
 
 #include "blueio_board.h"
-#include "uart.h"
-#include "i2c.h"
-#include "spi.h"
+#include "coredev/uart.h"
+#include "coredev/i2c.h"
+#include "coredev/spi.h"
 #include "custom_board.h"
-#include "iopincfg.h"
+#include "coredev/iopincfg.h"
 #include "app_util_platform.h"
 #include "app_scheduler.h"
 #include "tph_bme280.h"
 #include "tph_ms8607.h"
 #include "tphg_bme680.h"
 #include "timer_nrf5x.h"
-//#include "timer_nrf_app_timer.h"
+#ifdef NRF51
+#include "timer_nrf_app_timer.h"
+#endif
 #include "board.h"
 #include "idelay.h"
 
@@ -146,6 +148,8 @@ const BLEAPP_CFG s_BleAppCfg = {
 	NULL,
 	(uint8_t*)&g_AdvDataBuff,   // Manufacture specific data to advertise
 	sizeof(g_AdvDataBuff),      // Length of manufacture specific data
+	NULL,
+	0,
 	BLEAPP_SECTYPE_NONE,    // Secure connection type
 	BLEAPP_SECEXCHG_NONE,   // Security key exchange
 	NULL,      				// Service uuids to advertise
@@ -213,9 +217,12 @@ static const I2CCFG s_I2cCfg = {
 	},
 	100000,	// Rate
 	I2CMODE_MASTER,
-	0,			// Slave address
 	5,			// Retry
-	7,			// Interrupt prio
+	0,			// Number of slave addresses
+	{0,},		// Slave addresses
+	true,
+	false,		// Use interrupt
+	APP_IRQ_PRIORITY_LOW,			// Interrupt prio
 	NULL		// Event callback
 };
 
@@ -273,7 +280,7 @@ void ReadPTHData()
 	static uint32_t gascnt = 0;
 	TPHSENSOR_DATA data;
 	GASSENSOR_DATA gdata;
-#if 0
+#if 1
 	g_TphSensor.Read(data);
 
 
@@ -306,7 +313,7 @@ void ReadPTHData()
 #endif
 	// Update advertisement data
 //	BleAppAdvManDataSet(g_AdvDataBuff, sizeof(g_AdvDataBuff));
-	BleAppAdvManDataSet((uint8_t*)&gascnt, sizeof(gascnt));
+	BleAppAdvManDataSet((uint8_t*)&gascnt, sizeof(gascnt), NULL, 0);
 
 	gascnt++;
 }
@@ -376,7 +383,6 @@ void HardwareInit()
 
 		return;
 	}
-
 
 	// Inititalize sensor
     g_TphSensor.Init(s_TphSensorCfg, g_pIntrf, &g_Timer);

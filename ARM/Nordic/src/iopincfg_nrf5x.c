@@ -39,7 +39,7 @@ Modified by          Date              Description
 
 #include "nrf_gpiote.h"
 
-#include "iopincfg.h"
+#include "coredev/iopincfg.h"
 
 #define IOPIN_MAX_INT			(GPIOTE_CH_NUM)
 
@@ -145,7 +145,7 @@ void IOPinDisable(int PortNo, int PinNo)
  *
  * @param	IntNo : Interrupt number to disable
  */
-void IOPinDisbleInterrupt(int IntNo)
+void IOPinDisableInterrupt(int IntNo)
 {
     if (IntNo >= IOPIN_MAX_INT)
         return;
@@ -195,8 +195,10 @@ void IOPinDisbleInterrupt(int IntNo)
  * The IntNo (interrupt number) parameter is processor dependent. Some is
  * directly the hardware interrupt number other is just an index in an array
  *
+ * NOTE : Port event interrupt is set when IntNo = -1.  Port event mode only
+ * high transition is detected no matter the setting of pin sense
  *
- * @param	IntNo	: Interrupt number.
+ * @param	IntNo	: Interrupt number. -1 for port event interrupt
  * 			IntPrio : Interrupt priority
  * 			PortNo  : Port number (up to 32 ports)
  * 			PinNo   : Pin number (up to 32 pins)
@@ -208,50 +210,51 @@ bool IOPinEnableInterrupt(int IntNo, int IntPrio, int PortNo, int PinNo, IOPINSE
     if (IntNo >= IOPIN_MAX_INT)
 		return false;
 
-    if (IntNo < 0)
-    {
-        IntNo = IOPIN_MAX_INT;
-        NRF_GPIOTE->EVENTS_PORT = 0;
-        NRF_GPIOTE->INTENSET = GPIOTE_INTENSET_PORT_Msk;
-    }
-    else
-    {
-        NRF_GPIO_Type *reg = NRF_GPIO;
+	NRF_GPIO_Type *reg = NRF_GPIO;
 
 #ifdef NRF52840_XXAA
-        if (PortNo == 1)
-        {
-            reg = NRF_P1;
-        }
+	if (PortNo == 1)
+	{
+		reg = NRF_P1;
+	}
 
 #endif
 
-        //NRF_GPIOTE->CONFIG[IntNo] &= ~(GPIOTE_CONFIG_PORT_PIN_Msk | GPIOTE_CONFIG_POLARITY_Msk);
-        switch (Sense)
-        {
-            case IOPINSENSE_LOW_TRANSITION:
-                NRF_GPIOTE->CONFIG[IntNo] = ((GPIOTE_CONFIG_POLARITY_HiToLo << GPIOTE_CONFIG_POLARITY_Pos) & GPIOTE_CONFIG_POLARITY_Msk)
-                                            | ((PinNo << GPIOTE_CONFIG_PSEL_Pos) & GPIOTE_CONFIG_PORT_PIN_Msk)
-                                            | (GPIOTE_CONFIG_MODE_Event << GPIOTE_CONFIG_MODE_Pos);
-                reg->PIN_CNF[PinNo] |= (GPIO_PIN_CNF_SENSE_Low << GPIO_PIN_CNF_SENSE_Pos);
-                break;
-            case IOPINSENSE_HIGH_TRANSITION:
-                NRF_GPIOTE->CONFIG[IntNo] = ((GPIOTE_CONFIG_POLARITY_LoToHi << GPIOTE_CONFIG_POLARITY_Pos) & GPIOTE_CONFIG_POLARITY_Msk)
-                                            | ((PinNo << GPIOTE_CONFIG_PSEL_Pos) & GPIOTE_CONFIG_PORT_PIN_Msk)
-                                            | (GPIOTE_CONFIG_MODE_Event << GPIOTE_CONFIG_MODE_Pos);
-                reg->PIN_CNF[PinNo] |= (GPIO_PIN_CNF_SENSE_High << GPIO_PIN_CNF_SENSE_Pos);
-                break;
-            case IOPINSENSE_TOGGLE:
-                NRF_GPIOTE->CONFIG[IntNo] = ((GPIOTE_CONFIG_POLARITY_Toggle << GPIOTE_CONFIG_POLARITY_Pos) & GPIOTE_CONFIG_POLARITY_Msk)
-                                            | ((PinNo << GPIOTE_CONFIG_PSEL_Pos) & GPIOTE_CONFIG_PORT_PIN_Msk)
-                                            | (GPIOTE_CONFIG_MODE_Event << GPIOTE_CONFIG_MODE_Pos);
-                reg->PIN_CNF[PinNo] |= (3 << GPIO_PIN_CNF_SENSE_Pos);
-                break;
-            default:
-                ;
-        }
-        NRF_GPIOTE->INTENSET = (1 << IntNo);
-    }
+	reg->PIN_CNF[PinNo] &= ~(GPIO_PIN_CNF_SENSE_Msk << GPIO_PIN_CNF_SENSE_Pos);
+	switch (Sense)
+	{
+		case IOPINSENSE_LOW_TRANSITION:
+			NRF_GPIOTE->CONFIG[IntNo] = ((GPIOTE_CONFIG_POLARITY_HiToLo << GPIOTE_CONFIG_POLARITY_Pos) & GPIOTE_CONFIG_POLARITY_Msk)
+										| ((PinNo << GPIOTE_CONFIG_PSEL_Pos) & GPIOTE_CONFIG_PORT_PIN_Msk)
+										| (GPIOTE_CONFIG_MODE_Event << GPIOTE_CONFIG_MODE_Pos);
+			reg->PIN_CNF[PinNo] |= (GPIO_PIN_CNF_SENSE_Low << GPIO_PIN_CNF_SENSE_Pos);
+			break;
+		case IOPINSENSE_HIGH_TRANSITION:
+			NRF_GPIOTE->CONFIG[IntNo] = ((GPIOTE_CONFIG_POLARITY_LoToHi << GPIOTE_CONFIG_POLARITY_Pos) & GPIOTE_CONFIG_POLARITY_Msk)
+										| ((PinNo << GPIOTE_CONFIG_PSEL_Pos) & GPIOTE_CONFIG_PORT_PIN_Msk)
+										| (GPIOTE_CONFIG_MODE_Event << GPIOTE_CONFIG_MODE_Pos);
+			reg->PIN_CNF[PinNo] |= (GPIO_PIN_CNF_SENSE_High << GPIO_PIN_CNF_SENSE_Pos);
+			break;
+		case IOPINSENSE_TOGGLE:
+			NRF_GPIOTE->CONFIG[IntNo] = ((GPIOTE_CONFIG_POLARITY_Toggle << GPIOTE_CONFIG_POLARITY_Pos) & GPIOTE_CONFIG_POLARITY_Msk)
+										| ((PinNo << GPIOTE_CONFIG_PSEL_Pos) & GPIOTE_CONFIG_PORT_PIN_Msk)
+										| (GPIOTE_CONFIG_MODE_Event << GPIOTE_CONFIG_MODE_Pos);
+			reg->PIN_CNF[PinNo] |= (3 << GPIO_PIN_CNF_SENSE_Pos);
+			break;
+		default:
+			;
+	}
+
+	if (IntNo < 0)
+	{
+		IntNo = IOPIN_MAX_INT;
+		NRF_GPIOTE->EVENTS_PORT = 0;
+		NRF_GPIOTE->INTENSET = GPIOTE_INTENSET_PORT_Msk;
+	}
+	else
+	{
+		NRF_GPIOTE->INTENSET = (1 << IntNo);
+	}
 
     s_GpIOSenseEvt[IntNo].Sense = Sense;
 	s_GpIOSenseEvt[IntNo].PortPinNo = (PortNo << 8) | PinNo; // For use when disable interrupt
@@ -263,6 +266,51 @@ bool IOPinEnableInterrupt(int IntNo, int IntPrio, int PortNo, int PinNo, IOPINSE
 
 
     return true;
+}
+
+int IOPinFindAvailInterrupt()
+{
+	for (int i = 0; i < IOPIN_MAX_INT; i++)
+	{
+		if (s_GpIOSenseEvt[i].SensEvtCB == NULL)
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+/**
+ * @brief	Allocate I/O pin sensing interrupt event
+ *
+ * Generate an interrupt when I/O sense a state change. This function will automatically
+ * allocate available interrupt number to use for the pin.
+ * The IntNo (interrupt number) parameter is processor dependent. Some is
+ * directly the hardware interrupt number other is just an index in an array
+ *
+ *
+ * @Param	IntPrio : Interrupt priority
+ * @Param	PortNo  : Port number (up to 32 ports)
+ * @Param	PinNo   : Pin number (up to 32 pins)
+ * @Param	Sense   : Sense type of event on the I/O pin
+ * @Param	pEvtCB	: Pointer to callback function when event occurs
+ *
+ * @return	Interrupt number on success
+ * 			-1 on failure.
+ */
+int IOPinAllocateInterrupt(int IntPrio, int PortNo, int PinNo, IOPINSENSE Sense, IOPINEVT_CB pEvtCB)
+{
+	int intno = IOPinFindAvailInterrupt();
+
+	if (intno >= 0)
+	{
+		bool res = IOPinEnableInterrupt(intno, IntPrio, PortNo, PinNo, Sense, pEvtCB);
+		if (res == true)
+			return intno;
+	}
+
+	return -1;
 }
 
 /**
@@ -355,7 +403,11 @@ void __WEAK GPIOTE_IRQHandler(void)
         if (s_GpIOSenseEvt[IOPIN_MAX_INT].SensEvtCB)
             s_GpIOSenseEvt[IOPIN_MAX_INT].SensEvtCB(-1);
 	    NRF_GPIOTE->EVENTS_PORT = 0;
+#ifdef NRF52
+	    NRF_GPIO->LATCH = 0xFFFFFFFF;	// Clear detect latch
+#endif
 	}
+
 	NVIC_ClearPendingIRQ(GPIOTE_IRQn);
 }
 

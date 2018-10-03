@@ -1221,6 +1221,106 @@
 #endif
 
 // </e>
+// <e> NRF_BLE_SCAN_ENABLED - nrf_ble_scan - Scanning Module
+//==========================================================
+#ifndef NRF_BLE_SCAN_ENABLED
+#define NRF_BLE_SCAN_ENABLED 1
+#endif
+// <o> NRF_BLE_SCAN_BUFFER - Data length for an advertising set.
+#ifndef NRF_BLE_SCAN_BUFFER
+#define NRF_BLE_SCAN_BUFFER 31
+#endif
+
+// <o> NRF_BLE_SCAN_NAME_MAX_LEN - Maximum size for the name to search in the advertisement report.
+#ifndef NRF_BLE_SCAN_NAME_MAX_LEN
+#define NRF_BLE_SCAN_NAME_MAX_LEN 32
+#endif
+
+// <o> NRF_BLE_SCAN_SHORT_NAME_MAX_LEN - Maximum size of the short name to search for in the advertisement report.
+#ifndef NRF_BLE_SCAN_SHORT_NAME_MAX_LEN
+#define NRF_BLE_SCAN_SHORT_NAME_MAX_LEN 32
+#endif
+
+// <o> NRF_BLE_SCAN_SCAN_INTERVAL - Scanning interval. Determines the scan interval in units of 0.625 millisecond.
+#ifndef NRF_BLE_SCAN_SCAN_INTERVAL
+#define NRF_BLE_SCAN_SCAN_INTERVAL 160
+#endif
+
+// <o> NRF_BLE_SCAN_SCAN_DURATION - Duration of a scanning session in units of 10 ms. Range: 0x0001 - 0xFFFF (10 ms to 10.9225 ms). If set to 0x0000, the scanning continues until it is explicitly disabled.
+#ifndef NRF_BLE_SCAN_SCAN_DURATION
+#define NRF_BLE_SCAN_SCAN_DURATION 0
+#endif
+
+// <o> NRF_BLE_SCAN_SCAN_WINDOW - Scanning window. Determines the scanning window in units of 0.625 millisecond.
+#ifndef NRF_BLE_SCAN_SCAN_WINDOW
+#define NRF_BLE_SCAN_SCAN_WINDOW 80
+#endif
+
+// <o> NRF_BLE_SCAN_MIN_CONNECTION_INTERVAL - Determines minimum connection interval in milliseconds.
+#ifndef NRF_BLE_SCAN_MIN_CONNECTION_INTERVAL
+#define NRF_BLE_SCAN_MIN_CONNECTION_INTERVAL 7.5
+#endif
+
+// <o> NRF_BLE_SCAN_MAX_CONNECTION_INTERVAL - Determines maximum connection interval in milliseconds.
+#ifndef NRF_BLE_SCAN_MAX_CONNECTION_INTERVAL
+#define NRF_BLE_SCAN_MAX_CONNECTION_INTERVAL 30
+#endif
+
+// <o> NRF_BLE_SCAN_SLAVE_LATENCY - Determines the slave latency in counts of connection events.
+#ifndef NRF_BLE_SCAN_SLAVE_LATENCY
+#define NRF_BLE_SCAN_SLAVE_LATENCY 0
+#endif
+
+// <o> NRF_BLE_SCAN_SUPERVISION_TIMEOUT - Determines the supervision time-out in units of 10 millisecond.
+#ifndef NRF_BLE_SCAN_SUPERVISION_TIMEOUT
+#define NRF_BLE_SCAN_SUPERVISION_TIMEOUT 4000
+#endif
+
+// <o> NRF_BLE_SCAN_SCAN_PHY  - PHY to scan on.
+
+// <0=> BLE_GAP_PHY_AUTO
+// <1=> BLE_GAP_PHY_1MBPS
+// <2=> BLE_GAP_PHY_2MBPS
+// <4=> BLE_GAP_PHY_CODED
+// <255=> BLE_GAP_PHY_NOT_SET
+
+#ifndef NRF_BLE_SCAN_SCAN_PHY
+#define NRF_BLE_SCAN_SCAN_PHY 1
+#endif
+
+// <e> NRF_BLE_SCAN_FILTER_ENABLE - Enabling filters for the Scanning Module.
+//==========================================================
+#ifndef NRF_BLE_SCAN_FILTER_ENABLE
+#define NRF_BLE_SCAN_FILTER_ENABLE 1
+#endif
+// <o> NRF_BLE_SCAN_UUID_CNT - Number of filters for UUIDs.
+#ifndef NRF_BLE_SCAN_UUID_CNT
+#define NRF_BLE_SCAN_UUID_CNT 1
+#endif
+
+// <o> NRF_BLE_SCAN_NAME_CNT - Number of name filters.
+#ifndef NRF_BLE_SCAN_NAME_CNT
+#define NRF_BLE_SCAN_NAME_CNT 1
+#endif
+
+// <o> NRF_BLE_SCAN_SHORT_NAME_CNT - Number of short name filters.
+#ifndef NRF_BLE_SCAN_SHORT_NAME_CNT
+#define NRF_BLE_SCAN_SHORT_NAME_CNT 1
+#endif
+
+// <o> NRF_BLE_SCAN_ADDRESS_CNT - Number of address filters.
+#ifndef NRF_BLE_SCAN_ADDRESS_CNT
+#define NRF_BLE_SCAN_ADDRESS_CNT 10
+#endif
+
+// <o> NRF_BLE_SCAN_APPEARANCE_CNT - Number of appearance filters.
+#ifndef NRF_BLE_SCAN_APPEARANCE_CNT
+#define NRF_BLE_SCAN_APPEARANCE_CNT 0
+#endif
+
+// </e>
+
+// </e>
 
 // <e> PEER_MANAGER_ENABLED - peer_manager - Peer Manager
 //==========================================================
@@ -2176,9 +2276,9 @@
 
 // <i> This affects parameters for all ECC API (raw keys, signature, digest, shared secret). Only for use in nRF SDK DFU!
 
-#ifndef NRF_CRYPTO_BACKEND_MICRO_ECC_LITTLE_ENDIAN_ENABLED
-#define NRF_CRYPTO_BACKEND_MICRO_ECC_LITTLE_ENDIAN_ENABLED 0
-#endif
+//#ifndef NRF_CRYPTO_BACKEND_MICRO_ECC_LITTLE_ENDIAN_ENABLED
+//#define NRF_CRYPTO_BACKEND_MICRO_ECC_LITTLE_ENDIAN_ENABLED 0
+//#endif
 
 // </e>
 
@@ -3529,7 +3629,7 @@
 // <e> NRFX_POWER_ENABLED - nrfx_power - POWER peripheral driver
 //==========================================================
 #ifndef NRFX_POWER_ENABLED
-#define NRFX_POWER_ENABLED 0
+#define NRFX_POWER_ENABLED 1
 #endif
 // <o> NRFX_POWER_CONFIG_IRQ_PRIORITY  - Interrupt priority
  
@@ -5560,6 +5660,42 @@
 
 // </e>
 
+// <e> NRF_CLOCK_ENABLED - nrf_drv_clock - CLOCK peripheral driver - legacy layer
+//==========================================================
+#ifndef NRF_CLOCK_ENABLED
+#define NRF_CLOCK_ENABLED 0
+#endif
+// <o> CLOCK_CONFIG_LF_SRC  - LF Clock Source
+
+// <0=> RC
+// <1=> XTAL
+// <2=> Synth
+// <131073=> External Low Swing
+// <196609=> External Full Swing
+
+#ifndef CLOCK_CONFIG_LF_SRC
+#define CLOCK_CONFIG_LF_SRC 1
+#endif
+
+// <o> CLOCK_CONFIG_IRQ_PRIORITY  - Interrupt priority
+
+
+// <i> Priorities 0,2 (nRF51) and 0,1,4,5 (nRF52) are reserved for SoftDevice
+// <0=> 0 (highest)
+// <1=> 1
+// <2=> 2
+// <3=> 3
+// <4=> 4
+// <5=> 5
+// <6=> 6
+// <7=> 7
+
+#ifndef CLOCK_CONFIG_IRQ_PRIORITY
+#define CLOCK_CONFIG_IRQ_PRIORITY 7
+#endif
+
+// </e>
+
 // <e> PDM_ENABLED - nrf_drv_pdm - PDM peripheral driver - legacy layer
 //==========================================================
 #ifndef PDM_ENABLED
@@ -7349,7 +7485,7 @@
 //==========================================================
 // <o> FDS_MAX_USERS - Maximum number of callbacks that can be registered. 
 #ifndef FDS_MAX_USERS
-#define FDS_MAX_USERS 4
+#define FDS_MAX_USERS 8
 #endif
 
 // </h> 
@@ -7783,7 +7919,7 @@
  
 
 #ifndef NRF_FPRINTF_ENABLED
-#define NRF_FPRINTF_ENABLED 1
+#define NRF_FPRINTF_ENABLED 0
 #endif
 
 // <e> NRF_FSTORAGE_ENABLED - nrf_fstorage - Flash abstraction library
@@ -10279,7 +10415,7 @@
 // <e> NRF_SDH_ANT_LOG_ENABLED - Enable logging in SoftDevice handler (ANT) module.
 //==========================================================
 #ifndef NRF_SDH_ANT_LOG_ENABLED
-#define NRF_SDH_ANT_LOG_ENABLED 1
+#define NRF_SDH_ANT_LOG_ENABLED 0
 #endif
 // <o> NRF_SDH_ANT_LOG_LEVEL  - Default Severity level
  
@@ -10330,7 +10466,7 @@
 // <e> NRF_SDH_BLE_LOG_ENABLED - Enable logging in SoftDevice handler (BLE) module.
 //==========================================================
 #ifndef NRF_SDH_BLE_LOG_ENABLED
-#define NRF_SDH_BLE_LOG_ENABLED 1
+#define NRF_SDH_BLE_LOG_ENABLED 0
 #endif
 // <o> NRF_SDH_BLE_LOG_LEVEL  - Default Severity level
  
@@ -10381,7 +10517,7 @@
 // <e> NRF_SDH_LOG_ENABLED - Enable logging in SoftDevice handler module.
 //==========================================================
 #ifndef NRF_SDH_LOG_ENABLED
-#define NRF_SDH_LOG_ENABLED 1
+#define NRF_SDH_LOG_ENABLED 0
 #endif
 // <o> NRF_SDH_LOG_LEVEL  - Default Severity level
  
@@ -10432,7 +10568,7 @@
 // <e> NRF_SDH_SOC_LOG_ENABLED - Enable logging in SoftDevice handler (SoC) module.
 //==========================================================
 #ifndef NRF_SDH_SOC_LOG_ENABLED
-#define NRF_SDH_SOC_LOG_ENABLED 1
+#define NRF_SDH_SOC_LOG_ENABLED 0
 #endif
 // <o> NRF_SDH_SOC_LOG_LEVEL  - Default Severity level
  
@@ -12633,13 +12769,6 @@
 #define BLE_LBS_C_BLE_OBSERVER_PRIO 2
 #endif
 
-// <o> BLE_LESC_OBSERVER_PRIO  
-// <i> Priority with which BLE events are dispatched to the BLE LESC module.
-
-#ifndef BLE_LESC_OBSERVER_PRIO
-#define BLE_LESC_OBSERVER_PRIO 2
-#endif
-
 // <o> BLE_LLS_BLE_OBSERVER_PRIO  
 // <i> Priority with which BLE events are dispatched to the Link Loss Service.
 
@@ -12771,6 +12900,13 @@
 
 #ifndef NRF_BLE_QWR_BLE_OBSERVER_PRIO
 #define NRF_BLE_QWR_BLE_OBSERVER_PRIO 2
+#endif
+
+// <o> NRF_BLE_SCAN_OBSERVER_PRIO
+// <i> Priority for dispatching the BLE events to the Scanning Module.
+
+#ifndef NRF_BLE_SCAN_OBSERVER_PRIO
+#define NRF_BLE_SCAN_OBSERVER_PRIO 1
 #endif
 
 // <o> PM_BLE_OBSERVER_PRIO - Priority with which BLE events are dispatched to the Peer Manager module. 

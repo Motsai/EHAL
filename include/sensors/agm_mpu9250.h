@@ -38,10 +38,10 @@ Modified by          Date              Description
 
 #include <stdint.h>
 
-#include "iopincfg.h"
-#include "accel_sensor.h"
-#include "gyro_sensor.h"
-#include "mag_sensor.h"
+#include "coredev/iopincfg.h"
+#include "sensors/accel_sensor.h"
+#include "sensors/gyro_sensor.h"
+#include "sensors/mag_sensor.h"
 
 #define MPU9250_I2C_DEV_ADDR0			0x68		// AD0 low
 #define MPU9250_I2C_DEV_ADDR1			0x69		// AD0 high
@@ -62,6 +62,15 @@ Modified by          Date              Description
 #define MPU9250_AG_CONFIG				0x1A
 
 #define MPU9250_AG_CONFIG_DLPF_CFG_MASK 					(7)
+#define MPU9250_AG_CONFIG_DLPF_CFG_250HZ					(0)
+#define MPU9250_AG_CONFIG_DLPF_CFG_184HZ					(1)
+#define MPU9250_AG_CONFIG_DLPF_CFG_92HZ						(2)
+#define MPU9250_AG_CONFIG_DLPF_CFG_41HZ						(3)
+#define MPU9250_AG_CONFIG_DLPF_CFG_20HZ						(4)
+#define MPU9250_AG_CONFIG_DLPF_CFG_10HZ						(5)
+#define MPU9250_AG_CONFIG_DLPF_CFG_5HZ						(6)
+#define MPU9250_AG_CONFIG_DLPF_CFG_3600HZ					(7)
+
 #define MPU9250_AG_CONFIG_EXT_SYNC_SET_MASK					(7<<3)
 #define MPU9250_AG_CONFIG_FIFO_MODE_BLOCKING				(1<<6)
 
@@ -69,9 +78,15 @@ Modified by          Date              Description
 
 #define MPU9250_AG_GYRO_CONFIG_FCHOICE_MASK					(3)
 #define MPU9250_AG_GYRO_CONFIG_GYRO_FS_SEL_MASK				(3<<3)
-#define MPU9250_AG_GYRO_CONFIG_ZGYROCT_EN					(1<<5)
-#define MPU9250_AG_GYRO_CONFIG_YGYROCT_EN					(1<<6)
-#define MPU9250_AG_GYRO_CONFIG_XGYROCT_EN					(1<<7)
+#define MPU9250_AG_GYRO_CONFIG_GYRO_FS_SEL_250DPS			(0<<3)
+#define MPU9250_AG_GYRO_CONFIG_GYRO_FS_SEL_500DPS			(1<<3)
+#define MPU9250_AG_GYRO_CONFIG_GYRO_FS_SEL_1000DPS			(2<<3)
+#define MPU9250_AG_GYRO_CONFIG_GYRO_FS_SEL_2000DPS			(3<<3)
+
+
+#define MPU9250_AG_GYRO_CONFIG_ZGYRO_SELFTEST_EN			(1<<5)
+#define MPU9250_AG_GYRO_CONFIG_YGYRO_SELFTEST_EN			(1<<6)
+#define MPU9250_AG_GYRO_CONFIG_XGYRO_SELFTEST_EN			(1<<7)
 
 #define MPU9250_AG_ACCEL_CONFIG			0x1C
 #define MPU9250_AG_ACCEL_CONFIG_ACCEL_FS_SEL_MASK			(3<<3)		// Accel full scale select mask
@@ -85,10 +100,21 @@ Modified by          Date              Description
 
 #define MPU9250_AG_ACCEL_CONFIG2		0x1D
 
-#define MPU9250_AG_ACCEL_CONFIG2_A_DLPF_CFG_MASK			(3)
-#define MPU9250_AG_ACCEL_CONFIG2_A_DLPF_CFG_BITPOS			(0)
-#define MPU9250_AG_ACCEL_CONFIG2_ACCEL_FCHOICE_B_MASK		(3<<2)
-#define MPU9250_AG_ACCEL_CONFIG2_ACCEL_FCHOICE_B_BITPOS		(2)
+#define MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_MASK				(3)
+#define MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_BITPOS			(0)
+#define MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_5HZ				(6)
+#define MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_10HZ				(5)
+#define MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_20HZ				(4)
+#define MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_41HZ				(3)
+#define MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_92HZ				(2)
+#define MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_184HZ			(1)
+#define MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_460HZ			(7)
+#define MPU9250_AG_ACCEL_CONFIG2_ACCEL_FCHOICE_B			(1<<3)
+// Undocumented FIFO size settings
+// min needs to be 1024, otherwise big large
+#define MPU9250_AG_ACCEL_CONFIG2_FIFO_SIZE_1024				(1<<6)
+#define MPU9250_AG_ACCEL_CONFIG2_FIFO_SIZE_2048				(2<<6)
+#define MPU9250_AG_ACCEL_CONFIG2_FIFO_SIZE_4096				(3<<6)
 
 #define MPU9250_AG_LP_ACCEL_ODR			0x1E
 
@@ -105,7 +131,7 @@ Modified by          Date              Description
 #define MPU9250_AG_FIFO_EN_GYRO_ZOUT						(1<<4)
 #define MPU9250_AG_FIFO_EN_GYRO_YOUT						(1<<5)
 #define MPU9250_AG_FIFO_EN_GYRO_XOUT						(1<<6)
-#define MPU9250_AG_FIFO_EN_TEMP_FIFO_EN						(1<<7)
+#define MPU9250_AG_FIFO_EN_TEMP_OUT							(1<<7)
 
 #define MPU9250_AG_I2C_MST_CTRL			0x24
 
@@ -118,7 +144,7 @@ Modified by          Date              Description
 #define MPU9250_AG_I2C_SLV0_ADDR		0x25
 
 #define MPU9250_AG_I2C_SLV0_ADDR_I2C_ID_MASK				(0x7F)
-#define MPU9250_AG_I2C_SLV0_ADDR_I2C_SLVO_RNW				(1<<7)
+#define MPU9250_AG_I2C_SLV0_ADDR_I2C_SLVO_RD				(1<<7)
 
 #define MPU9250_AG_I2C_SLV0_REG			0x26
 
@@ -217,6 +243,7 @@ Modified by          Date              Description
 #define MPU9250_AG_INT_ENABLE			0x38
 
 #define MPU9250_AG_INT_ENABLE_RAW_RDY_EN					(1<<0)
+#define MPU9250_AG_INT_ENABLE_DMP_EN						(1<<1)	// Undocumented
 #define MPU9250_AG_INT_ENABLE_FSYNC_INT_EN					(1<<3)
 #define MPU9250_AG_INT_ENABLE_FIFO_OFLOW_EN					(1<<4)
 #define MPU9250_AG_INT_ENABLE_WOM_EN						(1<<6)
@@ -281,10 +308,15 @@ Modified by          Date              Description
 #define MPU9250_AG_USER_CTRL_I2C_IF_DIS						(1<<4)
 #define MPU9250_AG_USER_CTRL_I2C_MST_EN						(1<<5)
 #define MPU9250_AG_USER_CTRL_FIFO_EN						(1<<6)
+#define MPU9250_AG_USER_CTRL_DMP_EN							(1<<7)	// Undocumented
 
 #define MPU9250_AG_PWR_MGMT_1			0x6B
 
 #define MPU9250_AG_PWR_MGMT_1_CLKSEL_MASK					(7)
+#define MPU9250_AG_PWR_MGMT_1_CLKSEL_INTERNAL				(0)
+#define MPU9250_AG_PWR_MGMT_1_CLKSEL_AUTO					(1)
+#define MPU9250_AG_PWR_MGMT_1_CLKSEL_STOP					(7)
+
 #define MPU9250_AG_PWR_MGMT_1_PD_PTAT						(1<<3)
 #define MPU9250_AG_PWR_MGMT_1_GYRO_STANDBY					(1<<4)
 #define MPU9250_AG_PWR_MGMT_1_CYCLE							(1<<5)
@@ -299,6 +331,11 @@ Modified by          Date              Description
 #define MPU9250_AG_PWR_MGMT_2_DIS_ZA						(1<<3)
 #define MPU9250_AG_PWR_MGMT_2_DIS_YA						(1<<4)
 #define MPU9250_AG_PWR_MGMT_2_DIS_XA						(1<<5)
+
+// Undocumented registers
+#define MPU9250_DMP_MEM_BANKSEL			0x6D
+#define MPU9250_DMP_MEM_STARTADDR		0x6E
+#define MPU9250_DMP_PROG_START			0x70
 
 #define MPU9250_AG_FIFO_COUNT_H			0x72
 #define MPU9250_AG_FIFO_COUNT_L			0x73
@@ -316,7 +353,9 @@ Modified by          Date              Description
 #define MPU9250_AG_ZA_OFFSET_L			0x7E
 
 // Mag registers
-//
+// AK8963C
+#define MPU9250_MAG_I2C_DEVADDR			0xC
+
 #define MPU9250_MAG_WIA					0x00		// Mag device ID
 
 #define MPU9250_MAG_WIA_DEVICE_ID							(0x48)
@@ -343,6 +382,15 @@ Modified by          Date              Description
 #define MPU9250_MAG_CTRL1				0x0A
 
 #define MPU9250_MAG_CTRL1_MODE_MASK							(0xF)
+#define MPU9250_MAG_CTRL1_MODE_PWRDOWN						(0)
+#define MPU9250_MAG_CTRL1_MODE_SINGLE						(1)
+#define MPU9250_MAG_CTRL1_MODE_8HZ							(2)
+#define MPU9250_MAG_CTRL1_MODE_100HZ						(6)
+#define MPU9250_MAG_CTRL1_MODE_EXT_TRIG						(4)
+#define MPU9250_MAG_CTRL1_MODE_SELFTEST						(8)
+#define MPU9250_MAG_CTRL1_MODE_FUSEROM_ACCESS				(0xF)
+#define MPU9250_MAG_CTRL1_BIT_16							(1<<4)
+
 
 #define MPU9250_MAG_CTRL2				0x0B
 
@@ -361,6 +409,7 @@ Modified by          Date              Description
 #define MPU9250_MAG_ASAY				0x11
 #define MPU9250_MAG_ASAZ				0x12
 
+#define MPU9250_MAG_MAX_FLUX_DENSITY	4912
 
 #pragma pack(push, 1)
 
@@ -368,34 +417,85 @@ Modified by          Date              Description
 
 class AgmMpu9250 : public AccelSensor, public GyroSensor, public MagSensor {
 public:
+	/**
+	 * @brief	Initialize accelerometer sensor.
+	 *
+	 * NOTE: This sensor must be the first to be initialized.
+	 *
+	 * @param 	Cfg		: Accelerometer configuration data
+	 * @param 	pIntrf	: Pointer to communication interface
+	 * @param 	pTimer	: Pointer to Timer use for time stamp
+	 *
+	 * @return	true - Success
+	 */
 	virtual bool Init(const ACCELSENSOR_CFG &Cfg, DeviceIntrf * const pIntrf, Timer * const pTimer = NULL);
-	virtual bool Init(const GYROSENSOR_CFG&, DeviceIntrf* const , Timer * const pTimer = NULL);
-	virtual bool Init(const MAGSENSOR_CFG&, DeviceIntrf* const , Timer * const pTimer = NULL);
-	bool WakeOnMotion(bool bEnable, uint8_t Threshold);
+
+	/**
+	 * @brief	Initialize gyroscope sensor.
+	 *
+	 * NOTE : Accelerometer must be initialized first prior to this one.
+	 *
+	 * @param 	Cfg		: Accelerometer configuration data
+	 * @param 	pIntrf	: Pointer to communication interface
+	 * @param 	pTimer	: Pointer to Timer use for time stamp
+	 *
+	 * @return	true - Success
+	 */
+	virtual bool Init(const GYROSENSOR_CFG &Cfg, DeviceIntrf* const pIntrf, Timer * const pTimer = NULL);
+
+	/**
+	 * @brief	Initialize magnetometer sensor.
+	 *
+	 * NOTE : Accelerometer must be initialized first prior to this one.
+	 *
+	 * @param 	Cfg		: Accelerometer configuration data
+	 * @param 	pIntrf	: Pointer to communication interface
+	 * @param 	pTimer	: Pointer to Timer use for time stamp
+	 *
+	 * @return	true - Success
+	 */
+	virtual bool Init(const MAGSENSOR_CFG &Cfg, DeviceIntrf* const pIntrf, Timer * const pTimer = NULL);
+
 	virtual bool Enable();
 	virtual void Disable();
 	virtual void Reset();
-	virtual bool StartSampling();
-	virtual uint8_t Scale(uint8_t Value);
-	virtual bool Read(ACCELSENSOR_DATA *pData);
-	virtual bool Read(GYROSENSOR_DATA*);
-	virtual bool Read(MAGSENSOR_DATA*);
-	/**
-	 * @brief	Set sampling frequency.
-	 * 		The sampling frequency is relevant only in continuous mode.
-	 *
-	 * @return	Frequency in Hz
-	 */
-	 uint32_t SamplingFrequency(uint32_t FreqHz);
 
-private:
-	bool InitDefault(uint32_t DevAddr, DeviceIntrf * const pIntrf, Timer * const pTimer);
-	bool UpdateData();
+	/**
+	 * @brief	Enable/Disable wake on motion event
+	 *
+	 * @param bEnable
+	 * @param Threshold
+	 * @return
+	 */
+	virtual bool WakeOnEvent(bool bEnable, int Threshold);
+
+	virtual bool StartSampling();
+	virtual uint32_t LowPassFreq(uint32_t Freq);
+
+	virtual uint16_t Scale(uint16_t Value);			// Accel
+	virtual uint32_t Sensitivity(uint32_t Value);	// Gyro
+
+
+	virtual bool Read(ACCELSENSOR_DATA &Data);
+	virtual bool Read(GYROSENSOR_DATA &Data);
+	virtual bool Read(MAGSENSOR_DATA &Data);
+
 	int Read(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pBuff, int BuffLen);
 	int Write(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen);
+	int Read(uint8_t DevAddr, uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pBuff, int BuffLen);
+	int Write(uint8_t DevAddr, uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen);
+	bool UpdateData();
+	virtual void IntHandler();
+
+private:
+	// Default base initialization. Does detection and set default config for all sensor.
+	// All sensor init must call this first prio to initializing itself
+	bool Init(uint32_t DevAddr, DeviceIntrf * const pIntrf, Timer * const pTimer);
 
 	bool vbSpi;
 	bool vbInitialized;
+	uint8_t vMagCtrl1Val;
+	int16_t vMagSenAdj[3];
 };
 
 #endif // __AGM_MPU9250_H__

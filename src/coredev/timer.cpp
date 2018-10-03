@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
-File   : spi_nrf5x.h
+File   : timer.cpp
 
-Author : Hoang Nguyen Hoan          Oct. 6, 2016
+Author : Hoang Nguyen Hoan          				Sep. 7, 2017
 
-Desc   : SPI implementation on nRF5x series MCU
+Desc   : Generic timer class
 
-Copyright (c) 2016, I-SYST inc., all rights reserved
+Copyright (c) 2017, I-SYST inc., all rights reserved
 
 Permission to use, copy, modify, and distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright
@@ -28,15 +28,30 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ----------------------------------------------------------------------------
-Modified by         Date            Description
+Modified by          Date              Description
 
 ----------------------------------------------------------------------------*/
-#ifndef __SPI_NRF5X_H__
-#define __SPI_NRF5X_H__
 
-#include "spi.h"
+#include "coredev/timer.h"
 
+int Timer::EnableTimerTrigger(uint64_t nsPeriod, TIMER_TRIG_TYPE Type, TIMER_TRIGCB const Handler, void * const pContext)
+{
+	int idx = FindAvailTimerTrigger();
+	if (idx < 0)
+		return 0;
 
+	EnableTimerTrigger(idx, nsPeriod, Type, Handler, pContext);
 
+	return idx;
+}
 
-#endif // __SPI_NRF5X_H__
+int Timer::EnableTimerTrigger(uint32_t msPeriod, TIMER_TRIG_TYPE Type, TIMER_TRIGCB const Handler, void * const pContext)
+{
+	int idx = FindAvailTimerTrigger();
+	if (idx < 0)
+		return 0;
+
+	EnableTimerTrigger(idx, msPeriod, Type, Handler, pContext);
+
+	return idx;
+}

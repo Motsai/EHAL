@@ -61,7 +61,8 @@ Modified by          Date              Description
 #include "nrf_sdh_ble.h"
 #include "nrf_dfu_settings.h"
 #include "nrf_crypto.h"
-#include "ble_lesc.h"
+#include "nrf_ble_lesc.h"
+#include "nrf_ble_scan.h"
 
 //#include "nrf_crypto_keys.h"
 //#include "nrf_log.h"
@@ -69,9 +70,9 @@ Modified by          Date              Description
 //#include "nrf_log_default_backends.h"
 
 #include "istddef.h"
-#include "uart.h"
+#include "coredev/uart.h"
 #include "custom_board.h"
-#include "iopincfg.h"
+#include "coredev/iopincfg.h"
 #include "iopinctrl.h"
 #include "ble_app.h"
 
@@ -80,7 +81,7 @@ extern "C" void nrf_sdh_soc_evts_poll(void * p_context);
 #define APP_FEATURE_NOT_SUPPORTED       BLE_GATT_STATUS_ATTERR_APP_BEGIN + 2        /**< Reply when unsupported features are requested. */
 
 #define BLEAPP_OBSERVER_PRIO           1                                           /**< Application's BLE observer priority. You shouldn't need to modify this value. */
-#define BLEAPP_CONN_CFG_TAG            1                                           /**< A tag identifying the SoftDevice BLE configuration. */
+//#define BLEAPP_CONN_CFG_TAG            1                                           /**< A tag identifying the SoftDevice BLE configuration. */
 
 #define APP_TIMER_OP_QUEUE_SIZE         10                                           /**< Size of timer operation queues. */
 
@@ -122,6 +123,7 @@ typedef struct _BleAppData {
 	ble_advdata_t AdvData;
 	ble_advdata_t SrData;
     ble_advdata_manuf_data_t ManufData;
+    ble_advdata_manuf_data_t SRManufData;
 	int MaxMtu;
 	bool bSecure;
 	bool bAdvertising;
@@ -136,30 +138,6 @@ static const int8_t s_TxPowerdBm[] = {
 static const int s_NbTxPowerdBm = sizeof(s_TxPowerdBm) / sizeof(int8_t);
 
 BLE_ADVERTISING_DEF(g_AdvInstance);             /**< Advertising module instance. */
-//static ble_advertising_t g_AdvInstance;                     /**< Advertising module instance. */
-//NRF_SDH_BLE_OBSERVER(g_BleAdvBleObserver, BLEAPP_OBSERVER_PRIO, ble_advertising_on_ble_evt, &g_AdvInstance);
-//NRF_SDH_SOC_OBSERVER(g_BleAdvSysObserver, BLEAPP_OBSERVER_PRIO, ble_advertising_on_sys_evt, &g_AdvInstance);
-
-//static ble_gap_adv_params_t s_AdvParams;                                 /**< Parameters to be passed to the stack when starting advertising. */
-/*uint8_t g_AdvHandle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;
-uint8_t g_AdvEncData[BLE_GAP_ADV_SET_DATA_SIZE_MAX];
-
-ble_gap_adv_data_t g_AdvData =
-{
-    .adv_data =
-    {
-        .p_data = g_AdvEncData,
-        .len    = BLE_GAP_ADV_SET_DATA_SIZE_MAX
-    },
-    .scan_rsp_data =
-    {
-        .p_data = NULL,
-        .len    = 0
-
-    }
-};
-*/
-
 NRF_BLE_GATT_DEF(s_Gatt);
 
 BLEAPP_DATA g_BleAppData = {
@@ -179,50 +157,6 @@ __ALIGN(4) __WEAK extern const uint8_t g_lesc_private_key[32] = {
 __ALIGN(4) static ble_gap_lesc_p256_pk_t    s_lesc_public_key;      /**< LESC ECC Public Key */
 __ALIGN(4) static ble_gap_lesc_dhkey_t      s_lesc_dh_key;          /**< LESC ECC DH Key*/
 static ble_gap_conn_sec_mode_t s_gap_conn_mode;
-
-/**@brief Allocated private key type to use for LESC DH generation
- */
-//NRF_CRYPTO_ECC_PRIVATE_KEY_CREATE(s_private_key, SECP256R1);
-
-/**@brief Allocated public key type to use for LESC DH generation
- */
-//NRF_CRYPTO_ECC_PUBLIC_KEY_CREATE(s_public_key, SECP256R1);
-
-/**@brief Allocated peer public key type to use for LESC DH generation
- */
-//NRF_CRYPTO_ECC_PUBLIC_KEY_CREATE(s_peer_public_key, SECP256R1);
-
-/**@brief Allocated raw public key to use for LESC DH.
- */
-//NRF_CRYPTO_ECC_PUBLIC_KEY_RAW_CREATE_FROM_ARRAY(s_public_key_raw, SECP256R1, s_lesc_public_key.pk);
-
-/**@brief Allocated shared instance to use for LESC DH.
- */
-//NRF_CRYPTO_ECDH_SHARED_SECRET_CREATE_FROM_ARRAY(s_dh_key, SECP256R1, s_lesc_dh_key.key);
-
-/**@brief Function to generate private key */
-/*uint32_t lesc_generate_key_pair(void)
-{
-    uint32_t ret_val;
-    //NRF_LOG_INFO("Generating key-pair\r\n");
-    //Generate a public/private key pair.
-    ret_val = nrf_crypto_ecc_key_pair_generate(NRF_CRYPTO_BLE_ECDH_CURVE_INFO, &s_private_key, &s_public_key);
-    APP_ERROR_CHECK(ret_val);
-    //NRF_LOG_INFO("After generating key-pair\r\n");
-
-    // Convert to a raw type
-    //NRF_LOG_INFO("Converting to raw type\r\n");
-    ret_val = nrf_crypto_ecc_public_key_to_raw(NRF_CRYPTO_BLE_ECDH_CURVE_INFO, &s_public_key, &s_public_key_raw);
-    APP_ERROR_CHECK(ret_val);
-    //NRF_LOG_INFO("After Converting to raw type\r\n");
-
-    // Set the public key in the PM.
-    ret_val = pm_lesc_public_key_set(&s_lesc_public_key);
-    APP_ERROR_CHECK(ret_val);
-
-    return ret_val;
-}
-*/
 
 static inline void BleConnLedOff() {
 	if (g_BleAppData.ConnLedPort < 0 || g_BleAppData.ConnLedPin < 0)
@@ -867,17 +801,12 @@ static void ble_evt_dispatch(ble_evt_t const * p_ble_evt, void *p_context)
 
 //    printf("evt %d\r\n", p_ble_evt->header.evt_id);
 
-   // ble_conn_state_on_ble_evt(p_ble_evt);
-
-    if ((role == BLE_GAP_ROLE_CENTRAL) || (p_ble_evt->header.evt_id == BLE_GAP_EVT_ADV_REPORT) || g_BleAppData.AppRole & BLEAPP_ROLE_CENTRAL)
+    if ((role == BLE_GAP_ROLE_CENTRAL) || /*(p_ble_evt->header.evt_id == BLE_GAP_EVT_ADV_REPORT) ||*/ g_BleAppData.AppRole & BLEAPP_ROLE_CENTRAL)
     {
         BleCentralEvtUserHandler((ble_evt_t *)p_ble_evt);
     }
     else
     {
-//        pm_on_ble_evt(p_ble_evt);
-        //ble_advertising_on_ble_evt(p_ble_evt);
-//        ble_conn_params_on_ble_evt(p_ble_evt, p_context);
         BlePeriphEvtUserHandler((ble_evt_t *)p_ble_evt);
     }
     on_ble_evt(p_ble_evt);
@@ -968,8 +897,8 @@ static void BleAppPeerMngrInit(BLEAPP_SECTYPE SecType, uint8_t SecKeyExchg, bool
     APP_ERROR_CHECK(err_code);
 
     // Generate the ECDH key pair and set public key in the peer-manager.
-    err_code = ble_lesc_ecc_keypair_generate_and_set();
-    APP_ERROR_CHECK(err_code);
+    //err_code = ble_lesc_ecc_keypair_generate_and_set();
+    //APP_ERROR_CHECK(err_code);
 }
 
 /**@brief Function for handling the Security Request timer timeout.
@@ -995,29 +924,47 @@ static void sec_req_timeout_handler(void * p_context)
     }
 }
 
-void BleAppAdvManDataSet(uint8_t *pData, int Len)
+void BleAppAdvManDataSet(uint8_t *pAdvData, int AdvLen, uint8_t *pSrData, int SrLen)
 {
-   int l = min(Len, BLE_GAP_ADV_SET_DATA_SIZE_MAX);
+	uint32_t err;
 
-   memcpy(g_BleAppData.ManufData.data.p_data, pData, l);
+	if (pAdvData && AdvLen > 0)
+	{
+		int l = min(AdvLen, BLE_GAP_ADV_SET_DATA_SIZE_MAX);
 
-   uint32_t err = ble_advdata_encode(&g_BleAppData.AdvData, g_AdvInstance.adv_data.adv_data.p_data, &g_AdvInstance.adv_data.adv_data.len);
-   APP_ERROR_CHECK(err);
+		memcpy(g_BleAppData.ManufData.data.p_data, pAdvData, l);
 
-   // SDK15 doesn't allow dynamicaly updating adv data.  Have to stop and re-start advertising
-   if (g_BleAppData.bAdvertising == true)
-   {
-	   sd_ble_gap_adv_stop(g_AdvInstance.adv_handle);
-   }
+		err = ble_advdata_encode(&g_BleAppData.AdvData, g_AdvInstance.adv_data.adv_data.p_data, &g_AdvInstance.adv_data.adv_data.len);
+		APP_ERROR_CHECK(err);
 
-   err = sd_ble_gap_adv_set_configure(&g_AdvInstance.adv_handle, &g_AdvInstance.adv_data, NULL);
+	}
 
-   if (g_BleAppData.bAdvertising == true)
-   {
-	   BleAppAdvStart(BLEAPP_ADVMODE_FAST);
-   }
+	if (pSrData && SrLen > 0)
+	{
+		int l = min(SrLen, BLE_GAP_ADV_SET_DATA_SIZE_MAX);
 
-#if 0
+		memcpy(g_BleAppData.SRManufData.data.p_data, pSrData, l);
+
+		uint32_t err = ble_advdata_encode(&g_BleAppData.SrData, g_AdvInstance.adv_data.scan_rsp_data.p_data,
+										 &g_AdvInstance.adv_data.scan_rsp_data.len);
+		APP_ERROR_CHECK(err);
+	}
+
+	// SDK15 doesn't allow dynamicaly updating adv data.  Have to stop and re-start advertising
+	if (g_BleAppData.bAdvertising == true)
+	{
+		sd_ble_gap_adv_stop(g_AdvInstance.adv_handle);
+	}
+
+	err = sd_ble_gap_adv_set_configure(&g_AdvInstance.adv_handle, &g_AdvInstance.adv_data, NULL);
+	APP_ERROR_CHECK(err);
+
+	if (g_BleAppData.bAdvertising == true)
+	{
+		BleAppAdvStart(BLEAPP_ADVMODE_FAST);
+	}
+
+	#if 0
     int l = min(Len, BLE_GAP_ADV_MAX_SIZE);
 
     memcpy(g_AdvInstance.manuf_data_array, pData, l);
@@ -1057,13 +1004,16 @@ __WEAK void BleAppAdvInit(const BLEAPP_CFG *pCfg)
     memset(&initdata, 0, sizeof(ble_advertising_init_t));
 
     g_BleAppData.ManufData.company_identifier = pCfg->VendorID;
-    g_BleAppData.ManufData.data.p_data = (uint8_t*)pCfg->pManData;
-    g_BleAppData.ManufData.data.size = pCfg->ManDataLen;
+    g_BleAppData.ManufData.data.p_data = (uint8_t*)pCfg->pAdvManData;
+    g_BleAppData.ManufData.data.size = pCfg->AdvManDataLen;
+    g_BleAppData.SRManufData.company_identifier = pCfg->VendorID;
+    g_BleAppData.SRManufData.data.p_data = (uint8_t*)pCfg->pSrManData;
+    g_BleAppData.SRManufData.data.size = pCfg->SrManDataLen;
 
     // Build advertising data struct to pass into @ref ble_advertising_init.
 
     initdata.advdata.include_appearance = false;
-    initdata.advdata.flags              = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+    initdata.advdata.flags              = BLE_GAP_ADV_FLAG_BR_EDR_NOT_SUPPORTED;//BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
 
     if (pCfg->pDevName != NULL)
     {
@@ -1084,18 +1034,22 @@ __WEAK void BleAppAdvInit(const BLEAPP_CFG *pCfg)
     {
         if (pCfg->NbAdvUuid > 0 && pCfg->pAdvUuids != NULL)
         {
-        		initdata.advdata.uuids_complete.uuid_cnt = pCfg->NbAdvUuid;
-        		initdata.advdata.uuids_complete.p_uuids  = (ble_uuid_t*)pCfg->pAdvUuids;
-			if (pCfg->pManData != NULL)
+        	initdata.advdata.uuids_complete.uuid_cnt = pCfg->NbAdvUuid;
+        	initdata.advdata.uuids_complete.p_uuids  = (ble_uuid_t*)pCfg->pAdvUuids;
+			//if (pCfg->pAdvManData != NULL)
 			{
-				initdata.srdata.p_manuf_specific_data = &g_BleAppData.ManufData;
+			//	initdata.srdata.p_manuf_specific_data = &g_BleAppData.ManufData;
 			}
         }
-        else
+        //else
         {
-			if (pCfg->pManData != NULL)
+			if (pCfg->pAdvManData != NULL)
 			{
 				initdata.advdata.p_manuf_specific_data = &g_BleAppData.ManufData;
+			}
+			if (pCfg->pSrManData != NULL)
+			{
+	        	initdata.srdata.p_manuf_specific_data = &g_BleAppData.SRManufData;
 			}
         }
     }
@@ -1103,12 +1057,16 @@ __WEAK void BleAppAdvInit(const BLEAPP_CFG *pCfg)
     {
         if (pCfg->NbAdvUuid > 0 && pCfg->pAdvUuids != NULL)
         {
-        		initdata.srdata.uuids_complete.uuid_cnt = pCfg->NbAdvUuid;
-        		initdata.srdata.uuids_complete.p_uuids  = (ble_uuid_t*)pCfg->pAdvUuids;
+			initdata.srdata.uuids_complete.uuid_cnt = pCfg->NbAdvUuid;
+			initdata.srdata.uuids_complete.p_uuids  = (ble_uuid_t*)pCfg->pAdvUuids;
         }
-        if (pCfg->pManData != NULL)
+        if (pCfg->pAdvManData != NULL)
         {
-        		initdata.advdata.p_manuf_specific_data = &g_BleAppData.ManufData;
+        	initdata.advdata.p_manuf_specific_data = &g_BleAppData.ManufData;
+        }
+		if (pCfg->pAdvManData != NULL)
+		{
+        	initdata.srdata.p_manuf_specific_data = &g_BleAppData.SRManufData;
         }
     }
 
@@ -1197,8 +1155,10 @@ void BleAppDisInit(const BLEAPP_CFG *pBleAppCfg)
     pnp_id.product_id = pBleAppCfg->ProductId;
     dis_init.p_pnp_id = &pnp_id;
 
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&dis_init.dis_attr_md.read_perm);
-    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&dis_init.dis_attr_md.write_perm);
+    //BLE_GAP_CONN_SEC_MODE_SET_OPEN(&dis_init.dis_attr_md.read_perm);
+    //BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&dis_init.dis_attr_md.write_perm);
+
+    dis_init.dis_char_rd_sec = SEC_OPEN;
 
     uint32_t err_code = ble_dis_init(&dis_init);
     APP_ERROR_CHECK(err_code);
@@ -1422,8 +1382,8 @@ bool BleAppInit(const BLEAPP_CFG *pBleAppCfg, bool bEraseBond)
     BleAppStackInit(pBleAppCfg->CentLinkCount, pBleAppCfg->PeriLinkCount,
     				pBleAppCfg->AppMode != BLEAPP_MODE_NOCONNECT);
 
-    err_code = ble_lesc_init();
-    APP_ERROR_CHECK(err_code);
+   // err_code = ble_lesc_init();
+    //APP_ERROR_CHECK(err_code);
 
     sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_ADV, g_AdvInstance.adv_handle, GetValidTxPower(pBleAppCfg->TxPower));
 
@@ -1469,10 +1429,13 @@ bool BleAppInit(const BLEAPP_CFG *pBleAppCfg, bool bEraseBond)
    // APP_ERROR_CHECK(err_code);
 
     // Generate the ECDH key pair and set public key in the peer-manager.
-    err_code = ble_lesc_ecc_keypair_generate_and_set();
-    APP_ERROR_CHECK(err_code);
+    //err_code = ble_lesc_ecc_keypair_generate_and_set();
+    //APP_ERROR_CHECK(err_code);
 
-    BleAppAdvInit(pBleAppCfg);
+    if (g_BleAppData.AppRole & BLEAPP_ROLE_PERIPHERAL || pBleAppCfg->AppMode == BLEAPP_MODE_NOCONNECT)
+    {
+    	BleAppAdvInit(pBleAppCfg);
+    }
 
 #if (__FPU_USED == 1)
     // Patch for softdevice & FreeRTOS to sleep properly when FPU is in used

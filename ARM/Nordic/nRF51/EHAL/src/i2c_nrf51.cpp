@@ -34,7 +34,7 @@ Modified by         Date            Description
 #include "nrf.h"
 
 #include "idelay.h"
-#include "i2c.h"
+#include "coredev/i2c.h"
 #include "iopinctrl.h"
 
 #define NRF51_I2C_MAXDEV        2
@@ -324,9 +324,10 @@ bool I2CInit(I2CDEV *pDev, const I2CCFG *pCfgData)
     reg->PSELSCL = pCfgData->Pins[I2C_SCL_IOPIN_IDX].PinNo;
     reg->PSELSDA = pCfgData->Pins[I2C_SDA_IOPIN_IDX].PinNo;
 
-    pDev->MaxRetry = pCfgData->MaxRetry;
+    //pDev->MaxRetry = pCfgData->MaxRetry;
     pDev->Mode = pCfgData->Mode;
-    pDev->SlaveAddr = pCfgData->SlaveAddr;
+    pDev->NbSlaveAddr = pCfgData->NbSlaveAddr;
+    memcpy(pDev->SlaveAddr, pCfgData->SlaveAddr, pDev->NbSlaveAddr * sizeof(uint8_t));
 
     s_nRF51I2CDev[pCfgData->DevNo].DevNo = pCfgData->DevNo;
 	s_nRF51I2CDev[pCfgData->DevNo].pI2cDev  = pDev;

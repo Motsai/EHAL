@@ -45,22 +45,22 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /// I/O pin resistor configuration
 typedef enum __iopin_resistor {
 	IOPINRES_NONE,				//!< No pullup or pulldown
-	IOPINRES_PULLUP,				//!< Pullup resistor
+	IOPINRES_PULLUP,			//!< Pullup resistor
 	IOPINRES_PULLDOWN,			//!< Pulldown resistor
 	IOPINRES_FOLLOW				//!< Few MCUs support this mode
 } IOPINRES;
 
 /// I/O pin direction configuration
 typedef enum __iopin_dir {
-    IOPINDIR_INPUT  = 0,			//!< I/O pin as input
-    IOPINDIR_OUTPUT = 1,			//!< I/O pin as output
-    IOPINDIR_BI     = 2,			//!< Bidirectional, few MCUs support this mode
+    IOPINDIR_INPUT  = 0,		//!< I/O pin as input
+    IOPINDIR_OUTPUT = 1,		//!< I/O pin as output
+    IOPINDIR_BI     = 2,		//!< Bidirectional, few MCUs support this mode
 } IOPINDIR;
 
 /// I/O pin type
 typedef enum __iopin_type {
-	IOPINTYPE_NORMAL    = 0,		//!< I/O pin normal type
-	IOPINTYPE_OPENDRAIN = 1		//<! I/O pin open drain type
+	IOPINTYPE_NORMAL    = 0,	//!< I/O pin normal type
+	IOPINTYPE_OPENDRAIN = 1		//!< I/O pin open drain type
 } IOPINTYPE;
 
 /// I/O pin sense type
@@ -81,11 +81,11 @@ typedef enum __iopin_drive_strength {
 
 /// I/O pin configuration data
 typedef struct __iopin_cfg {
-	int 			PortNo;			//!< Port number
-	int 			PinNo;			//!< Pin number
-	int 			PinOp;			//!< Pin function select index from 0, MCU dependent
-	IOPINDIR		PinDir;			//!< Pin direction
-	IOPINRES 	Res;				//!< Pin resistor setting
+	int 		PortNo;			//!< Port number
+	int 		PinNo;			//!< Pin number
+	int 		PinOp;			//!< Pin function select index from 0, MCU dependent
+	IOPINDIR	PinDir;			//!< Pin direction
+	IOPINRES 	Res;			//!< Pin resistor setting
 	IOPINTYPE	Type;			//!< I/O type
 } IOPINCFG;
 
@@ -150,7 +150,7 @@ void IOPinDisable(int PortNo, int PinNo);
  *
  * @param	IntNo : Interrupt number to disable
  */
-void IOPinDisbleInterrupt(int IntNo);
+void IOPinDisableInterrupt(int IntNo);
 
 /**
  * @brief Enable I/O pin sensing interrupt event
@@ -170,6 +170,26 @@ void IOPinDisbleInterrupt(int IntNo);
  * @return	true - success
  */
 bool IOPinEnableInterrupt(int IntNo, int IntPrio, int PortNo, int PinNo, IOPINSENSE Sense, IOPINEVT_CB pEvtCB);
+
+/**
+ * @brief	Allocate I/O pin sensing interrupt event
+ *
+ * Generate an interrupt when I/O sense a state change. This function will automatically
+ * allocate available interrupt number to use for the pin.
+ * The IntNo (interrupt number) parameter is processor dependent. Some is
+ * directly the hardware interrupt number other is just an index in an array
+ *
+ *
+ * @Param	IntPrio : Interrupt priority
+ * @Param	PortNo  : Port number (up to 32 ports)
+ * @Param	PinNo   : Pin number (up to 32 pins)
+ * @Param	Sense   : Sense type of event on the I/O pin
+ * @Param	pEvtCB	: Pointer to callback function when event occurs
+ *
+ * @return	Interrupt number on success
+ * 			-1 on failure.
+ */
+int IOPinAllocateInterrupt(int IntPrio, int PortNo, int PinNo, IOPINSENSE Sense, IOPINEVT_CB pEvtCB);
 
 /**
  * @brief Set I/O pin sensing option

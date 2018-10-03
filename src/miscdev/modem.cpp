@@ -1,11 +1,14 @@
-/*--------------------------------------------------------------------------
-File   : timer.cpp
+/**-------------------------------------------------------------------------
+@file	modem.cpp
 
-Author : Hoang Nguyen Hoan          				Sep. 7, 2017
+@brief	Generic modem driver definitions
 
-Desc   : Generic timer class
+@author	Hoang Nguyen Hoan
+@date	June. 20, 2018
 
-Copyright (c) 2017, I-SYST inc., all rights reserved
+@license
+
+Copyright (c) 2018, I-SYST inc., all rights reserved
 
 Permission to use, copy, modify, and distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright
@@ -27,31 +30,9 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 
-#include "timer.h"
+#include "miscdev/modem.h"
 
-int Timer::EnableTimerTrigger(uint64_t nsPeriod, TIMER_TRIG_TYPE Type, TIMER_TRIGCB const Handler, void * const pContext)
-{
-	int idx = FindAvailTimerTrigger();
-	if (idx < 0)
-		return 0;
 
-	uint64_t period = EnableTimerTrigger(idx, nsPeriod, Type, Handler, pContext);
 
-	return idx;
-}
-
-int Timer::EnableTimerTrigger(uint32_t msPeriod, TIMER_TRIG_TYPE Type, TIMER_TRIGCB const Handler, void * const pContext)
-{
-	int idx = FindAvailTimerTrigger();
-	if (idx < 0)
-		return 0;
-
-	uint32_t period = EnableTimerTrigger(idx, msPeriod, Type, Handler, pContext);
-
-	return idx;
-}

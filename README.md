@@ -1,6 +1,6 @@
-![I-SYST inc.](docs/I-SYST_Logo180.png) 
+![I-SYST inc.](https://www.i-syst.com/images/I-SYST_Logo180.png) 
  
-![nRF5x product line](docs/image/nRF5_Products_1024.png) 
+![nRF5x product line](https://www.i-syst.com/images/nRF5_Products_1024.png) 
  
 <p align="center"> 
  
@@ -16,24 +16,28 @@ This is a multi-archtecture multi-platform Hardware Abstraction Library. The mai
  
 See https://embeddedsoftdev.blogspot.ca/p/h.html for more detail installation and setup of development environment.
 
-Library online documentation located here https://i-syst.github.io/docs/EHAL/ 
+Library online documentation located here https://www.i-syst.com/docs/EHAL/ 
  
 Library source code on GitHub at https://github.com/I-SYST/EHAL 
 
-external vendors' SDK and library needed :
+external vendors' SDK and library required :
 --- 
  
-CMSIS     : [ARM CMSIS SDK for all ARM platform](https://github.com/ARM-software/CMSIS_5)
+[CMSIS](https://github.com/ARM-software/CMSIS_5) : ARM CMSIS SDK for all ARM platform
 
-nRF5_SDK  : [Latest Nordic SDK](https://developer.nordicsemi.com)
+[nRF5_SDK](https://developer.nordicsemi.com)  : Nordic nRF5x Bluetooth Low Energy
 
-Micro-ECC : [Micro-ECC](download from https://github.com/kmackay/micro-ecc)
+[nrf5_SDK_Mesh](https://www.nordicsemi.com/eng/nordic/Products/nRF5-SDK-for-Mesh/nRF5-SDK-for-Mesh/62377) : Nordic nRF5 SDK for Bluetoth Mesh
+
+[Micro-ECC](https://github.com/kmackay/micro-ecc) : Encryption library
+
+[Motion_Driver](https://www.invensense.com/) : Create a user at https://www.invensense.com/. Under "Downloads" download "Embedded MotionDriver 6.12". Unzip the downloaded motion_driver_6.12 folder and navigate to motion_driver_6.12/mpl libraries/arm/gcc4.9.3. Unzip the require libraries and copy to folders indicated in the folder tree bellow (external/MPL/lib/...). For the include (.h) files, navigate to motion_driver_6.12/arm/STM32F4_MD6/Projects/eMD6 and copy core folder to external/MPL as indicated bellow.
 
 KSDK      : Kinetis SDK
 
-BSEC      : [Bosch Sensortec Environmental Cluster (BSEC) Software](https://www.bosch-sensortec.com/bst/products/all_products/bsec) for #BME680 environmental sensor  
+[BSEC](https://www.bosch-sensortec.com/bst/products/all_products/bsec) : Bosch Sensortec Environmental Cluster (BSEC) Software for #BME680 environmental sensor.  BSEC is needed for calculating Air Quality Index.  Go to https://www.bosch-sensortec.com/bst/products/all_products/bsec at the end of the page.  Select checkbox to accept license terms to download.  Unzip the the downloaded file. Rename the extracted folder BSEC and copy the whole folder to external as indicated in the folder tree bellow.  
 
-![IBK-BME680](docs/image/IBK-BME680_PinOut_640.png) 
+![IBK-BME680](https://www.i-syst.com/images/IBK-BME680_PinOut_640.png) 
  
 <p align="center"> 
   
@@ -56,9 +60,19 @@ There are 2 main libraries in the EHAL for each ARM based MCU.
  |-- external        - Contains downloaded SDKs from silicon vendors
  |   |-- CMSIS           - ARM CMSIS SDK for all ARM platform (https://github.com/ARM-software/CMSIS_5)
  |   |-- nRF5_SDK        - Latest Nordic SDK (https://developer.nordicsemi.com)
+ |   |-- nrf5_SDK_Mesh   - Latest Nordic SDK for Mesh (https://www.nordicsemi.com/eng/nordic/Products/nRF5-SDK-for-Mesh/nRF5-SDK-for-Mesh/62377)
+ |   |---nRF5_SDK_12     - Last version of Nordick SDK12 for nRF51 series
  |   |-- Micro-ECC       - Micro-ECC (download from https://github.com/kmackay/micro-ecc)
  |   |-- KSDK            - Kinetis SDK
- |   |-- BSEC            - Bosch Sensortec Environmental Cluster (BSEC) Software (https://www.bosch-sensortec.com/bst/products/all_products/bsec) for #BME680		
+ |   |-- BSEC            - Bosch Sensortec Environmental Cluster (BSEC) Software (https://www.bosch-sensortec.com/bst/products/all_products/bsec) for #BME680
+ |   |-- MPL             - Invensense Motion Driver (download https://www.invensense.com)
+ |   |   |-- core        - Copy core from motion_driver_6.12/arm/STM32F4_MD6/Projects/eMD6 here
+ |   |   |-- lib
+ |   |   |   |-- m0      - Unzip the liblibmplmpu_m0.zip, copy liblibmplmpu.a here
+ |   |   |   |-- m3      - Unzip the liblibmplmpu_m3.zip, copy liblibmplmpu.a here
+ |   |   |   |-- m4hfp   - Unzip the liblibmplmpu_m4_hardfp.zip, copy liblibmplmpu.a here
+ |   |   |   |-- m4nfp   - Unzip the liblibmplmpu_m4_npfp.zip, copy liblibmplmpu.a here
+ |   |   |   |-- m4sfp   - Unzip the liblibmplmpu_m4_softfp.zip, copy liblibmplmpu.a here
  |   |...
  |   |
  |-- EHAL      - Put the EHAL here
@@ -66,6 +80,7 @@ There are 2 main libraries in the EHAL for each ARM based MCU.
  |   |-- include     - Generic include common to all platform
  |   |   |-- bluetooth   - Generic definition for Bluetooth
  |   |   |-- converters  - Generic definition for ADV, DAC, etc...
+ |   |   |-- coredev     - Generic core processor builtin devices such as i2c, uart, spi, timer, etc...
  |   |   |-- miscdev     - Generic definition for other non categorized devices
  |   |   |-- sensors     - Generic definition for al sort of sensors (environmental, motion, etc...)
  |   |   |-- usb         - Generic definition for USB

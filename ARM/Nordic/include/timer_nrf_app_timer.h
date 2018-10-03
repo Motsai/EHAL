@@ -35,7 +35,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __TIMER_NRF_APP_TIMER_H__
 #define __TIMER_NRF_APP_TIMER_H__
 
-#include "timer.h"
+#include "coredev/timer.h"
 #include "nrf_peripherals.h"
 #include "app_timer.h"
 
@@ -67,7 +67,7 @@ public:
 	 * @return  real period in nsec based on clock calculation
 	 */
     virtual uint32_t EnableTimerTrigger(int TrigNo, uint32_t msPeriod, TIMER_TRIG_TYPE Type,
-                                        TIMER_TRIGCB const Handler, void * const pContext = NULL);
+                                        TIMER_TRIGCB const Handler = NULL, void * const pContext = NULL);
 
 	/**
 	 * @brief	Enable a specific nanosecond timer trigger event.
@@ -82,7 +82,7 @@ public:
 	 * @return  real period in nsec based on clock calculation
 	 */
     virtual uint64_t EnableTimerTrigger(int TrigNo, uint64_t nsPeriod, TIMER_TRIG_TYPE Type,
-                                        TIMER_TRIGCB const Handler, void * const pContext = NULL);
+                                        TIMER_TRIGCB const Handler = NULL, void * const pContext = NULL);
     virtual void DisableTimerTrigger(int TrigNo);
 
     int FindAvailTimerTrigger(void) { return 0; }

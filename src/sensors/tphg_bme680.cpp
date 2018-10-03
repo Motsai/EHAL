@@ -86,7 +86,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "idelay.h"
 #include "device_intrf.h"
-#include "iopincfg.h"
+#include "coredev/iopincfg.h"
 #include "sensors/tphg_bme680.h"
 #include "bsec_interface.h"
 
@@ -545,6 +545,8 @@ bool TphgBme680::Mode(SENSOR_OPMODE OpMode, uint32_t Freq)
 
 			vCtrlReg |= BME680_REG_CTRL_MEAS_MODE_FORCED;
 			break;
+		case SENSOR_OPMODE_TIMER:
+			break;
 	}
 
 	//StartSampling();
@@ -628,6 +630,11 @@ bool TphgBme680::UpdateData()
 	{
 		uint8_t d[8];
 		addr = BME680_REG_PRESS_MSB;
+
+		if (vpTimer)
+		{
+			vTphData.Timestamp = vpTimer->uSecond();
+		}
 
 		if (Read(&addr, 1, d, 8) == 8)
 		{

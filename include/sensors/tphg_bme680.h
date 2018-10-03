@@ -87,9 +87,9 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdbool.h>
 #endif
 
-#include "iopincfg.h"
-#include "tph_sensor.h"
-#include "gas_sensor.h"
+#include "coredev/iopincfg.h"
+#include "sensors/tph_sensor.h"
+#include "sensors/gas_sensor.h"
 
 /** @addtogroup Sensors
   * @{
@@ -344,7 +344,7 @@ public:
 	 * @param OpMode : Operating mode
 	 * 					- TPHSENSOR_OPMODE_SINGLE
 	 * 					- TPHSENSOR_OPMODE_CONTINUOUS
-	 * @param Freq : Sampling frequency in mHz for continuous mode
+	 * @param Freq : Sampling frequency in mHz (miliHertz) for continuous mode
 	 *
 	 * @return true- if success
 	 */

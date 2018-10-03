@@ -41,7 +41,7 @@ Modified by          Date              Description
 #endif
 
 #include "idelay.h"
-#include "iopincfg.h"
+#include "coredev/iopincfg.h"
 #include "sensors/tph_ms8607.h"
 
 uint8_t crc4_PT(uint16_t *pData)
@@ -146,6 +146,8 @@ bool TphMS8607::Mode(SENSOR_OPMODE OpMode, uint32_t Freq)
 		case SENSOR_OPMODE_SINGLE:
 			break;
 		case SENSOR_OPMODE_CONTINUOUS:
+			break;
+		case SENSOR_OPMODE_TIMER:
 			break;
 	}
 
