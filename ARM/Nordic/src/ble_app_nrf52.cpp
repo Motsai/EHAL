@@ -209,6 +209,15 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
     app_error_handler(DEAD_BEEF, line_num, p_file_name);
 }
 
+void BleAppDisconnect()
+{
+	if (g_BleAppData.ConnHdl != BLE_CONN_HANDLE_INVALID)
+    {
+		uint32_t err_code = sd_ble_gap_disconnect(g_BleAppData.ConnHdl, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
+		APP_ERROR_CHECK(err_code);
+    }
+}
+
 void BleAppGapDeviceNameSet(const char* ppDeviceName)
 {
     uint32_t                err_code;
@@ -974,6 +983,9 @@ void BleAppAdvManDataSet(uint8_t *pAdvData, int AdvLen, uint8_t *pSrData, int Sr
 
 void BleAppAdvStart(BLEAPP_ADVMODE AdvMode)
 {
+	if (g_BleAppData.bAdvertising == true)
+		return;
+
 	g_BleAppData.bAdvertising = true;
 	if (g_BleAppData.AppMode == BLEAPP_MODE_NOCONNECT)
 	{
@@ -1394,7 +1406,7 @@ bool BleAppInit(const BLEAPP_CFG *pBleAppCfg, bool bEraseBond)
 
     if (pBleAppCfg->AppMode != BLEAPP_MODE_NOCONNECT)
     {
-    		BleAppConnectable(pBleAppCfg, bEraseBond);
+    	BleAppConnectable(pBleAppCfg, bEraseBond);
     }
 
     if (pBleAppCfg->CentLinkCount > 0)
@@ -1449,6 +1461,7 @@ bool BleAppInit(const BLEAPP_CFG *pBleAppCfg, bool bEraseBond)
 
 void BleAppRun()
 {
+	g_BleAppData.bAdvertising = false;
 
 	if ((g_BleAppData.AppRole & (BLEAPP_ROLE_PERIPHERAL | BLEAPP_ROLE_CENTRAL)) != BLEAPP_ROLE_CENTRAL)
 	{
