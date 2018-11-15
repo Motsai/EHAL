@@ -321,6 +321,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/coredev/timer.cpp</locationURI>
 		</link>
 		<link>
+			<name>src/coredev/twspi.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/coredev/twspi.cpp</locationURI>
+		</link>
+		<link>
 			<name>src/coredev/uart.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/coredev/uart.c</locationURI>
