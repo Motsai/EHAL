@@ -33,6 +33,7 @@ Modified by         Date            Description
 ----------------------------------------------------------------------------*/
 #include "nrf.h"
 
+#include "idelay.h"
 #include "iopinctrl.h"
 #include "twspi.h"
 
@@ -169,7 +170,36 @@ bool TWSPIStartTx(DEVINTRF * const pDev, int DevCs)
 int TWSPITxData(DEVINTRF * const pDev, uint8_t *pData, int DataLen)
 {
 	TWSPIDEV *dev = (TWSPIDEV *)pDev-> pDevData;
+	int i;
 	int cnt = 0;
+	uint8_t data;
+	uint32_t mask;
+
+	uint32_t pin_clk = dev->Cfg.pIOPinMap[TWSPI_CLK_IOPIN_IDX].PinNo;
+	uint32_t pin_dat = dev->Cfg.pIOPinMap[TWSPI_DAT_IOPIN_IDX].PinNo;
+
+	//IOPinSet( 0, pin_clk );
+	//usDelay( 1 );
+
+	while ( DataLen > 0 ) {
+	    data = *pData;
+
+	    for ( mask = 0x80; mask > 0; mask >>= 1 ) {
+	        IOPinClear( 0, pin_clk );
+	        if ( data & mask )
+	            IOPinSet( 0, pin_dat );
+	        else
+	            IOPinClear( 0, pin_dat );
+
+	        usDelay( 1 );
+	        IOPinSet( 0, pin_clk );
+	        usDelay( 1 );
+	    }
+
+	    DataLen -= 1;
+	    cnt += 1;
+	    pData += 1;
+	}
 
 	/*while (DataLen > 0)
 	{
