@@ -1025,7 +1025,7 @@ __WEAK void BleAppAdvInit(const BLEAPP_CFG *pCfg)
     // Build advertising data struct to pass into @ref ble_advertising_init.
 
     initdata.advdata.include_appearance = false;
-    initdata.advdata.flags              = BLE_GAP_ADV_FLAGS_LE_ONLY_LIMITED_DISC_MODE;//BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+    initdata.advdata.flags              = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;//BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
 
     if (pCfg->pDevName != NULL)
     {
