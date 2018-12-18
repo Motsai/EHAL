@@ -1,14 +1,14 @@
 /**-------------------------------------------------------------------------
-@file	agm_mpu9250.cpp
+@file	agm_icm20948.cpp
 
-@brief	Implementation of TDK MPU-9250 accel, gyro, mag sensor
+@brief	Implementation of TDK ICM-20948 accel, gyro, mag sensor
 
 @author	Hoang Nguyen Hoan
-@date	Nov. 18, 2017
+@date	Nov. 5, 2018
 
 @license
 
-Copyright (c) 2017, I-SYST inc., all rights reserved
+Copyright (c) 2018, I-SYST inc., all rights reserved
 
 Permission to use, copy, modify, and distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright
@@ -35,9 +35,9 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "idelay.h"
 #include "coredev/i2c.h"
 #include "coredev/spi.h"
-#include "sensors/agm_mpu9250.h"
+#include "sensors/agm_icm20948.h"
 
-bool AgmMpu9250::Init(uint32_t DevAddr, DeviceIntrf *pIntrf, Timer *pTimer)
+bool AgmIcm20948::Init(uint32_t DevAddr, DeviceIntrf *pIntrf, Timer *pTimer)
 {
 	if (vbInitialized)
 		return true;;
@@ -47,7 +47,7 @@ bool AgmMpu9250::Init(uint32_t DevAddr, DeviceIntrf *pIntrf, Timer *pTimer)
 
 	uint8_t regaddr;
 	uint8_t d;
-	uint8_t userctrl = /*MPU9250_AG_USER_CTRL_FIFO_EN | MPU9250_AG_USER_CTRL_DMP_EN |*/ MPU9250_AG_USER_CTRL_I2C_MST_EN;
+	uint8_t userctrl = 0;///*MPU9250_AG_USER_CTRL_FIFO_EN | MPU9250_AG_USER_CTRL_DMP_EN |*/ MPU9250_AG_USER_CTRL_I2C_MST_EN;
 	uint8_t mst = 0;
 
 	Interface(pIntrf);
@@ -58,7 +58,7 @@ bool AgmMpu9250::Init(uint32_t DevAddr, DeviceIntrf *pIntrf, Timer *pTimer)
 		vpTimer = pTimer;
 	}
 
-	if (DevAddr == MPU9250_I2C_DEV_ADDR0 || DevAddr == MPU9250_I2C_DEV_ADDR1)
+	if (DevAddr == ICM20948_I2C_DEV_ADDR0 || DevAddr == ICM20948_I2C_DEV_ADDR1)
 	{
 		// I2C mode
 		vbSpi = false;
@@ -68,15 +68,15 @@ bool AgmMpu9250::Init(uint32_t DevAddr, DeviceIntrf *pIntrf, Timer *pTimer)
 		vbSpi = true;
 
 		// in SPI mode, use i2c master mode to access Mag device (AK8963C)
-		userctrl |= MPU9250_AG_USER_CTRL_I2C_MST_EN | MPU9250_AG_USER_CTRL_I2C_IF_DIS;
-		mst = MPU9250_AG_I2C_MST_CTRL_WAIT_FOR_ES | 13;
+		//userctrl |= MPU9250_AG_USER_CTRL_I2C_MST_EN | MPU9250_AG_USER_CTRL_I2C_IF_DIS;
+		//mst = MPU9250_AG_I2C_MST_CTRL_WAIT_FOR_ES | 13;
 	}
 
 	// Read chip id
-	regaddr = MPU9250_AG_WHO_AM_I;
+	regaddr = ICM20948_WHO_AM_I;
 	d = Read8((uint8_t*)&regaddr, 1);
 
-	if (d != MPU9250_AG_WHO_AM_I_ID)
+	if (d != ICM20948_WHO_AM_I_ID)
 	{
 		return false;
 	}
@@ -86,48 +86,18 @@ bool AgmMpu9250::Init(uint32_t DevAddr, DeviceIntrf *pIntrf, Timer *pTimer)
 	DeviceID(d);
 	Valid(true);
 
+
 	// NOTE : require delay for reset to stabilize
 	// the chip would not respond properly to motion detection
 	usDelay(500000);
 
-	// Disable all interrupt
-	regaddr = MPU9250_AG_INT_ENABLE;
-	Write8(&regaddr, 1, 0);
-
-	//regaddr = MPU9250_AG_CONFIG;
-	//Write8(&regaddr, 1, MPU9250_AG_CONFIG_FIFO_MODE_BLOCKING);
-
-	vbInitialized = true;
-
-	//regaddr = MPU9250_AG_PWR_MGMT_1;
-	//Write8(&regaddr, 1, MPU9250_AG_PWR_MGMT_1_SLEEP);
-	//return true;
-
-	// Init master I2C interface
-	regaddr = MPU9250_AG_USER_CTRL;
-	Write8(&regaddr, 1, userctrl);
-
-	regaddr = MPU9250_AG_I2C_MST_CTRL;
-	Write8(&regaddr, 1, mst);
-
-	// Enable FIFO
-
-    // Undocumented register
-	// shares 4kB of memory between the DMP and the FIFO. Since the
-    // first 3kB are needed by the DMP, we'll use the last 1kB for the FIFO.
-	regaddr = MPU9250_AG_ACCEL_CONFIG2;
-	Write8(&regaddr, 1, MPU9250_AG_ACCEL_CONFIG2_ACCEL_FCHOICE_B | MPU9250_AG_ACCEL_CONFIG2_FIFO_SIZE_1024);
-
-	//regaddr = MPU9250_AG_FIFO_EN;
-	//Write8(&regaddr, 1, MPU9250_AG_FIFO_EN_ACCEL |
-	//		MPU9250_AG_FIFO_EN_GYRO_ZOUT | MPU9250_AG_FIFO_EN_GYRO_YOUT |
-	//		MPU9250_AG_FIFO_EN_GYRO_XOUT | MPU9250_AG_FIFO_EN_TEMP_OUT);
-
+	regaddr = ICM20948_PWR_MGMT_1;
+	Write8(&regaddr, 1, ICM20948_PWR_MGMT_1_SLEEP | 1);
 
 	return true;
 }
 
-bool AgmMpu9250::Init(const ACCELSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *pTimer)
+bool AgmIcm20948::Init(const ACCELSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *pTimer)
 {
 	uint8_t regaddr;
 	uint8_t d;
@@ -135,7 +105,7 @@ bool AgmMpu9250::Init(const ACCELSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer
 	if (Init(CfgData.DevAddr, pIntrf, pTimer) == false)
 		return false;
 
-	regaddr = MPU9250_AG_LP_ACCEL_ODR;
+	//regaddr = MPU9250_AG_LP_ACCEL_ODR;
 
 	if (CfgData.Freq < 400)
 	{
@@ -208,13 +178,13 @@ bool AgmMpu9250::Init(const ACCELSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer
 
 	msDelay(100);
 
-	regaddr = MPU9250_AG_PWR_MGMT_1;
-	Write8(&regaddr, 1, MPU9250_AG_PWR_MGMT_1_CYCLE);
+//	regaddr = MPU9250_AG_PWR_MGMT_1;
+//	Write8(&regaddr, 1, MPU9250_AG_PWR_MGMT_1_CYCLE);
 
 	return true;
 }
 
-bool AgmMpu9250::Init(const GYROSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *pTimer)
+bool AgmIcm20948::Init(const GYROSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *pTimer)
 {
 	if (Init(CfgData.DevAddr, pIntrf, pTimer) == false)
 		return false;
@@ -223,7 +193,7 @@ bool AgmMpu9250::Init(const GYROSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer 
 	uint8_t d = 0;
 	uint8_t fchoice = 0;
 	uint32_t f = CfgData.Freq >> 1;
-
+#if 0
 	if (f == 0)
 	{
 		fchoice = 1;
@@ -272,12 +242,13 @@ bool AgmMpu9250::Init(const GYROSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer 
 	regaddr = MPU9250_AG_GYRO_CONFIG;
 	Write8(&regaddr, 1, fchoice);
 
+#endif
 	Sensitivity(CfgData.Sensitivity);
 
 	return true;
 }
 
-bool AgmMpu9250::Init(const MAGSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *pTimer)
+bool AgmIcm20948::Init(const MAGSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *pTimer)
 {
 	uint8_t regaddr;
 	uint8_t d[4];
@@ -286,7 +257,7 @@ bool AgmMpu9250::Init(const MAGSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *
 		return false;
 
 	msDelay(200);
-
+#if 0
 	regaddr = MPU9250_MAG_WIA;
 	Read(MPU9250_MAG_I2C_DEVADDR, &regaddr, 1, d, 1);
 
@@ -357,12 +328,13 @@ bool AgmMpu9250::Init(const MAGSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *
 
 	regaddr = MPU9250_MAG_CTRL1;
 	Write(MPU9250_MAG_I2C_DEVADDR, &regaddr, 1, &vMagCtrl1Val, 1);
-
+#endif
 	return true;
 }
 
-bool AgmMpu9250::Enable()
+bool AgmIcm20948::Enable()
 {
+#if 0
 	uint8_t regaddr = MPU9250_AG_PWR_MGMT_1;
 
 	Write8(&regaddr, 1, MPU9250_AG_PWR_MGMT_1_CYCLE | MPU9250_AG_PWR_MGMT_1_GYRO_STANDBY |
@@ -379,12 +351,13 @@ bool AgmMpu9250::Enable()
 	// Enable Mag
 	//regaddr = MPU9250_MAG_CTRL1;
 	//Write(MPU9250_MAG_I2C_DEVADDR, &regaddr, 1, &vMagCtrl1Val, 1);
-
+#endif
 	return true;
 }
 
-void AgmMpu9250::Disable()
+void AgmIcm20948::Disable()
 {
+#if 0
 	uint8_t regaddr = MPU9250_AG_PWR_MGMT_2;
 
 Reset();
@@ -412,23 +385,23 @@ msDelay(2000);
 	regaddr = MPU9250_AG_PWR_MGMT_1;
 	Write8(&regaddr, 1, MPU9250_AG_PWR_MGMT_1_SLEEP | MPU9250_AG_PWR_MGMT_1_PD_PTAT |
 						MPU9250_AG_PWR_MGMT_1_GYRO_STANDBY);
-
+#endif
 }
 
-void AgmMpu9250::Reset()
+void AgmIcm20948::Reset()
 {
-	uint8_t regaddr = MPU9250_AG_PWR_MGMT_1;
+	uint8_t regaddr = ICM20948_PWR_MGMT_1;
 
-	Write8(&regaddr, 1, MPU9250_AG_PWR_MGMT_1_H_RESET);
+	Write8(&regaddr, 1, ICM20948_PWR_MGMT_1_DEVICE_RESET);
 }
 
-bool AgmMpu9250::StartSampling()
+bool AgmIcm20948::StartSampling()
 {
 	return true;
 }
 
 // Implement wake on motion
-bool AgmMpu9250::WakeOnEvent(bool bEnable, int Threshold)
+bool AgmIcm20948::WakeOnEvent(bool bEnable, int Threshold)
 {
     uint8_t regaddr;
 
@@ -437,39 +410,13 @@ bool AgmMpu9250::WakeOnEvent(bool bEnable, int Threshold)
 		Reset();
 
 		msDelay(2000);
-
-	    regaddr = MPU9250_AG_PWR_MGMT_1;
-	    Write8(&regaddr, 1, 0);
-
-	    regaddr = MPU9250_AG_PWR_MGMT_2;
-		Write8(&regaddr, 1, /**MPU9250_AG_PWR_MGMT_2_DIS_XA | MPU9250_AG_PWR_MGMT_2_DIS_YA |*/
-				MPU9250_AG_PWR_MGMT_2_DIS_XG | MPU9250_AG_PWR_MGMT_2_DIS_YG | MPU9250_AG_PWR_MGMT_2_DIS_ZG);
-
-		regaddr = MPU9250_AG_ACCEL_CONFIG2;
-	    Write8(&regaddr, 1, MPU9250_AG_ACCEL_CONFIG2_ACCEL_FCHOICE_B | MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_5HZ);
-
-	    regaddr = MPU9250_AG_INT_ENABLE;
-	    Write8(&regaddr, 1, MPU9250_AG_INT_ENABLE_WOM_EN);
-
-	    regaddr = MPU9250_AG_MOT_DETECT_CTRL;
-	    Write8(&regaddr, 1, MPU9250_AG_MOT_DETECT_CTRL_ACCEL_INTEL_MODE | MPU9250_AG_MOT_DETECT_CTRL_ACCEL_INTEL_EN);
-
-	    regaddr = MPU9250_AG_WOM_THR;
-	    Write8(&regaddr, 1, Threshold);
-
-	    regaddr = MPU9250_AG_LP_ACCEL_ODR;
-	    Write8(&regaddr, 1, 0);
-
-		regaddr = MPU9250_AG_PWR_MGMT_1;
-		Write8(&regaddr, 1, MPU9250_AG_PWR_MGMT_1_CYCLE);
-
 	}
 	else
 	{
-	    regaddr = MPU9250_AG_INT_ENABLE;
+//	    regaddr = MPU9250_AG_INT_ENABLE;
 	    Write8(&regaddr, 1, 0);
 
-	    regaddr = MPU9250_AG_PWR_MGMT_1;
+//	    regaddr = MPU9250_AG_PWR_MGMT_1;
 		Write8(&regaddr, 1, 0);
 	}
 
@@ -477,125 +424,27 @@ bool AgmMpu9250::WakeOnEvent(bool bEnable, int Threshold)
 }
 
 // Accel low pass frequency
-uint32_t AgmMpu9250::LowPassFreq(uint32_t Freq)
+uint32_t AgmIcm20948::LowPassFreq(uint32_t Freq)
 {
-	uint8_t regaddr = MPU9250_AG_ACCEL_CONFIG2;
-	uint d = 0;
-
-	if (Freq == 0)
-	{
-		d = MPU9250_AG_ACCEL_CONFIG2_ACCEL_FCHOICE_B;
-		AccelSensor::LowPassFreq(1130);
-	}
-	else if (Freq < 10)
-	{
-		d = MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_5HZ;
-		AccelSensor::LowPassFreq(5);
-	}
-	else if (Freq < 20)
-	{
-		d = MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_10HZ;
-		AccelSensor::LowPassFreq(10);
-	}
-	else if (Freq < 40)
-	{
-		d = MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_20HZ;
-		AccelSensor::LowPassFreq(20);
-	}
-	else if (Freq < 50)
-	{
-		d = MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_41HZ;
-		AccelSensor::LowPassFreq(41);
-	}
-	else if (Freq < 100)
-	{
-		d = MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_92HZ;
-		AccelSensor::LowPassFreq(92);
-	}
-	else if (Freq < 200)
-	{
-		d = MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_184HZ;
-		AccelSensor::LowPassFreq(184);
-	}
-	else if (Freq < 500)
-	{
-		d = MPU9250_AG_ACCEL_CONFIG2_A_DLPFCFG_460HZ;
-		AccelSensor::LowPassFreq(460);
-	}
-	else
-	{
-		d = MPU9250_AG_ACCEL_CONFIG2_ACCEL_FCHOICE_B;
-		AccelSensor::LowPassFreq(1130);
-	}
-
-	Write8(&regaddr, 1, d | MPU9250_AG_ACCEL_CONFIG2_FIFO_SIZE_1024);
-
 	return AccelSensor::LowPassFreq();
 }
 
 // Accel scale
-uint16_t AgmMpu9250::Scale(uint16_t Value)
+uint16_t AgmIcm20948::Scale(uint16_t Value)
 {
-	uint8_t regaddr = MPU9250_AG_ACCEL_CONFIG;
-
-	if (Value < 3)
-	{
-		Write8(&regaddr, 1, MPU9250_AG_ACCEL_CONFIG_ACCEL_FS_SEL_2G);
-		AccelSensor::Scale(2);
-	}
-	else if (Value < 6)
-	{
-		Write8(&regaddr, 1, MPU9250_AG_ACCEL_CONFIG_ACCEL_FS_SEL_4G);
-		AccelSensor::Scale(4);
-	}
-	else if (Value < 12)
-	{
-		Write8(&regaddr, 1, MPU9250_AG_ACCEL_CONFIG_ACCEL_FS_SEL_8G);
-		AccelSensor::Scale(8);
-	}
-	else
-	{
-		Write8(&regaddr, 1, MPU9250_AG_ACCEL_CONFIG_ACCEL_FS_SEL_16G);
-		AccelSensor::Scale(16);
-	}
-
 	return AccelSensor::Scale();
 }
 
 // Gyro scale
-uint32_t AgmMpu9250::Sensitivity(uint32_t Value)
+uint32_t AgmIcm20948::Sensitivity(uint32_t Value)
 {
-	uint8_t regaddr = MPU9250_AG_GYRO_CONFIG;
-	uint8_t d = Read8(&regaddr, 1) & MPU9250_AG_GYRO_CONFIG_FCHOICE_MASK;
-
-	if (Value < 500)
-	{
-		d |= MPU9250_AG_GYRO_CONFIG_GYRO_FS_SEL_250DPS;
-		GyroSensor::Sensitivity(250);
-	}
-	else if (Value < 1000)
-	{
-		d |= MPU9250_AG_GYRO_CONFIG_GYRO_FS_SEL_500DPS;
-		GyroSensor::Sensitivity(500);
-	}
-	else if (Value < 2000)
-	{
-		d |= MPU9250_AG_GYRO_CONFIG_GYRO_FS_SEL_1000DPS;
-		GyroSensor::Sensitivity(1000);
-	}
-	else
-	{
-		d |= MPU9250_AG_GYRO_CONFIG_GYRO_FS_SEL_2000DPS;
-		GyroSensor::Sensitivity(2000);
-	}
-
-	Write8(&regaddr, 1, d);
 
 	return GyroSensor::Sensitivity();
 }
 
-bool AgmMpu9250::UpdateData()
+bool AgmIcm20948::UpdateData()
 {
+#if 0
 	uint8_t regaddr = MPU9250_AG_FIFO_COUNT_H;//MPU9250_AG_ACCEL_XOUT_H;
 	int8_t d[20];
 	int32_t val;
@@ -662,32 +511,32 @@ bool AgmMpu9250::UpdateData()
 
 		MagSensor::vData.Timestamp = vSampleTime;
 	}
-
+#endif
 	return true;
 }
 
-bool AgmMpu9250::Read(ACCELSENSOR_DATA &Data)
+bool AgmIcm20948::Read(ACCELSENSOR_DATA &Data)
 {
 	Data = AccelSensor::vData;
 
 	return true;
 }
 
-bool AgmMpu9250::Read(GYROSENSOR_DATA &Data)
+bool AgmIcm20948::Read(GYROSENSOR_DATA &Data)
 {
 	Data = GyroSensor::vData;
 
 	return true;
 }
 
-bool AgmMpu9250::Read(MAGSENSOR_DATA &Data)
+bool AgmIcm20948::Read(MAGSENSOR_DATA &Data)
 {
 	Data = MagSensor::vData;
 
 	return true;
 }
 
-int AgmMpu9250::Read(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pBuff, int BuffLen)
+int AgmIcm20948::Read(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pBuff, int BuffLen)
 {
 	if (vbSpi == true)
 	{
@@ -698,7 +547,7 @@ int AgmMpu9250::Read(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pBuff, int Buff
 }
 
 
-int AgmMpu9250::Write(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen)
+int AgmIcm20948::Write(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen)
 {
 	if (vbSpi == true)
 	{
@@ -708,7 +557,7 @@ int AgmMpu9250::Write(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int Dat
 	return Device::Write(pCmdAddr, CmdAddrLen, pData, DataLen);
 }
 
-int AgmMpu9250::Read(uint8_t DevAddr, uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pBuff, int BuffLen)
+int AgmIcm20948::Read(uint8_t DevAddr, uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pBuff, int BuffLen)
 {
 	int retval = 0;
 
@@ -716,7 +565,7 @@ int AgmMpu9250::Read(uint8_t DevAddr, uint8_t *pCmdAddr, int CmdAddrLen, uint8_t
 	{
 		uint8_t regaddr;
 		uint8_t d[8];
-
+#if 0
 		d[0] = MPU9250_AG_I2C_SLV0_ADDR;
 		d[1] = DevAddr | MPU9250_AG_I2C_SLV0_ADDR_I2C_SLVO_RD;
 		d[2] = *pCmdAddr;
@@ -743,6 +592,7 @@ int AgmMpu9250::Read(uint8_t DevAddr, uint8_t *pCmdAddr, int CmdAddrLen, uint8_t
 			BuffLen -= cnt;
 			retval += cnt;
 		}
+#endif
 	}
 	else
 	{
@@ -752,7 +602,7 @@ int AgmMpu9250::Read(uint8_t DevAddr, uint8_t *pCmdAddr, int CmdAddrLen, uint8_t
 	return retval;
 }
 
-int AgmMpu9250::Write(uint8_t DevAddr, uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen)
+int AgmIcm20948::Write(uint8_t DevAddr, uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen)
 {
 	int retval = 0;
 
@@ -760,7 +610,7 @@ int AgmMpu9250::Write(uint8_t DevAddr, uint8_t *pCmdAddr, int CmdAddrLen, uint8_
 	{
 		uint8_t regaddr;
 		uint8_t d[8];
-
+#if 0
 		d[0] = MPU9250_AG_I2C_SLV0_ADDR;
 		d[1] = DevAddr;
 		d[2] = *pCmdAddr;
@@ -778,6 +628,7 @@ int AgmMpu9250::Write(uint8_t DevAddr, uint8_t *pCmdAddr, int CmdAddrLen, uint8_
 			DataLen--;
 			retval++;
 		}
+#endif
 	}
 	else
 	{
@@ -787,15 +638,16 @@ int AgmMpu9250::Write(uint8_t DevAddr, uint8_t *pCmdAddr, int CmdAddrLen, uint8_
 	return retval;
 }
 
-void AgmMpu9250::IntHandler()
+void AgmIcm20948::IntHandler()
 {
-	uint8_t regaddr = MPU9250_AG_INT_STATUS;
+	uint8_t regaddr = 0;//MPU9250_AG_INT_STATUS;
 	uint8_t d;
 
 	d = Read8(&regaddr, 1);
-	if (d & MPU9250_AG_INT_STATUS_RAW_DATA_RDY_INT)
+//	if (d & MPU9250_AG_INT_STATUS_RAW_DATA_RDY_INT)
 	{
 		UpdateData();
 	}
 }
+
 

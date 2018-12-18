@@ -1,9 +1,12 @@
-/*--------------------------------------------------------------------------
-File   : i2c_spi_nrf52_irq.h
+/**-------------------------------------------------------------------------
+@file	tca6424a.h
 
-Author : Hoang Nguyen Hoan          July 20, 2018
+@brief	TCA6424A Low-Voltage 24-Bit I2C and SMBus I/O Expander
 
-Desc   : Shared IRQ handler for I2C, SPI
+@author	Hoang Nguyen Hoan
+@date	Oct. 7, 2018
+
+@license
 
 Copyright (c) 2018, I-SYST inc., all rights reserved
 
@@ -27,24 +30,44 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by         Date            Description
-
 ----------------------------------------------------------------------------*/
+#ifndef __TCA6424A_H__
+#define __TCA6424A_H__
 
-#ifndef __I2C_SPI_NRF52_IRQ_H__
-#define __I2C_SPI_NRF52_IRQ_H__
+#include <stdint.h>
 
-typedef void (*IRQHANDLER)(int DevNo, DEVINTRF *pDev);
+typedef struct __Tca6424a_Cfg {
+	uint8_t DevAddr,
+} TCA6424A_CFG;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+class IoExpTca6424a : public Device {
+public:
+	bool Init(TCA6424A_CFG &CfgData, DeviceIntrf * const pIntrf);
+	/**
+	 * @brief	Power on or wake up device
+	 *
+	 * @return	true - If success
+	 */
+	virtual bool Enable();
 
-void SetI2cSpiIntHandler(int DevNo, DEVINTRF * const pDev, IRQHANDLER Handler);
+	/**
+	 * @brief	Put device in power down or power saving sleep mode
+	 *
+	 * @return	None
+	 */
+	virtual void Disable();
 
-#ifdef __cplusplus
-}
-#endif
+	/**
+	 * @brief	Reset device to it initial state
+	 *
+	 * @return	None
+	 */
+	virtual void Reset();
 
-#endif // __I2C_SPI_NRF52_IRQ_H__
+protected:
+private:
+};
+
+
+
+#endif // __TCA6424A_H__

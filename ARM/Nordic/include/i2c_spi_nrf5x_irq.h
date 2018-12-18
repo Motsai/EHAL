@@ -1,11 +1,14 @@
-/*--------------------------------------------------------------------------
-File   : spi_nrf5x.h
+/**-------------------------------------------------------------------------
+@file	i2c_spi_nrf5x_irq.h
 
-Author : Hoang Nguyen Hoan          Oct. 6, 2016
+@brief	Shared IRQ handler for I2C, SPI
 
-Desc   : SPI implementation on nRF5x series MCU
+@author	Hoang Nguyen Hoan
+@date	July 20, 2018
 
-Copyright (c) 2016, I-SYST inc., all rights reserved
+@license
+
+Copyright (c) 2018, I-SYST inc., all rights reserved
 
 Permission to use, copy, modify, and distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright
@@ -27,16 +30,21 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by         Date            Description
-
 ----------------------------------------------------------------------------*/
-#ifndef __SPI_NRF5X_H__
-#define __SPI_NRF5X_H__
 
-#include "spi.h"
+#ifndef __I2C_SPI_NRF5X_IRQ_H__
+#define __I2C_SPI_NRF5X_IRQ_H__
 
+typedef void (*IRQHANDLER)(int DevNo, DEVINTRF *pDev);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+void SetI2cSpiIntHandler(int DevNo, DEVINTRF * const pDev, IRQHANDLER Handler);
 
-#endif // __SPI_NRF5X_H__
+#ifdef __cplusplus
+}
+#endif
+
+#endif // __I2C_SPI_NRF5X_IRQ_H__

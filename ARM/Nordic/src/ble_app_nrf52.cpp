@@ -1025,7 +1025,17 @@ __WEAK void BleAppAdvInit(const BLEAPP_CFG *pCfg)
     // Build advertising data struct to pass into @ref ble_advertising_init.
 
     initdata.advdata.include_appearance = false;
-    initdata.advdata.flags              = BLE_GAP_ADV_FLAG_BR_EDR_NOT_SUPPORTED;//BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+
+    if (pCfg->AdvTimeout != 0)
+    {
+        // ADV for a limited time, use this flag
+        initdata.advdata.flags = BLE_GAP_ADV_FLAGS_LE_ONLY_LIMITED_DISC_MODE;
+    }
+    else
+    {
+        // Always ADV use this flag
+        initdata.advdata.flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+    }
 
     if (pCfg->pDevName != NULL)
     {
@@ -1046,14 +1056,23 @@ __WEAK void BleAppAdvInit(const BLEAPP_CFG *pCfg)
     {
         if (pCfg->NbAdvUuid > 0 && pCfg->pAdvUuids != NULL)
         {
-        	initdata.advdata.uuids_complete.uuid_cnt = pCfg->NbAdvUuid;
-        	initdata.advdata.uuids_complete.p_uuids  = (ble_uuid_t*)pCfg->pAdvUuids;
-			//if (pCfg->pAdvManData != NULL)
+			if (pCfg->pAdvManData != NULL)
 			{
-			//	initdata.srdata.p_manuf_specific_data = &g_BleAppData.ManufData;
+				initdata.advdata.p_manuf_specific_data = &g_BleAppData.ManufData;
+	        	initdata.srdata.uuids_complete.uuid_cnt = pCfg->NbAdvUuid;
+	        	initdata.srdata.uuids_complete.p_uuids  = (ble_uuid_t*)pCfg->pAdvUuids;
+			}
+			else
+			{
+	        	initdata.advdata.uuids_complete.uuid_cnt = pCfg->NbAdvUuid;
+	        	initdata.advdata.uuids_complete.p_uuids  = (ble_uuid_t*)pCfg->pAdvUuids;
+				if (pCfg->pSrManData != NULL)
+				{
+		        	initdata.srdata.p_manuf_specific_data = &g_BleAppData.SRManufData;
+				}
 			}
         }
-        //else
+        else
         {
 			if (pCfg->pAdvManData != NULL)
 			{
@@ -1071,14 +1090,23 @@ __WEAK void BleAppAdvInit(const BLEAPP_CFG *pCfg)
         {
 			initdata.srdata.uuids_complete.uuid_cnt = pCfg->NbAdvUuid;
 			initdata.srdata.uuids_complete.p_uuids  = (ble_uuid_t*)pCfg->pAdvUuids;
+
+			if (pCfg->pAdvManData != NULL)
+			{
+				initdata.advdata.p_manuf_specific_data = &g_BleAppData.ManufData;
+			}
+
         }
-        if (pCfg->pAdvManData != NULL)
+        else
         {
-        	initdata.advdata.p_manuf_specific_data = &g_BleAppData.ManufData;
-        }
-		if (pCfg->pAdvManData != NULL)
-		{
-        	initdata.srdata.p_manuf_specific_data = &g_BleAppData.SRManufData;
+        	if (pCfg->pAdvManData != NULL)
+			{
+				initdata.advdata.p_manuf_specific_data = &g_BleAppData.ManufData;
+			}
+			if (pCfg->pAdvManData != NULL)
+			{
+				initdata.srdata.p_manuf_specific_data = &g_BleAppData.SRManufData;
+			}
         }
     }
 
@@ -1201,7 +1229,7 @@ void gatt_init(void)
     err_code = nrf_ble_gatt_init(&s_Gatt, gatt_evt_handler);
     APP_ERROR_CHECK(err_code);
 
-    err_code = nrf_ble_gatt_att_mtu_periph_set(&s_Gatt, 23);
+    err_code = nrf_ble_gatt_att_mtu_periph_set(&s_Gatt, g_BleAppData.MaxMtu);
     APP_ERROR_CHECK(err_code);
 }
 

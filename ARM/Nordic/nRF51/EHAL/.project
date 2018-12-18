@@ -161,6 +161,11 @@
 			<locationURI>PARENT-3-WORKSPACE_LOC/include/ledmxfont.h</locationURI>
 		</link>
 		<link>
+			<name>include/miscdev</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>include/prbs.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/include/prbs.h</locationURI>
@@ -446,6 +451,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/include/coredev/uart.h</locationURI>
 		</link>
 		<link>
+			<name>include/miscdev/modem.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/miscdev/modem.h</locationURI>
+		</link>
+		<link>
 			<name>include/sensors/accel_sensor.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/accel_sensor.h</locationURI>
@@ -521,9 +531,24 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/coredev/i2c.cpp</locationURI>
 		</link>
 		<link>
+			<name>src/coredev/i2c_nrf5x.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/i2c_nrf5x.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/coredev/i2c_spi_nrf5x_irq.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/i2c_spi_nrf5x_irq.cpp</locationURI>
+		</link>
+		<link>
 			<name>src/coredev/spi.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/coredev/spi.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/coredev/spi_nrf5x.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/spi_nrf5x.cpp</locationURI>
 		</link>
 		<link>
 			<name>src/coredev/timer.cpp</name>
@@ -544,6 +569,11 @@
 			<name>src/miscdev/ledmxfont.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/ledmxfont.c</locationURI>
+		</link>
+		<link>
+			<name>src/miscdev/modem.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/modem.cpp</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/ble</name>
