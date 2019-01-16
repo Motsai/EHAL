@@ -250,6 +250,14 @@ public:
 	 */
 	virtual void EraseBlock(uint32_t BlkNo, int NbBlk);
 
+    /**
+     * @brief   Perform a verification for post-erase.
+     *
+     * This function may take a long time to complete. If task switching is require, add delay
+     * callback function to the configuration at initialization.
+     */
+	virtual bool EraseVerify();
+
 	/**
      * @brief	Read one sector from physical device.
      *

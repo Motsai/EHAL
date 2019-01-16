@@ -32,6 +32,7 @@ Modified by          Date              Description
 
 ----------------------------------------------------------------------------*/
 #include <stdio.h>
+#include <string.h>
 
 #include "diskio_flash.h"
 #include "idelay.h"
@@ -197,6 +198,24 @@ void FlashDiskIO::EraseBlock(uint32_t BlkNo, int NbBlk)
         BlkNo += vEraseSize;
     }
     WriteDisable();
+}
+
+bool FlashDiskIO::EraseVerify()
+{
+    // This function only verify the first 64K (minimum erasable flash) block for faster verification.
+
+    uint8_t lSectSize;
+    uint8_t lBuffer[8];
+    uint64_t lAddress = 0;
+    const uint8_t lBufferCmp[8] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+
+    while( lAddress + (uint64_t)GetSectSize() < (uint64_t)GetMinEraseSize() ) {
+        Read( lAddress, lBuffer, 8 );
+        if ( !( memcmp( lBuffer, lBufferCmp, 8 ) == 0 ) )
+            return false;
+        lAddress += (uint64_t)GetSectSize();
+    }
+    return true;
 }
 
 /**
