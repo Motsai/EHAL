@@ -260,7 +260,7 @@ int nRF52I2CRxDataDMA(DEVINTRF * const pDev, uint8_t *pBuff, int BuffLen)
 		dev->pReg->TASKS_RESUME = 1;
 		dev->pReg->TASKS_STARTRX = 1;
 
-		if (nRF52I2CWaitRxComplete(dev, 1000000) == false)
+		if (nRF52I2CWaitRxComplete(dev, 100000) == false)
 		    break;
 
 		BuffLen -= l;
