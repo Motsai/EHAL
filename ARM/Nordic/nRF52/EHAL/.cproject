@@ -20,7 +20,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="a" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="" id="ilg.gnuarmeclipse.managedbuild.cross.config.lib.debug.75868103" name="Debug" parent="ilg.gnuarmeclipse.managedbuild.cross.config.lib.debug">
+				<configuration artifactExtension="a" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="" id="ilg.gnuarmeclipse.managedbuild.cross.config.lib.debug.75868103" name="Debug" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=" parent="ilg.gnuarmeclipse.managedbuild.cross.config.lib.debug">
 					<folderInfo id="ilg.gnuarmeclipse.managedbuild.cross.config.lib.debug.75868103." name="/" resourcePath="">
 						<toolChain id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.lib.debug.944461608" name="Cross ARM GCC" superClass="ilg.gnuarmeclipse.managedbuild.cross.toolchain.lib.debug">
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.1921314423" name="Optimization Level" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.debug" valueType="enumerated"/>
@@ -46,6 +46,7 @@
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createflash.564109736" name="Create flash image" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createflash" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.printsize.428539383" name="Print size" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.printsize" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.thumbinterwork.233933230" name="Thumb interwork (-mthumb-interwork)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.thumbinterwork" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.toolchain.id.890850323" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.toolchain.id" value="1287942917" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.2016699547" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
 							<builder buildPath="${workspace_loc:/EHAL}/Debug" id="ilg.gnuarmeclipse.managedbuild.cross.builder.1691269141" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder">
 								<outputEntries>
@@ -183,6 +184,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../include/coredev&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/CMSIS/CMSIS/Core/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/micro-ecc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/driver/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/mpl&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/mllite&quot;"/>
@@ -323,6 +325,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../include/coredev&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/CMSIS/CMSIS/Core/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/micro-ecc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/driver/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/mpl&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/mllite&quot;"/>
@@ -471,8 +474,9 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src|include" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry excluding="imu|nRF5_SDK_Mesh|sysstatus_impl.cpp|nRF5_SDK/libraries/log|nRF5_SDK/softdevice/common/softdevice_handler|nRF5_SDK/drivers_nrf|nRF5_SDK/libraries/experimental_log/src/nrf_log_backend_uart.c|ble_app.cpp|nRF5_SDK_12|nRF5_SDK/libraries/fstorage/fstorage.c|nRF5_SDK/drivers_nrf/hal|nRF5_SDK/drivers_nrf/rng|FreeRTOS|atomic.c|diskio.c|nRF5_SDK/softdevice/common/nrf_sdh_soc.c|nRF5_SDK/libraries/experimental_log/src/nrf_log_backend_rtt.c|nRF5_SDK/drivers_nrf/power|nRF5_SDK/libraries/crypto/nrf_crypto_svc.c|nRF5_SDK/libraries/bootloader/dfu/nrf_dfu_flash.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry excluding="include|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="include"/>
+						<entry excluding="bluetooth/blueio_blesrvc.cpp|nrf_sdh_soc.c|nRF5_SDK/softdevice/common/nrf_sdh.c|nRF5_SDK/libraries/crypto/nrf_crypto_svc.c|nRF5_SDK/softdevice/common/nrf_sdh_soc.c|nRF5_SDK/drivers_nrf|nRF5_SDK/drivers_nrf/hal|nRF5_SDK/drivers_nrf/power|nRF5_SDK/drivers_nrf/rng|FreeRTOS|nRF5_SDK/libraries/bootloader/dfu/nrf_dfu_flash.c|ble_app.cpp|nRF5_SDK/libraries/experimental_log/src/nrf_log_backend_uart.c|nRF5_SDK/libraries/experimental_log/src/nrf_log_backend_rtt.c|nRF5_SDK/libraries/fstorage/fstorage.c|nRF5_SDK/libraries/log|nRF5_SDK/softdevice/common/softdevice_handler|nRF5_SDK_12|atomic.c|sysstatus_impl.cpp|diskio.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -544,6 +548,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../include/coredev&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/CMSIS/CMSIS/Core/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/micro-ecc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/driver/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/mpl&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/mllite&quot;"/>
@@ -683,6 +688,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../include/coredev&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/CMSIS/CMSIS/Core/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/micro-ecc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/driver/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/mpl&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/mllite&quot;"/>
@@ -832,7 +838,8 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry excluding="include|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry excluding="imu|nRF5_SDK_Mesh|nRF5_SDK/libraries/crypto/nrf_crypto_svc.c|nRF5_SDK/softdevice/common/nrf_sdh_soc.c|nRF5_SDK/drivers_nrf|nRF5_SDK/drivers_nrf/hal|nRF5_SDK/drivers_nrf/power|nRF5_SDK/drivers_nrf/rng|FreeRTOS|nRF5_SDK/libraries/bootloader/dfu/nrf_dfu_flash.c|ble_app.cpp|nRF5_SDK/libraries/experimental_log/src/nrf_log_backend_uart.c|nRF5_SDK/libraries/experimental_log/src/nrf_log_backend_rtt.c|nRF5_SDK/libraries/fstorage/fstorage.c|nRF5_SDK/libraries/log|nRF5_SDK/softdevice/common/softdevice_handler|nRF5_SDK_12|atomic.c|sysstatus_impl.cpp|diskio.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="include"/>
+						<entry excluding="bluetooth/blueio_blesrvc.cpp|nrf_sdh_soc.c|nRF5_SDK/softdevice/common/nrf_sdh.c|nRF5_SDK/libraries/crypto/nrf_crypto_svc.c|nRF5_SDK/softdevice/common/nrf_sdh_soc.c|nRF5_SDK/drivers_nrf|nRF5_SDK/drivers_nrf/hal|nRF5_SDK/drivers_nrf/power|nRF5_SDK/drivers_nrf/rng|FreeRTOS|nRF5_SDK/libraries/bootloader/dfu/nrf_dfu_flash.c|ble_app.cpp|nRF5_SDK/libraries/experimental_log/src/nrf_log_backend_uart.c|nRF5_SDK/libraries/experimental_log/src/nrf_log_backend_rtt.c|nRF5_SDK/libraries/fstorage/fstorage.c|nRF5_SDK/libraries/log|nRF5_SDK/softdevice/common/softdevice_handler|nRF5_SDK_12|atomic.c|sysstatus_impl.cpp|diskio.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -906,6 +913,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../include/coredev&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/CMSIS/CMSIS/Core/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/micro-ecc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/driver/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/mpl&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/mllite&quot;"/>
@@ -1045,6 +1053,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../include/coredev&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/CMSIS/CMSIS/Core/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/micro-ecc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/driver/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/mpl&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/mllite&quot;"/>
@@ -1196,7 +1205,8 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry excluding="include|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry excluding="imu|nRF5_SDK_Mesh|nRF5_SDK/libraries/crypto/nrf_crypto_svc.c|nRF5_SDK/softdevice/common/nrf_sdh_soc.c|nRF5_SDK/drivers_nrf|nRF5_SDK/drivers_nrf/hal|nRF5_SDK/drivers_nrf/power|nRF5_SDK/drivers_nrf/rng|FreeRTOS|nRF5_SDK/libraries/bootloader/dfu/nrf_dfu_flash.c|ble_app.cpp|nRF5_SDK/libraries/experimental_log/src/nrf_log_backend_uart.c|nRF5_SDK/libraries/experimental_log/src/nrf_log_backend_rtt.c|nRF5_SDK/libraries/fstorage/fstorage.c|nRF5_SDK/libraries/log|nRF5_SDK/softdevice/common/softdevice_handler|nRF5_SDK_12|atomic.c|sysstatus_impl.cpp|diskio.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="include"/>
+						<entry excluding="bluetooth/blueio_blesrvc.cpp|nrf_sdh_soc.c|nRF5_SDK/softdevice/common/nrf_sdh.c|nRF5_SDK/libraries/crypto/nrf_crypto_svc.c|nRF5_SDK/softdevice/common/nrf_sdh_soc.c|nRF5_SDK/drivers_nrf|nRF5_SDK/drivers_nrf/hal|nRF5_SDK/drivers_nrf/power|nRF5_SDK/drivers_nrf/rng|FreeRTOS|nRF5_SDK/libraries/bootloader/dfu/nrf_dfu_flash.c|ble_app.cpp|nRF5_SDK/libraries/experimental_log/src/nrf_log_backend_uart.c|nRF5_SDK/libraries/experimental_log/src/nrf_log_backend_rtt.c|nRF5_SDK/libraries/fstorage/fstorage.c|nRF5_SDK/libraries/log|nRF5_SDK/softdevice/common/softdevice_handler|nRF5_SDK_12|atomic.c|sysstatus_impl.cpp|diskio.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -1270,6 +1280,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../include/coredev&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/CMSIS/CMSIS/Core/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/micro-ecc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/driver/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/mpl&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/mllite&quot;"/>
@@ -1409,6 +1420,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../include/coredev&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/CMSIS/CMSIS/Core/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/micro-ecc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/driver/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/mpl&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../../external/MPL/core/mllite&quot;"/>
@@ -1560,7 +1572,8 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry excluding="include|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry excluding="imu|nRF5_SDK_Mesh|nRF5_SDK/libraries/crypto/nrf_crypto_svc.c|nRF5_SDK/softdevice/common/nrf_sdh_soc.c|nRF5_SDK/drivers_nrf|nRF5_SDK/drivers_nrf/hal|nRF5_SDK/drivers_nrf/power|nRF5_SDK/drivers_nrf/rng|FreeRTOS|nRF5_SDK/libraries/bootloader/dfu/nrf_dfu_flash.c|ble_app.cpp|nRF5_SDK/libraries/experimental_log/src/nrf_log_backend_uart.c|nRF5_SDK/libraries/experimental_log/src/nrf_log_backend_rtt.c|nRF5_SDK/libraries/fstorage/fstorage.c|nRF5_SDK/libraries/log|nRF5_SDK/softdevice/common/softdevice_handler|nRF5_SDK_12|atomic.c|sysstatus_impl.cpp|diskio.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="include"/>
+						<entry excluding="bluetooth/blueio_blesrvc.cpp|nrf_sdh_soc.c|nRF5_SDK/softdevice/common/nrf_sdh.c|nRF5_SDK/libraries/crypto/nrf_crypto_svc.c|nRF5_SDK/softdevice/common/nrf_sdh_soc.c|nRF5_SDK/drivers_nrf|nRF5_SDK/drivers_nrf/hal|nRF5_SDK/drivers_nrf/power|nRF5_SDK/drivers_nrf/rng|FreeRTOS|nRF5_SDK/libraries/bootloader/dfu/nrf_dfu_flash.c|ble_app.cpp|nRF5_SDK/libraries/experimental_log/src/nrf_log_backend_uart.c|nRF5_SDK/libraries/experimental_log/src/nrf_log_backend_rtt.c|nRF5_SDK/libraries/fstorage/fstorage.c|nRF5_SDK/libraries/log|nRF5_SDK/softdevice/common/softdevice_handler|nRF5_SDK_12|atomic.c|sysstatus_impl.cpp|diskio.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

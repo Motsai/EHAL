@@ -1,10 +1,12 @@
-/*--------------------------------------------------------------------------
-File   : mag_sensor.h
+/**-------------------------------------------------------------------------
+@file	mag_sensor.h
 
-Author : Hoang Nguyen Hoan          			Nov. 18, 2017
+@brief	Generic magnetometer sensor abstraction
 
-Desc   : Generic magnetometer sensor abstraction
+@author	Hoang Nguyen Hoan
+@date	Nov. 18, 2017
 
+@license
 
 Copyright (c) 2017, I-SYST inc., all rights reserved
 
@@ -28,9 +30,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 
 #ifndef __MAG_SENSOR_H__
@@ -46,9 +45,14 @@ Modified by          Date              Description
 /// Magnetometer sensor data
 typedef struct __MagSensor_Data {
 	uint32_t Timestamp;	//!< Time stamp count in msec
-	int16_t X;			//!< X axis
-	int16_t Y;			//!< Y axis
-	int16_t Z;			//!< Z axis
+	union {
+		int16_t Val[3];
+		struct {
+			int16_t X;			//!< X axis
+			int16_t Y;			//!< Y axis
+			int16_t Z;			//!< Z axis
+		};
+	};
 } MAGSENSOR_DATA;
 
 /// Mag configuration data

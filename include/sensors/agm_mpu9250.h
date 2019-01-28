@@ -334,6 +334,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Undocumented registers
 #define MPU9250_DMP_MEM_BANKSEL			0x6D
 #define MPU9250_DMP_MEM_STARTADDR		0x6E
+#define MPU9250_DMP_MEM_RW				0x6F
 #define MPU9250_DMP_PROG_START			0x70
 
 #define MPU9250_AG_FIFO_COUNT_H			0x72
@@ -410,6 +411,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define MPU9250_MAG_MAX_FLUX_DENSITY	4912
 
+#define MPU9250_DMP_MEM_PAGE_SIZE			256		// DMP memory page size
+
 #pragma pack(push, 1)
 
 #pragma pack(pop)
@@ -485,16 +488,18 @@ public:
 	int Write(uint8_t DevAddr, uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen);
 	bool UpdateData();
 	virtual void IntHandler();
+	void ResetFifo();
 
 private:
 	// Default base initialization. Does detection and set default config for all sensor.
 	// All sensor init must call this first prio to initializing itself
 	bool Init(uint32_t DevAddr, DeviceIntrf * const pIntrf, Timer * const pTimer);
+	bool UploadDMPImage();
 
-	bool vbSpi;
 	bool vbInitialized;
 	uint8_t vMagCtrl1Val;
 	int16_t vMagSenAdj[3];
+	bool vbSensorEnabled[3];
 };
 
 #endif // __AGM_MPU9250_H__
