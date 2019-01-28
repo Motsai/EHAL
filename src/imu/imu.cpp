@@ -36,30 +36,41 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ----------------------------------------------------------------------------*/
 
 #include "imu/imu.h"
+/*
+bool Imu::Init(const IMU_CFG &Cfg, uint32_t DevAddr, DeviceIntrf * const pIntrf, Timer * const pTimer)
+{
+	SetEvtHandler(Cfg.EvtHandler);
+	vpTimer = pTimer;
+	Interface(pIntrf);
+	DeviceAddess(DevAddr);
 
-bool Imu::Init(AccelSensor * const pAccel, GyroSensor * const pGyro, MagSensor * const pMag)
+	return true;
+}
+*/
+bool Imu::Init(const IMU_CFG &Cfg, AccelSensor * const pAccel, GyroSensor * const pGyro, MagSensor * const pMag)
 {
 	vpAccel = pAccel;
 	vpGyro = pGyro;
 	vpMag = pMag;
+	SetEvtHandler(Cfg.EvtHandler);
 
 	return true;
 }
 
-uint32_t Imu::Feature(uint32_t Feature, bool bEnDis)
+IMU_FEATURE Imu::Feature(IMU_FEATURE FeatureBit, bool bEnDis)
 {
 	if (bEnDis == true)
 	{
 		// Enable
-		vFeatures |= Feature;
+		vActiveFeature |= FeatureBit;
 	}
 	else
 	{
 		// disable
-		vFeatures &= ~Feature;
+		vActiveFeature &= ~FeatureBit;
 	}
 
-	return vFeatures;
+	return vActiveFeature;
 }
 
 

@@ -265,7 +265,6 @@ bool TWSPIInit(TWSPIDEV * const pDev, const TWSPICFG *pCfgData)
 	pDev->DevIntrf.TxData = TWSPITxData;
 	pDev->DevIntrf.StopTx = TWSPIStopTx;
 	pDev->DevIntrf.EvtCB = pCfgData->EvtCB;
-	pDev->DevIntrf.Busy = false;
 	pDev->DevIntrf.EnCnt = 1;
 	pDev->DevIntrf.MaxRetry = pCfgData->MaxRetry;
 

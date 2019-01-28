@@ -1,10 +1,12 @@
-/*--------------------------------------------------------------------------
-File   : agm_mpu9250.h
+/**-------------------------------------------------------------------------
+@file	agm_mpu9250.h
 
-Author : Hoang Nguyen Hoan          			Nov. 18, 2017
+@brief	Implementation of TDK MPU-9250 accel, gyro, mag sensor
 
-Desc   : Implementation of TDK MPU-9250 accel, gyro, mag sensor
+@author	Hoang Nguyen Hoan
+@date	Nov. 18, 2017
 
+@license
 
 Copyright (c) 2017, I-SYST inc., all rights reserved
 
@@ -28,9 +30,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 
 #ifndef __AGM_MPU9250_H__
@@ -47,8 +46,8 @@ Modified by          Date              Description
 #define MPU9250_I2C_DEV_ADDR1			0x69		// AD0 high
 
 
-// Accel & Gyro registers
-//
+/// Accel & Gyro registers
+///
 
 #define MPU9250_AG_XG_OFFSET_H			0x13
 #define MPU9250_AG_XG_OFFSET_L			0x14
@@ -335,6 +334,7 @@ Modified by          Date              Description
 // Undocumented registers
 #define MPU9250_DMP_MEM_BANKSEL			0x6D
 #define MPU9250_DMP_MEM_STARTADDR		0x6E
+#define MPU9250_DMP_MEM_RW				0x6F
 #define MPU9250_DMP_PROG_START			0x70
 
 #define MPU9250_AG_FIFO_COUNT_H			0x72
@@ -411,6 +411,8 @@ Modified by          Date              Description
 
 #define MPU9250_MAG_MAX_FLUX_DENSITY	4912
 
+#define MPU9250_DMP_MEM_PAGE_SIZE			256		// DMP memory page size
+
 #pragma pack(push, 1)
 
 #pragma pack(pop)
@@ -486,16 +488,18 @@ public:
 	int Write(uint8_t DevAddr, uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen);
 	bool UpdateData();
 	virtual void IntHandler();
+	void ResetFifo();
 
 private:
 	// Default base initialization. Does detection and set default config for all sensor.
 	// All sensor init must call this first prio to initializing itself
 	bool Init(uint32_t DevAddr, DeviceIntrf * const pIntrf, Timer * const pTimer);
+	bool UploadDMPImage();
 
-	bool vbSpi;
 	bool vbInitialized;
 	uint8_t vMagCtrl1Val;
 	int16_t vMagSenAdj[3];
+	bool vbSensorEnabled[3];
 };
 
 #endif // __AGM_MPU9250_H__

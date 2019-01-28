@@ -79,17 +79,14 @@ typedef enum __SPI_Data_Bit_Order {
 } SPIDATABIT;
 
 typedef enum __SPI_Chip_Select {
-	SPICSEL_AUTO,	//!< Select control by hardware
-	SPICSEL_MAN,	//!< Select control by software
-	SPICSEL_EXT,	//!< Select control externally by application
+	SPICSEL_AUTO,	//!< Select control internally by hardware or driver
+	SPICSEL_MAN,	//!< Select control externally by application
 } SPICSEL;
 
 #define SPI_MAX_RETRY			5
 
 #define SPI_SLAVEMODE_MAX_DEV	4	//!< Max number of device (CS) supported in slave mode
  	 	 	 	 	 	 	 	 	//!< the real implementation may support less depending on hardware
-
-#define SPI_MAX_NB_IOPIN		4
 
 /// SPI pins indexes
 #define SPI_SCK_IOPIN_IDX		0
@@ -145,8 +142,8 @@ static inline int SPIGetRate(SPIDEV * const pDev) { return pDev->DevIntrf.GetRat
 static inline int SPISetRate(SPIDEV * const pDev, int Rate) {
 	return pDev->DevIntrf.SetRate(&pDev->DevIntrf, Rate);
 }
-static inline void SPIEnable(SPIDEV * const pDev) { pDev->DevIntrf.Enable(&pDev->DevIntrf); }
-static inline void SPIDisable(SPIDEV * const pDev) { pDev->DevIntrf.Disable(&pDev->DevIntrf); }
+static inline void SPIEnable(SPIDEV * const pDev) { DeviceIntrfEnable(&pDev->DevIntrf); }
+static inline void SPIDisable(SPIDEV * const pDev) { DeviceIntrfDisable(&pDev->DevIntrf); }
 static inline int SPIRx(SPIDEV * const pDev, int DevCs, uint8_t *pBuff, int Bufflen) {
 	return DeviceIntrfRx(&pDev->DevIntrf, DevCs, pBuff, Bufflen);
 }

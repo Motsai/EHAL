@@ -1,9 +1,12 @@
-/*--------------------------------------------------------------------------
-File   : uart.c
+/**-------------------------------------------------------------------------
+@file	uart.c
 
-Author : Hoang Nguyen Hoan          Sept. 16, 2011
+@brief	Generic uart implementation
 
-Desc   : Generic uart implementation
+@author	Hoang Nguyen Hoan
+@date	Sept. 16, 2011
+
+@license
 
 Copyright (c) 2011, I-SYST, all rights reserved
 
@@ -27,9 +30,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 #include <string.h>
 #include <stdio.h>
@@ -41,31 +41,6 @@ Modified by          Date              Description
 
 extern char s_Buffer[];	// defined in sbuffer.c
 extern int s_BufferSize;
-
-int UARTRx(UARTDEV * const pDev, uint8_t *pBuff, int Bufflen)
-{
-	int len = 0;
-
-    return DeviceIntrfRx(&pDev->DevIntrf, 0, pBuff, Bufflen);
-/*    pDev->DevIntrf.StartRx(&pDev->DevIntrf, 0);
-    len = pDev->DevIntrf.RxData(&pDev->DevIntrf, pBuff, Bufflen);
-    pDev->DevIntrf.StopRx(&pDev->DevIntrf);
-
-    return len;*/
-}
-
-int UARTTx(UARTDEV * const pDev, uint8_t *pData, int Datalen)
-{
-	int len = 0;
-
-	return DeviceIntrfTx(&pDev->DevIntrf, 0, pData, Datalen);
-/*
-    pDev->DevIntrf.StartTx(&pDev->DevIntrf, 0);
-    len = pDev->DevIntrf.TxData(&pDev->DevIntrf, pData, Datalen);
-    pDev->DevIntrf.StopTx(&pDev->DevIntrf);
-
-    return len;*/
-}
 
 void UARTprintf(UARTDEV * const pDev, const char *pFormat, ...)
 {
@@ -80,7 +55,8 @@ void UARTvprintf(UARTDEV * const pDev, const char *pFormat, va_list vl)
     vsnprintf(s_Buffer, s_BufferSize, pFormat, vl);
     int len = strlen(s_Buffer);
     uint8_t *p = (uint8_t*)s_Buffer;
-    int to = 20;
+    int to = 10;
+
     while (len > 0 && to > 0)
     {
     	int l;
