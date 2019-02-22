@@ -1,11 +1,13 @@
-/*--------------------------------------------------------------------------
-File   : ag_bmi160.h
+/**-------------------------------------------------------------------------
+@file	ag_bmi160.h
 
-Author : Hoang Nguyen Hoan          						Nov. 18, 2017
-
-Desc   : implementation of BOSCH BMI160 sensor
+@brief	implementation of BOSCH BMI160 sensor
 			Accel, Gyro
 
+@author	Hoang Nguyen Hoan
+@date	Nov. 18, 2017
+
+@license
 
 Copyright (c) 2017, I-SYST inc., all rights reserved
 
@@ -28,9 +30,6 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-----------------------------------------------------------------------------
-Modified by          Date              Description
 
 ----------------------------------------------------------------------------*/
 
@@ -385,26 +384,35 @@ Modified by          Date              Description
 
 #pragma pack(pop)
 
+#ifdef __cplusplus
+
 class AgBmi160 : public AccelSensor, public GyroSensor {
 public:
-	virtual bool Init(const ACCELSENSOR_CFG &Cfg, DeviceIntrf * const pIntrf, Timer * const pTimer);
-	virtual bool Init(const GYROSENSOR_CFG &Cfg, DeviceIntrf * const pIntrf, Timer * const pTimer);
+	virtual bool Init(const ACCELSENSOR_CFG &Cfg, DeviceIntrf * const pIntrf, Timer * const pTimer = NULL);
+	virtual bool Init(const GYROSENSOR_CFG &Cfg, DeviceIntrf * const pIntrf, Timer * const pTimer = NULL);
 	virtual bool Enable();
 	virtual void Disable();
 	virtual void Reset();
 	virtual bool StartSampling();
 	virtual uint8_t Scale(uint8_t Value);
-	virtual bool Read(ACCELSENSOR_DATA *pData);
-	virtual bool Read(GYROSENSOR_DATA *pData);
+	virtual bool Read(ACCELSENSOR_RAWDATA &Data) { return AccelSensor::Read(Data); }
+	virtual bool Read(ACCELSENSOR_DATA &Data) { return AccelSensor::Read(Data); }
+	virtual bool Read(GYROSENSOR_RAWDATA &Data) { return GyroSensor::Read(Data); }
+	virtual bool Read(GYROSENSOR_DATA &Data) { return GyroSensor::Read(Data); }
 
 private:
-	bool InitDefault(uint32_t DevAddr, DeviceIntrf * const pIntrf, Timer * const pTimer);
+	bool Init(uint32_t DevAddr, DeviceIntrf * const pIntrf, Timer * const pTimer = NULL);
 	bool UpdateData();
-	int Read(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pBuff, int BuffLen);
-	int Write(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen);
+	int Read(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pBuff, int BuffLen) {
+		return Device::Read(pCmdAddr, CmdAddrLen, pBuff, BuffLen);
+	}
+	int Write(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen) {
+		return Device::Write(pCmdAddr, CmdAddrLen, pData, DataLen);
+	}
 
-	bool vbSpi;
 	bool vbInitialized;
 };
+
+#endif // __cplusplus
 
 #endif // __AG_BMI160_H__

@@ -30,9 +30,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 
 #ifndef __GYRO_SENSOR_H__
@@ -45,12 +42,32 @@ Modified by          Date              Description
 
 #pragma pack(push, 1)
 
+/// Gyroscope raw sensor data
+typedef struct __GyroSensor_Raw_Data {
+    uint64_t Timestamp; 	//!< Time stamp count in usec
+    uint16_t Scale;     	//!< Scale in degree per second of the sensor
+    uint16_t Range;     	//!< Sensor ADC range
+    union {
+        int16_t Val[3];
+        struct {
+            int16_t X;      //!< X axis
+            int16_t Y;      //!< Y axis
+            int16_t Z;      //!< Z axis
+        };
+    };
+} GYROSENSOR_RAWDATA;
+
 /// Gyroscope sensor data
 typedef struct __GyroSensor_Data {
-	uint32_t Timestamp;	//!< Time stamp count in usec
-	int16_t X;			//!< X axis
-	int16_t Y;			//!< Y axis
-	int16_t Z;			//!< Z axis
+	uint64_t Timestamp;		//!< Time stamp count in usec
+	union {
+	    float Val[3];
+		struct {
+	        float X;		//!< X axis
+	        float Y;		//!< Y axis
+	        float Z;		//!< Z axis
+		};
+	};
 } GYROSENSOR_DATA;
 
 typedef struct __GyroSensor_Config {
@@ -58,13 +75,16 @@ typedef struct __GyroSensor_Config {
 	SENSOR_OPMODE 	OpMode;			//!< Operating mode
 	uint32_t		Freq;			//!< Sampling frequency in mHz (miliHertz) if continuous mode is used
 	uint32_t		Sensitivity;	//!< Sensitivity level per degree per second
+	uint32_t		LPFreq;			//!< Low pass filter cutoff frequency in Hz
 	bool 			bInter;			//!< true - enable interrupt
 	DEVINTR_POL		IntPol;			//!< Interrupt pin polarity
 } GYROSENSOR_CFG;
 
 #pragma pack(pop)
 
-class GyroSensor : virtual public Sensor {
+#ifdef __cplusplus
+
+class GyroSensor : public Sensor {
 public:
 
 	/**
@@ -78,7 +98,12 @@ public:
 	 */
 	virtual bool Init(const GYROSENSOR_CFG &Cfg, DeviceIntrf * const pIntrf, Timer * const pTimer) = 0;
 
-	/**
+    virtual bool Read(GYROSENSOR_RAWDATA &Data) {
+        Data = vData;
+        return true;
+    }
+
+    /**
 	 * @brief	Read last updated sensor data
 	 *
 	 * This function read the currently stored data last updated by UdateData().
@@ -91,7 +116,10 @@ public:
 	 * @return	True - Success.
 	 */
 	virtual bool Read(GYROSENSOR_DATA &Data) {
-		Data = vData;
+        Data.Timestamp = vData.Timestamp;
+        Data.X = (float)(vData.X * vData.Scale) / (float)vData.Range;
+        Data.Y = (float)(vData.Y * vData.Scale) / (float)vData.Range;
+        Data.Z = (float)(vData.Z * vData.Scale) / (float)vData.Range;
 		return true;
 	}
 
@@ -116,8 +144,11 @@ public:
 
 protected:
 
-	uint32_t vSensitivity;	//!< Sensitivity level per degree per second
-	GYROSENSOR_DATA vData;	//!< Current sensor data updated with UpdateData()
+	uint32_t vSensitivity;	    //!< Sensitivity level per degree per second
+    uint16_t vRange;            //!< ADC range of the sensor, contains max value for conversion factor
+	GYROSENSOR_RAWDATA vData;	//!< Current sensor data updated with UpdateData()
 };
+
+#endif // __cplusplus
 
 #endif // __GYRO_SENSOR_H__

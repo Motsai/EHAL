@@ -3,6 +3,9 @@
 
 @brief	Implementation of TDK MPU-9250 accel, gyro, mag sensor
 
+This only implement the sensor portion of the MPU-9250.  The DMP part is
+implemented in a higher level in IMU class device.
+
 @author	Hoang Nguyen Hoan
 @date	Nov. 18, 2017
 
@@ -41,6 +44,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sensors/accel_sensor.h"
 #include "sensors/gyro_sensor.h"
 #include "sensors/mag_sensor.h"
+#include "sensors/temp_sensor.h"
 
 #define MPU9250_I2C_DEV_ADDR0			0x68		// AD0 low
 #define MPU9250_I2C_DEV_ADDR1			0x69		// AD0 high
@@ -334,6 +338,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Undocumented registers
 #define MPU9250_DMP_MEM_BANKSEL			0x6D
 #define MPU9250_DMP_MEM_STARTADDR		0x6E
+#define MPU9250_DMP_MEM_RW				0x6F
 #define MPU9250_DMP_PROG_START			0x70
 
 #define MPU9250_AG_FIFO_COUNT_H			0x72
@@ -409,12 +414,17 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define MPU9250_MAG_ASAZ				0x12
 
 #define MPU9250_MAG_MAX_FLUX_DENSITY	4912
+#define MPU9250_ACC_MAX_RANGE			32767
+
+#define MPU9250_DMP_MEM_PAGE_SIZE			256		// DMP memory page size
 
 #pragma pack(push, 1)
 
 #pragma pack(pop)
 
-class AgmMpu9250 : public AccelSensor, public GyroSensor, public MagSensor {
+#ifdef __cplusplus
+
+class AgmMpu9250 : public AccelSensor, public GyroSensor, public MagSensor, public TempSensor {
 public:
 	/**
 	 * @brief	Initialize accelerometer sensor.
@@ -454,6 +464,7 @@ public:
 	 * @return	true - Success
 	 */
 	virtual bool Init(const MAGSENSOR_CFG &Cfg, DeviceIntrf* const pIntrf, Timer * const pTimer = NULL);
+	virtual bool Init(const TEMPSENSOR_CFG &CfgData, DeviceIntrf * const pIntrf = NULL, Timer * const pTimer = NULL);
 
 	virtual bool Enable();
 	virtual void Disable();
@@ -475,9 +486,13 @@ public:
 	virtual uint32_t Sensitivity(uint32_t Value);	// Gyro
 
 
-	virtual bool Read(ACCELSENSOR_DATA &Data);
-	virtual bool Read(GYROSENSOR_DATA &Data);
-	virtual bool Read(MAGSENSOR_DATA &Data);
+	virtual bool Read(ACCELSENSOR_RAWDATA &Data) { return AccelSensor::Read(Data); }
+	virtual bool Read(ACCELSENSOR_DATA &Data) { return AccelSensor::Read(Data); }
+	virtual bool Read(GYROSENSOR_RAWDATA &Data) { return GyroSensor::Read(Data); }
+	virtual bool Read(GYROSENSOR_DATA &Data) { return GyroSensor::Read(Data); }
+	virtual bool Read(MAGSENSOR_RAWDATA &Data) { return MagSensor::Read(Data); }
+	virtual bool Read(MAGSENSOR_DATA &Data) { return MagSensor::Read(Data); }
+	virtual void Read(TEMPSENSOR_DATA &Data) { return TempSensor::Read(Data); }
 
 	int Read(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pBuff, int BuffLen);
 	int Write(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen);
@@ -485,16 +500,26 @@ public:
 	int Write(uint8_t DevAddr, uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen);
 	bool UpdateData();
 	virtual void IntHandler();
+	int GetFifoLen();
+	int ReadFifo(uint8_t * const pBuff, int Len);
+	void ResetFifo();
+	bool InitDMP(uint32_t DmpStartAddr, uint8_t * const pDmpImage, int Len);
 
 private:
 	// Default base initialization. Does detection and set default config for all sensor.
 	// All sensor init must call this first prio to initializing itself
 	bool Init(uint32_t DevAddr, DeviceIntrf * const pIntrf, Timer * const pTimer);
+	bool UploadDMPImage(uint8_t * const pDmpImage, int Len);
+	void EnableFifo();
 
-	bool vbSpi;
 	bool vbInitialized;
+	bool vbDmpEnabled;
 	uint8_t vMagCtrl1Val;
 	int16_t vMagSenAdj[3];
+	bool vbSensorEnabled[3];
+	int vTemperature;
 };
+
+#endif // __cplusplus
 
 #endif // __AGM_MPU9250_H__

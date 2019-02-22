@@ -1,10 +1,12 @@
-/*--------------------------------------------------------------------------
-File   : timer_hf_nrf5x.cpp
+/**-------------------------------------------------------------------------
+@file	timer_hf_nrf5x.cpp
 
-Author : Hoang Nguyen Hoan          				Sep. 7, 2017
+@brief	Timer class implementation on Nordic nRF5x series using high frequency timer (TIMERx)
 
-Desc   : timer class implementation on Nordic nRF5x series
-		using high frequency timer (TIMERx)
+@author	Hoang Nguyen Hoan
+@date	Sep. 7, 2017
+
+@license
 
 Copyright (c) 2017, I-SYST inc., all rights reserved
 
@@ -27,9 +29,6 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-----------------------------------------------------------------------------
-Modified by          Date              Description
 
 ----------------------------------------------------------------------------*/
 #include "nrf.h"
@@ -103,7 +102,7 @@ void TIMER2_IRQHandler()
 		s_pnRF5xTimer[2]->IRQHandler();
 }
 
-#ifdef NRF52
+#ifdef NRF52_SERIES
 void TIMER3_IRQHandler()
 {
 	if (s_pnRF5xTimer[3])
@@ -153,7 +152,7 @@ bool TimerHFnRF5x::Init(const TIMER_CFG &Cfg)
     		s_pnRF5xTimer[2] = this;
     		vpReg = NRF_TIMER2;
     		break;
-#ifdef NRF52
+#ifdef NRF52_SERIES
     	case 3:
     		s_pnRF5xTimer[3] = this;
     		vpReg = NRF_TIMER3;
@@ -197,7 +196,7 @@ bool TimerHFnRF5x::Init(const TIMER_CFG &Cfg)
 			NVIC_SetPriority(TIMER2_IRQn, Cfg.IntPrio);
 			NVIC_EnableIRQ(TIMER2_IRQn);
 			break;
-#ifdef NRF52
+#ifdef NRF52_SERIES
 		case 3:
 			NVIC_ClearPendingIRQ(TIMER3_IRQn);
 			NVIC_SetPriority(TIMER3_IRQn, Cfg.IntPrio);
@@ -271,7 +270,7 @@ bool TimerHFnRF5x::Enable()
 			NVIC_ClearPendingIRQ(TIMER2_IRQn);
 			NVIC_EnableIRQ(TIMER2_IRQn);
 			break;
-#ifdef NRF52
+#ifdef NRF52_SERIES
 		case 3:
 			NVIC_ClearPendingIRQ(TIMER3_IRQn);
 			NVIC_EnableIRQ(TIMER3_IRQn);
@@ -307,7 +306,7 @@ void TimerHFnRF5x::Disable()
             NVIC_ClearPendingIRQ(TIMER2_IRQn);
             NVIC_DisableIRQ(TIMER2_IRQn);
             break;
-#ifdef NRF52
+#ifdef NRF52_SERIES
         case 3:
             NVIC_ClearPendingIRQ(TIMER3_IRQn);
             NVIC_DisableIRQ(TIMER3_IRQn);
@@ -367,7 +366,7 @@ uint64_t TimerHFnRF5x::TickCount()
 		if (count < vLastCount)
 	    {
 	        // Counter wrap arround
-	        vRollover += vFreq;
+	        vRollover += 0x100000000ULL;//vFreq;
 	    }
 
 		vLastCount = count;
@@ -403,7 +402,7 @@ uint64_t TimerHFnRF5x::EnableTimerTrigger(int TrigNo, uint64_t nsPeriod, TIMER_T
     if (count < vLastCount)
     {
         // Counter wrap around
-        vRollover += vFreq;
+        vRollover += 0x100000000ULL;//vFreq;
     }
 
     vLastCount = count;

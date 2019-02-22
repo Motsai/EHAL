@@ -1,10 +1,12 @@
-/*--------------------------------------------------------------------------
-File   : timer_lf_nrf5x.cpp
+/**-------------------------------------------------------------------------
+@file	timer_lf_nrf5x.cpp
 
-Author : Hoang Nguyen Hoan          				Sep. 7, 2017
+@brief	timer class implementation on Nordic nRF5x series using the RTC (real time counter)
 
-Desc   : timer class implementation on Nordic nRF5x series
-		using the RTC (real time counter)
+@author	Hoang Nguyen Hoan
+@date	Sep. 7, 2017
+
+@license
 
 Copyright (c) 2017, I-SYST inc., all rights reserved
 
@@ -28,9 +30,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 #include "nrf.h"
 
@@ -53,7 +52,7 @@ void TimerLFnRF5x::IRQHandler()
 
     if (vpReg->EVENTS_OVRFLW)
     {
-        vRollover += vFreq;
+        vRollover += 0x1000000ULL;
         evt |= TIMER_EVT_COUNTER_OVR;
         vpReg->EVENTS_OVRFLW = 0;
     }
@@ -96,7 +95,7 @@ __WEAK void RTC1_IRQHandler()
 	if (s_pnRF5xRTC[1])
 		s_pnRF5xRTC[1]->IRQHandler();
 }
-#ifdef NRF52
+#ifdef NRF52_SERIES
 __WEAK void RTC2_IRQHandler()
 {
 	if (s_pnRF5xRTC[2])
@@ -131,7 +130,7 @@ bool TimerLFnRF5x::Init(const TIMER_CFG &Cfg)
 			s_pnRF5xRTC[1] = this;
 			vpReg = NRF_RTC1;
             break;
-#ifdef NRF52
+#ifdef NRF52_SERIES
         case 2:
 			s_pnRF5xRTC[2] = this;
 			vpReg = NRF_RTC2;
@@ -188,7 +187,7 @@ bool TimerLFnRF5x::Init(const TIMER_CFG &Cfg)
 			NVIC_SetPriority(RTC1_IRQn, Cfg.IntPrio);
 			NVIC_EnableIRQ(RTC1_IRQn);
 			break;
-#ifdef NRF52
+#ifdef NRF52_SERIES
 		case 2:
 			NVIC_ClearPendingIRQ(RTC2_IRQn);
 			NVIC_SetPriority(RTC2_IRQn, Cfg.IntPrio);
@@ -220,7 +219,7 @@ bool TimerLFnRF5x::Enable()
             NVIC_ClearPendingIRQ(RTC1_IRQn);
             NVIC_EnableIRQ(RTC1_IRQn);
             break;
-#ifdef NRF52
+#ifdef NRF52_SERIES
         case 2:
             NVIC_ClearPendingIRQ(RTC2_IRQn);
             NVIC_EnableIRQ(RTC2_IRQn);
@@ -247,7 +246,7 @@ void TimerLFnRF5x::Disable()
             NVIC_ClearPendingIRQ(RTC1_IRQn);
             NVIC_DisableIRQ(RTC1_IRQn);
             break;
-#ifdef NRF52
+#ifdef NRF52_SERIES
         case 2:
             NVIC_ClearPendingIRQ(RTC2_IRQn);
             NVIC_DisableIRQ(RTC2_IRQn);
@@ -284,7 +283,7 @@ uint32_t TimerLFnRF5x::Frequency(uint32_t Freq)
     vFreq = TIMER_NRF5X_RTC_BASE_FREQ / prescaler;
 
     // Pre-calculate periods for faster timer counter to time conversion use later
-    vnsPeriod = 1000000000 / vFreq;     // Period in nsec
+    vnsPeriod = 1000000000ULL / (uint64_t)vFreq;     // Period in nsec
 
     vpReg->TASKS_START = 1;
 

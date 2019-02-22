@@ -1,10 +1,12 @@
-/*--------------------------------------------------------------------------
-File   : mag_sensor.h
+/**-------------------------------------------------------------------------
+@file	mag_sensor.h
 
-Author : Hoang Nguyen Hoan          			Nov. 18, 2017
+@brief	Generic magnetometer sensor abstraction
 
-Desc   : Generic magnetometer sensor abstraction
+@author	Hoang Nguyen Hoan
+@date	Nov. 18, 2017
 
+@license
 
 Copyright (c) 2017, I-SYST inc., all rights reserved
 
@@ -28,9 +30,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 
 #ifndef __MAG_SENSOR_H__
@@ -43,12 +42,32 @@ Modified by          Date              Description
 
 #pragma pack(push, 1)
 
+/// Magnetometer raw sensor data
+typedef struct __MagSensor_Raw_Data {
+    uint64_t Timestamp; //!< Time stamp count in usec
+    uint16_t Scale;     //!< Scale in miliGauss of the sensor
+    uint16_t Range;     //!< Sensor ADC range
+    union {
+        int16_t Val[3];
+        struct {
+            int16_t X;          //!< X axis
+            int16_t Y;          //!< Y axis
+            int16_t Z;          //!< Z axis
+        };
+    };
+} MAGSENSOR_RAWDATA;
+
 /// Magnetometer sensor data
 typedef struct __MagSensor_Data {
-	uint32_t Timestamp;	//!< Time stamp count in msec
-	int16_t X;			//!< X axis
-	int16_t Y;			//!< Y axis
-	int16_t Z;			//!< Z axis
+	uint64_t Timestamp;	//!< Time stamp count in usec
+	union {
+	    float Val[3];
+		struct {
+	        float X;			//!< X axis
+	        float Y;			//!< Y axis
+	        float Z;			//!< Z axis
+		};
+	};
 } MAGSENSOR_DATA;
 
 /// Mag configuration data
@@ -63,7 +82,9 @@ typedef struct __MagSensor_Config {
 
 #pragma pack(pop)
 
-class MagSensor : virtual public Sensor {
+#ifdef __cplusplus
+
+class MagSensor : public Sensor {
 public:
 	/**
 	 * @brief	Sensor initialization
@@ -76,7 +97,12 @@ public:
 	 */
 	virtual bool Init(const MAGSENSOR_CFG &Cfg, DeviceIntrf * const pIntrf, Timer * const pTimer) = 0;
 
-	/**
+    virtual bool Read(MAGSENSOR_RAWDATA &Data) {
+        Data = vData;
+        return true;
+    }
+
+    /**
 	 * @brief	Read last updated sensor data
 	 *
 	 * This function read the currently stored data last updated by UdateData().
@@ -88,17 +114,23 @@ public:
 	 *
 	 * @return	True - Success.
 	 */
-	virtual bool Read(MAGSENSOR_DATA &Data) {
-		Data = vData;
-		return true;
-	}
+    virtual bool Read(MAGSENSOR_DATA &Data) {
+        Data.Timestamp = vData.Timestamp;
+        Data.X = (float)(vData.X * vData.Scale) / (float)vData.Range;
+        Data.Y = (float)(vData.Y * vData.Scale) / (float)vData.Range;
+        Data.Z = (float)(vData.Z * vData.Scale) / (float)vData.Range;
+        return true;
+    }
 
 protected:
 	int32_t vScale;			//!< Sample scaling value at the discretion of the implementation
 	int vPrecision;			//!< Sampling precision in bits
-	MAGSENSOR_DATA vData;	//!< Current sensor data updated with UpdateData()
+    uint16_t vRange;        //!< ADC range of the sensor, contains max value for conversion factor
+	MAGSENSOR_RAWDATA vData;//!< Current sensor data updated with UpdateData()
 private:
 
 };
+
+#endif // __cplusplus
 
 #endif // __MAG_SENSOR_H__

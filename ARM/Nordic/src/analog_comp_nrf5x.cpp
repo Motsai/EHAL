@@ -86,7 +86,7 @@ bool AnalogCompInit(ANALOG_COMP_DEV * const pDev, const ANALOG_COMP_CFG *pCfg)
 
 	if (pCfg->RefSrc != 0)
 	{
-#ifdef NRF52
+#ifdef NRF52_SERIES
 		int d = pCfg->CompVolt * 16 / pCfg->RefSrc;
 
 		if (d & 1)
@@ -162,6 +162,8 @@ bool AnalogCompnRF52LPComp::Init(const ANALOG_COMP_CFG &Cfg)
 bool AnalogCompnRF52LPComp::Enable()
 {
 	NRF_LPCOMP->ENABLE = 1;
+
+	return true;
 }
 
 void AnalogCompnRF52LPComp::Disable()
@@ -172,6 +174,8 @@ void AnalogCompnRF52LPComp::Disable()
 bool AnalogCompnRF52LPComp::Start()
 {
 	NRF_LPCOMP->TASKS_START = 1;
+
+	return true;
 }
 
 void AnalogCompnRF52LPComp::Stop()

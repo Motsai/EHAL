@@ -50,7 +50,27 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   * @{
   */
 
-
+/// @brief	Sensor type
+///
+/// This enum defines different sensor types.  It is sometime convenient to know
+/// which type of sensor the object is
+typedef enum __Sensor_Type {
+	SENSOR_TYPE_TEMP,				//!< Temperature
+	SENSOR_TYPE_HUMI,				//!< Humidity
+	SENSOR_TYPE_MOIST,				//!< Moisture
+	SENSOR_TYPE_PRESSURE,			//!< Pressure
+	SENSOR_TYPE_ACCEL,				//!< Accelerometer
+	SENSOR_TYPE_GYRO,				//!< Gyroscope
+	SENSOR_TYPE_MAG,				//!< Magnetometer
+	SENSOR_TYPE_IR,					//!< Infrared
+	SENSOR_TYPE_LIGHT,				//!< Luminosity
+	SENSOR_TYPE_SOUND,				//!< Sound sensor suck as ultrasound. Microphone can also be consider as sensor
+	SENSOR_TYPE_FORCE,				//!< Force tension/pressure kind of
+	SENSOR_TYPE_VIBRATION,			//!< Vibration
+	SENSOR_TYPE_LIQUID,				//!< Liquid level or other type of liquid measurement
+	SENSOR_TYPE_SPECTRAL,			//!< Spectroscopy
+	SENSOR_TYPE_RADAR,				//!< Radar type
+} SENSOR_TYPE;
 
 /// @brief	Sensor operating mode.
 ///
@@ -151,6 +171,7 @@ public:
 	 * 				- SENSOR_OPMODE_CONTINUOUS
 	 */
 	virtual SENSOR_OPMODE Mode() { return vOpMode; }
+	operator SENSOR_OPMODE () { return vOpMode; }
 
 	/**
 	 * @brief	Get sampling period.
@@ -207,6 +228,7 @@ public:
 	 */
 	virtual SENSOR_STATE State() { return vState; }
 
+	operator SENSOR_STATE () { return vState; }
 
 	static void TimerTrigHandler(Timer * const pTimer, int TrigNo, void * const pContext) {
 	    Sensor *sensor = (Sensor*)pContext;
@@ -230,13 +252,25 @@ public:
 	 */
 	virtual bool WakeOnEvent(bool bEnable, int Threshold) { return false; }
 
+	/**
+	 * @brief	Get type of this object.
+	 */
+	SENSOR_TYPE Type() { return vType; }
+
+	operator SENSOR_TYPE () { return vType; }
+
+	/**
+	 * @brief	Set this object type.
+	 */
+	SENSOR_TYPE Type(SENSOR_TYPE SensorType) { vType = SensorType; return vType; }
+
 protected:
 
+	SENSOR_TYPE vType;			//!< Sensor type
 	SENSOR_STATE vState;		//!< Current sensor state
 	SENSOR_OPMODE vOpMode;		//!< Current operating mode
 	uint32_t vSampFreq;			//!< Sampling frequency in milliHerz, relevant to CONTINUOUS mode
 	uint64_t vSampPeriod;		//!< Sampling period in nanosecond.
-	Timer *vpTimer;				//!< Timer to use for time stamping data
 	bool vbSampling;			//!< true - measurement in progress
 	uint64_t vSampleCnt;		//!< Keeping sample count
 	uint64_t vSampleTime;		//!< Time stamp when sampling is started

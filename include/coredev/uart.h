@@ -92,7 +92,7 @@ typedef enum {
 #define UARTPIN_DTR_IDX			6
 #define UARTPIN_RI_IDX			7
 
-#define UART_RETRY_MAX			500
+#define UART_RETRY_MAX			100
 
 typedef struct __Uart_Dev UARTDEV;
 
@@ -170,6 +170,8 @@ struct __Uart_Dev {
 	int hStdIn;					//!< Handle to retarget stdin
 	int hStdOut;				//!< Handle to retarget stdout
 	uint32_t RxOECnt;			//!< Rx overrun error count
+	volatile bool bRxReady;
+	volatile bool bTxReady;
 };
 
 #pragma pack(pop)

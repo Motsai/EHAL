@@ -63,7 +63,10 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #include "coredev/iopincfg.h"
-#include "sensors/tph_sensor.h"
+#include "sensors/temp_sensor.h"
+#include "sensors/press_sensor.h"
+#include "sensors/humi_sensor.h"
+
 
 /** @addtogroup Sensors
   * @{
@@ -86,6 +89,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define BME280_REG_CONFIG_FILTER_BITPOS		2
 #define BME280_REG_CONFIG_FILTER_MASK		(7 << BME280_REG_CONFIG_FILTER_BITPOS)
+#define BME280_REG_CONFIG_STANDBY_TIME_MASK	(7<<5)
 
 #define BME280_REG_CTRL_MEAS			0xF4
 
@@ -161,9 +165,9 @@ typedef struct {
 ///
 /// - RMS Noise 0.2 Pa, equiv. to 1.7 cm
 /// - Offset temperature coefficient ±1.5 Pa/K, equiv. to ±12.6 cm at 1 °C temperature change
-class TphBme280 : public TphSensor {
+class TphBme280 : public HumiSensor, public PressSensor, public TempSensor { //TphSensor {
 public:
-	TphBme280() : vCalibTFine(0), vbSpi(false) {}
+	TphBme280() : vCalibTFine(0) {}
 	virtual ~TphBme280() {}
 
 	/**
@@ -183,7 +187,9 @@ public:
 	 * 			- true	: Success
 	 * 			- false	: Failed
 	 */
-	bool Init(const TPHSENSOR_CFG &CfgData, DeviceIntrf * const pIntrf, Timer * const pTimer = NULL);
+	bool Init(const HUMISENSOR_CFG &CfgData, DeviceIntrf * const pIntrf, Timer * const pTimer = NULL);
+	bool Init(const PRESSSENSOR_CFG &CfgData, DeviceIntrf * const pIntrf, Timer * const pTimer = NULL);
+	bool Init(const TEMPSENSOR_CFG &CfgData, DeviceIntrf * const pIntrf, Timer * const pTimer = NULL);
 
 	/**
 	 * @brief	Set current sensor state
@@ -247,8 +253,10 @@ public:
 	 * @return	true - new data
 	 * 			false - old data
 	 */
-	bool Read(TPHSENSOR_DATA &TphData);
-
+	void Read(HUMISENSOR_DATA &Data) { HumiSensor::Read(Data); }
+	void Read(PRESSSENSOR_DATA &Data) { PressSensor::Read(Data); }
+	void Read(TEMPSENSOR_DATA &Data) { TempSensor::Read(Data); }
+/*
 	float ReadTemperature() {
 		TPHSENSOR_DATA tphdata;
 		Read(tphdata);
@@ -266,21 +274,28 @@ public:
 		Read(tphdata);
 		return (float)tphdata.Humidity / 100.0;
 	}
-
+*/
+    bool UpdateData();
 
 private:
+
+	bool Init(uint32_t DevAddr, DeviceIntrf *pIntrf, Timer *pTimer);
 
 	uint32_t CompenPress(int32_t RawPress);
 	int32_t CompenTemp(int32_t RawTemp);
 	uint32_t CompenHum(int32_t RawHum);
-	int Read(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pBuff, int BuffLen);
-	int Write(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen);
-	bool UpdateData();
+	int Read(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pBuff, int BuffLen) {
+		return Device::Read(pCmdAddr, CmdAddrLen, pBuff, BuffLen);
+	}
+	int Write(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen) {
+		return Device::Write(pCmdAddr, CmdAddrLen, pData, DataLen);
+	}
 
 	int32_t vCalibTFine;	// For internal calibration use only
 	BME280_CALIB_DATA vCalibData;
 	uint8_t vCtrlReg;
-	bool vbSpi;
+//	bool vbSpi;
+	bool vbInitialized;
 };
 
 extern "C" {

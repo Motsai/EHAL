@@ -113,6 +113,7 @@ g_FlashDisk.Erase();			// Masse erase flash
 
 @license
 
+Copyright (c) 2016, I-SYST, all rights reserved
 Copyright (c) 2016, Motsai, all rights reserved
 
 Permission to use, copy, modify, and distribute this software for any purpose
@@ -122,7 +123,7 @@ names : I-SYST or its contributors may be used to endorse or
 promote products derived from this software without specific prior written
 permission.
 
-For info or contributing contact : nh.hoang at motsai dot com
+For info or contributing contact : hnhoan at i-syst dot com
 
 THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND ANY
 EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -157,8 +158,11 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define FLASH_CMD_WRENABLE          0x6
 #define FLASH_CMD_EN4B              0xB7    //!< Enable 4 bytes address
 #define FLASH_CMD_EX4B              0xE9    //!< Disable 4 bytes address
-#define FLASH_CMD_BLOCK_ERASE       0xD8
-#define FLASH_CMD_BULK_ERASE        0xC7
+#define FLASH_CMD_SECTOR_ERASE		0x20	//!< Sector erase
+#define FLASH_CMD_BLOCK_ERASE_32    0x52	//!< 32KB Block erase
+#define FLASH_CMD_BLOCK_ERASE       0xD8	//!< Block erase
+#define FLASH_CMD_BULK_ERASE        0xC7	//!< Chip erase
+#define FLASH_CMD_BULK_ERASE_ALT	0x60	//!< Alternate chip erase command
 
 #define FLASH_STATUS_WIP            (1<<0)  // Write In Progress
 

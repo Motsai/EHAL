@@ -35,7 +35,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __TIMER_H__
 #define __TIMER_H__
 
-#include "device.h"
+#include <stdint.h>
+#include <string.h>
 
 /// Clock source used for the timer
 typedef enum __Timer_Clock_Src {
@@ -108,6 +109,8 @@ typedef struct __Timer_Config {
 } TIMER_CFG;
 
 #pragma pack(pop)
+
+#ifdef __cplusplus
 
 /// Timer base class
 class Timer {
@@ -328,5 +331,7 @@ protected:
 	uint32_t vLastCount;	//!< Last counter read value
 private:
 };
+
+#endif  //  __cplusplus
 
 #endif // __TIMER_H__

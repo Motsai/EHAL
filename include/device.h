@@ -49,8 +49,9 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdbool.h>
 #endif
 
-#include "device_intrf.h"
 #include "coredev/iopincfg.h"
+#include "coredev/timer.h"
+#include "device_intrf.h"
 
 /// @brief	Defines interrupt pin polarity of the device.
 ///
@@ -60,7 +61,15 @@ typedef enum __Dev_Interrupt_Polarity {
 	DEVINTR_POL_HIGH	//!< Interrupt pin active high
 } DEVINTR_POL;
 
+typedef enum __Device_Event {
+	DEV_EVT_DATA_RDY
+} DEV_EVT;
+
 #ifdef __cplusplus
+
+class Device;
+
+typedef void (*DEVEVTCB)(Device * const pDev, DEV_EVT Evt);
 
 /// @brief	Device base class.
 ///
@@ -128,7 +137,10 @@ public:
 	virtual uint64_t DeviceID() { return vDevId; }
 
 	/**
-	 * @brief	Read device's register/memory block
+	 * @brief	Read device's register/memory block.
+	 *
+	 * This default implementation sets bit 7 of the Cmd/Addr byte for SPI read access as most
+	 * devices work this way on SPI interface. Overwrite this implementation if SPI access is different
 	 *
 	 * @param 	pCmdAddr 	: Buffer containing command or address to be written
 	 * 						  prior reading data back
@@ -138,12 +150,13 @@ public:
 	 *
 	 * @return	Actual number of bytes read
 	 */
-	virtual int Read(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pBuff, int BuffLen) {
-		return vpIntrf->Read(vDevAddr, pCmdAddr, CmdAddrLen, pBuff, BuffLen);
-	}
+	virtual int Read(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pBuff, int BuffLen);
 
 	/**
 	 * @brief	Write to device's register/memory block
+	 *
+	 * This default implementation clears bit 7 of the Cmd/Addr byte for SPI write access as most
+	 * devices work this way on SPI interface.  Overwrite this implementation if SPI access is different
 	 *
 	 * @param 	pCmdAddr 	: Buffer containing command or address to be written
 	 * 						  prior writing data back
@@ -153,9 +166,7 @@ public:
 	 *
 	 * @return	Actual number of bytes written
 	 */
-	virtual int Write(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen) {
-		return vpIntrf->Write(vDevAddr, pCmdAddr, CmdAddrLen, pData, DataLen);
-	}
+	virtual int Write(uint8_t *pCmdAddr, int CmdAddrLen, uint8_t *pData, int DataLen);
 
 	/**
 	 * @brief	Read device's 8 bits register/memory
@@ -247,6 +258,19 @@ public:
 	 */
 	bool Valid() { return vbValid; }
 
+	DEVINTRF_TYPE InterfaceType() { return vpIntrf != NULL ? vpIntrf->Type() : DEVINTRF_TYPE_UNKOWN; }
+
+	/**
+	 * @brief	Get timer pointer used for timestamping
+	 *
+	 * @return	Pointer to Timer object.
+	 * 			Never delete the returned pointer.  This is for embedded system.
+	 * 			Normally objects are static not dynamically allocated
+	 */
+	virtual operator Timer * const () { return vpTimer; }	// Get device interface data (handle)
+
+	void SetEvtHandler(DEVEVTCB EvtHandler) { vEvtHandler = EvtHandler; }
+
 protected:
 	/**
 	 * @brief	Store device id.
@@ -283,8 +307,10 @@ protected:
 	bool		vbValid;		//!< Device is valid ready to use (passed detection)
 	uint32_t 	vDevAddr;		//!< Device address or chip select index
 	DeviceIntrf *vpIntrf;		//!< Device's interface
+	Timer 		*vpTimer;		//!< Timer to use for time stamping data or create a timer event
 	uint64_t	vDevId;			//!< This is implementation specific data for device identifier
 	 	 	 	 	 	 	 	//!< could be value read from hardware register or serial number
+	DEVEVTCB 	vEvtHandler;	//!< Event handler callback
 };
 
 extern "C" {

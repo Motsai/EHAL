@@ -1,7 +1,9 @@
 ![I-SYST inc.](https://www.i-syst.com/images/I-SYST_Logo180.png) 
- 
+  
+
 ![nRF5x product line](https://www.i-syst.com/images/nRF5_Products_1024.png) 
  
+  
 <p align="center"> 
  
 [Nordic nRF51 & nRF52 product line](https://www.tindie.com/stores/hnhoan/)
@@ -20,6 +22,9 @@ Library online documentation located here https://www.i-syst.com/docs/EHAL/
  
 Library source code on GitHub at https://github.com/I-SYST/EHAL 
 
+* Need to port a specific driver or MCU ? Put your request in issues. It will get done eventually. If you want to have it faster, a fee based port is available.   
+---
+
 external vendors' SDK and library required :
 --- 
  
@@ -31,7 +36,9 @@ external vendors' SDK and library required :
 
 [Micro-ECC](https://github.com/kmackay/micro-ecc) : Encryption library
 
-[Motion_Driver](https://www.invensense.com/) : Create a user at https://www.invensense.com/. Under "Downloads" download "Embedded MotionDriver 6.12". Unzip the downloaded motion_driver_6.12 folder and navigate to motion_driver_6.12/mpl libraries/arm/gcc4.9.3. Unzip the require libraries and copy to folders indicated in the folder tree bellow (external/MPL/lib/...). For the include (.h) files, navigate to motion_driver_6.12/arm/STM32F4_MD6/Projects/eMD6 and copy core folder to external/MPL as indicated bellow.
+[MPU-9250 Motion_Driver](https://www.invensense.com/developers) : Create a user at https://www.invensense.com/developers. Under "Downloads" download "Embedded MotionDriver 6.12". Unzip the downloaded motion_driver_6.12 folder and navigate to motion_driver_6.12/mpl libraries/arm/gcc4.9.3. Unzip the require libraries and copy to folders indicated in the folder tree bellow (external/MPL/lib/...). For the include (.h) files, navigate to motion_driver_6.12/arm/STM32F4_MD6/Projects/eMD6 and copy core folder to external/MPL as indicated bellow.
+
+[ICM-20948 Motion_Driver](https://www.invensense.com/developers) : Create a user at https://www.invensense.com/developers. Under "Downloads" download "DK-20948 eMD-SmartMotion ...". Unzip the downloaded file and navigate to EMD-Core/sources. Copy the folder Invn to external/Invn as indected in the folder tree bellow.
 
 KSDK      : Kinetis SDK
 
@@ -65,7 +72,7 @@ There are 2 main libraries in the EHAL for each ARM based MCU.
  |   |-- Micro-ECC       - Micro-ECC (download from https://github.com/kmackay/micro-ecc)
  |   |-- KSDK            - Kinetis SDK
  |   |-- BSEC            - Bosch Sensortec Environmental Cluster (BSEC) Software (https://www.bosch-sensortec.com/bst/products/all_products/bsec) for #BME680
- |   |-- MPL             - Invensense Motion Driver (download https://www.invensense.com)
+ |   |-- MPL             - Invensense Motion Driver (download https://www.invensense.com/developers)
  |   |   |-- core        - Copy core from motion_driver_6.12/arm/STM32F4_MD6/Projects/eMD6 here
  |   |   |-- lib
  |   |   |   |-- m0      - Unzip the liblibmplmpu_m0.zip, copy liblibmplmpu.a here
@@ -73,6 +80,9 @@ There are 2 main libraries in the EHAL for each ARM based MCU.
  |   |   |   |-- m4hfp   - Unzip the liblibmplmpu_m4_hardfp.zip, copy liblibmplmpu.a here
  |   |   |   |-- m4nfp   - Unzip the liblibmplmpu_m4_npfp.zip, copy liblibmplmpu.a here
  |   |   |   |-- m4sfp   - Unzip the liblibmplmpu_m4_softfp.zip, copy liblibmplmpu.a here
+ |   |-- Invn            - Invensense SmartMotion Driver (download https://www.invensense.com/developers) 
+ |   |   |-- Devices
+ |   |   |...
  |   |...
  |   |
  |-- EHAL      - Put the EHAL here
@@ -92,14 +102,14 @@ There are 2 main libraries in the EHAL for each ARM based MCU.
  |   |   |
  |   |   |-- NXP         - NXP based MCU
  |   |   |   |-- LPC11xx      - LPC11xx processor workspace
- |   |   |   |   |-- CMSIS
+ |   |   |   |   |-- CMSIS    - Static library containing startup code, interrupt vector, etc...
  |   |   |   |   |-- EHAL     - Embedded Hardware Abstraction Library project for NXP
  |   |   |   |   |   |-- include
  |   |   |   |   |   |-- src
  |   |   |   |   |-- exemples - Example code
  |   |   |   |   |
  |   |   |   |-- LPC17xx      - LPC17xx processor workspace
- |   |   |   |   |-- CMSIS
+ |   |   |   |   |-- CMSIS    - Static library containing startup code, interrupt vector, etc...
  |   |   |   |   |-- EHAL     - Embedded Hardware Abstraction Library project for NXP
  |   |   |   |   |   |-- include
  |   |   |   |   |   |-- src
@@ -107,13 +117,13 @@ There are 2 main libraries in the EHAL for each ARM based MCU.
  |   |   |
  |   |   |-- Nordic      - Nordic Semiconductor based  MCU
  |   |   |   |-- nRF51        - nRF51 processor workspace
- |   |   |   |   |-- CMSIS        - static library of CMSIS system functions for nRF51
+ |   |   |   |   |-- CMSIS        - Static library containing startup code, interrupt vector, etc...
  |   |   |   |   |-- EHAL         - Embedded Hardware Abstraction Library project for Nordic
  |   |   |   |   |   |-- include
  |   |   |   |   |   |-- src
  |   |   |   |   |-- exemples     - exemple projects
  |   |   |   |-- nRF52        - nRF52 processor workspace
- |   |   |   |   |-- CMSIS        - static library of CMSIS system functions for nRF52
+ |   |   |   |   |-- CMSIS        - Static library containing startup code, interrupt vector, etc...
  |   |   |   |   |-- EHAL         - Embedded Hardware Abstraction Library project for Nordic
  |   |   |   |   |   |-- include
  |   |   |   |   |   |-- src
