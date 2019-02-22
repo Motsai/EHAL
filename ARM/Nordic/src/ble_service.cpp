@@ -55,6 +55,12 @@ typedef struct {
 
 uint32_t BleSrvcCharNotify(BLESRVC *pSrvc, int Idx, uint8_t *pData, uint16_t DataLen)
 {
+	if (pSrvc->ConnHdl == BLE_CONN_HANDLE_INVALID)
+		return NRF_ERROR_INVALID_STATE;
+
+	if (pSrvc->pCharArray[Idx].bNotify == false)
+		return NRF_ERROR_INVALID_STATE;
+
     ble_gatts_hvx_params_t params;
 
     memset(&params, 0, sizeof(params));
@@ -70,7 +76,7 @@ uint32_t BleSrvcCharNotify(BLESRVC *pSrvc, int Idx, uint8_t *pData, uint16_t Dat
 
 uint32_t BleSrvcCharSetValue(BLESRVC *pSrvc, int Idx, uint8_t *pData, uint16_t DataLen)
 {
-    ble_gatts_value_t value;
+	ble_gatts_value_t value;
 
     memset(&value, 0, sizeof(ble_gatts_value_t));
 
@@ -105,7 +111,7 @@ void BleSrvcEvtHandler(BLESRVC *pSrvc, ble_evt_t *pBleEvt)
 				    if (p_evt_write->op == BLE_GATTS_OP_EXEC_WRITE_REQ_NOW)
 					//if (p_evt_write->handle == 0)
 					{
-						printf("Long Write\r\n");
+						//printf("Long Write\r\n");
 						GATLWRHDR *hdr = (GATLWRHDR *)pSrvc->pLongWrBuff;
 					    uint8_t *p = (uint8_t*)pSrvc->pLongWrBuff + sizeof(GATLWRHDR);
 						while (hdr->Handle == pSrvc->pCharArray[i].Hdl.value_handle)
@@ -136,7 +142,7 @@ void BleSrvcEvtHandler(BLESRVC *pSrvc, ble_evt_t *pBleEvt)
 						else if ((p_evt_write->handle == pSrvc->pCharArray[i].Hdl.value_handle) &&
 								 (pSrvc->pCharArray[i].WrCB != NULL))
 						{
-							printf("Write value handle\r\n");
+							//printf("Write value handle\r\n");
 							pSrvc->pCharArray[i].WrCB(pSrvc, p_evt_write->data, 0, p_evt_write->len);
 						}
 						else
@@ -163,24 +169,31 @@ void BleSrvcEvtHandler(BLESRVC *pSrvc, ble_evt_t *pBleEvt)
         	}
         	break;
 
+        case BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST:
+        	if (pSrvc->AuthReqCB)
+        	{
+        		pSrvc->AuthReqCB(pSrvc, pBleEvt);
+        	}
+        	break;
+
 #if (NRF_SD_BLE_API_VERSION > 3)
         case BLE_GATTS_EVT_HVN_TX_COMPLETE:
+#else
+        case BLE_EVT_TX_COMPLETE:
+
+#endif
             if (pSrvc->ConnHdl == pBleEvt->evt.gatts_evt.conn_handle)
             {
                 for (int i = 0; i < pSrvc->NbChar; i++)
                 {
-                    if (pSrvc->pCharArray[i].TxCompleteCB)
+                    //if (pBleEvt->evt.gatts_evt.params.hvc.handle == pSrvc->pCharArray[i].Hdl.value_handle &&
+                    if (pSrvc->pCharArray[i].TxCompleteCB != NULL)
                     {
                         pSrvc->pCharArray[i].TxCompleteCB(pSrvc, i);
                     }
                 }
             }
             break;
-#else
-        case BLE_EVT_TX_COMPLETE:
-            break;
-
-#endif
 
         default:
             break;
@@ -213,7 +226,8 @@ static void BleSrvcEncSec(ble_gap_conn_sec_mode_t *pSecMode, BLESRVC_SECTYPE Sec
     }
 }
 
-/**@brief Add control characteristic.
+/**
+ * @brief Add control characteristic.
  *
  * @param[in]   	pSrvc   : Service data.
  * @param[in/out]   pChar   : characteristic to initialize.
@@ -260,31 +274,51 @@ static uint32_t BlueIOBleSrvcCharAdd(BLESRVC *pSrvc, BLESRVC_CHAR *pChar,
     {
     	char_md.char_props.read   = 1;
     	BleSrvcEncSec(&attr_md.read_perm, SecType);
-        BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&attr_md.write_perm);
+       // BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&attr_md.write_perm);
     }
-
-    if (pChar->Property & BLESVC_CHAR_PROP_WRITE)
+    else
     {
-    	char_md.char_props.write  = 1;
-    	BleSrvcEncSec(&attr_md.write_perm, SecType);
         BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&attr_md.read_perm);
     }
 
-    if (pChar->Property & BLESVC_CHAR_PROP_WRITEWORESP)
-	{
-		char_md.char_props.write_wo_resp = 1;
+    if (pChar->Property & (BLESVC_CHAR_PROP_WRITE | BLESVC_CHAR_PROP_WRITEWORESP))
+    {
+        if (pChar->Property & BLESVC_CHAR_PROP_WRITE)
+            char_md.char_props.write  = 1;
+    	if (pChar->Property & BLESVC_CHAR_PROP_WRITEWORESP)
+            char_md.char_props.write_wo_resp = 1;
+
     	BleSrvcEncSec(&attr_md.write_perm, SecType);
-		BleSrvcEncSec(&attr_md.read_perm, SecType);
-	}
+        //BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&attr_md.read_perm);
+    }
+    else
+    {
+        BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&attr_md.write_perm);
+    }
 
     ble_uuid.type = pSrvc->UuidType;
     ble_uuid.uuid = pChar->Uuid;
 
-
-
     attr_md.vloc       = BLE_GATTS_VLOC_STACK;
-    attr_md.rd_auth    = 0;
-    attr_md.wr_auth    = 0;
+
+    if (pChar->Property & BLESVC_CHAR_PROP_RDAUTH)
+    {
+    	attr_md.rd_auth    = 1;
+    }
+    else
+    {
+    	attr_md.rd_auth    = 0;
+    }
+
+    if (pChar->Property & BLESVC_CHAR_PROP_WRAUTH)
+    {
+    	attr_md.wr_auth    = 1;
+    }
+    else
+    {
+    	attr_md.wr_auth    = 0;
+    }
+
     if (pChar->Property & BLESVC_CHAR_PROP_VARLEN)
     {
     	attr_md.vlen       = 1;	// Variable length
@@ -352,6 +386,7 @@ uint32_t BleSrvcInit(BLESRVC *pSrvc, const BLESRVC_CFG *pCfg)
 
     pSrvc->pLongWrBuff = pCfg->pLongWrBuff;
     pSrvc->LongWrBuffSize = pCfg->LongWrBuffSize;
+    pSrvc->AuthReqCB = pCfg->AuthReqCB;
 
     return NRF_SUCCESS;
 }

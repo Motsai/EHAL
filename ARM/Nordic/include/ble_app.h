@@ -1,9 +1,13 @@
-/*--------------------------------------------------------------------------
-File   : ble_app.h
+/**-------------------------------------------------------------------------
+@file	ble_app.h
 
-Author : Hoang Nguyen Hoan          Dec 26, 2016
+@brief	Nordic SDK based BLE peripheral application creation helper
 
-Desc   : Nordic SDK based BLE peripheral application creation helper
+
+@author	Hoang Nguyen Hoan
+@date	Dec 26, 2016
+
+@license
 
 Copyright (c) 2016, I-SYST inc., all rights reserved
 
@@ -27,9 +31,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 #ifndef __BLE_APP_H__
 #define __BLE_APP_H__
@@ -38,6 +39,12 @@ Modified by          Date              Description
 
 #include "ble.h"
 #include "nrf_sdm.h"
+
+#include "bluetooth/bleadv_mandata.h"
+
+/** @addtogroup Bluetooth
+  * @{
+  */
 
 /**< MTU size used in the softdevice enabling and to reply to a BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST event. */
 #if (NRF_SD_BLE_API_VERSION <= 3)
@@ -49,90 +56,95 @@ Modified by          Date              Description
 #endif
 
 #if  defined(BLE_GATT_ATT_MTU_DEFAULT) && !defined(GATT_MTU_SIZE_DEFAULT)
-#define GATT_MTU_SIZE_DEFAULT BLE_GATT_ATT_MTU_DEFAULT
+#define GATT_MTU_SIZE_DEFAULT  			BLE_GATT_ATT_MTU_DEFAULT
 #endif
 
 #define NRF_BLE_MAX_MTU_SIZE            GATT_MTU_SIZE_DEFAULT
 
 #endif
 
-#define BLEAPP_ADV_MANDATA_TYPE_SN		0xFF	// Device Serial Number (8 bytes)
-#define BLEAPP_ADV_MANDATA_TYPE_PTH		1		// PTH Environmental sensor data
-#define BLEAPP_ADV_MANDATA_TYPE_MOTION	2		// Motion sensor data Accel, Gyro, Mag
+typedef enum __BleApp_AdvMode {
+	BLEAPP_ADVMODE_IDLE,				//!< no connectable advertising is ongoing.
+	BLEAPP_ADVMODE_DIRECTED,			//!< Directed advertising attempts to connect to the most recently disconnected peer.
+	BLEAPP_ADVMODE_DIRECTED_SLOW,	//!< Directed advertising (low duty cycle) attempts to connect to the most recently disconnected peer.
+	BLEAPP_ADVMODE_FAST,				//!< Fast advertising will connect to any peer device, or filter with a whitelist if one exists.
+	BLEAPP_ADVMODE_SLOW				//!< Slow advertising is similar to fast advertising. By default, it uses a longer
+									//!< advertising interval and time-out than fast advertising. However, these options are defined by the user.
+} BLEAPP_ADVMODE;
 
-#pragma pack(push, 1)
-// I-SYST Manufacture specific data format in advertisement
-typedef struct _BleAppAdvManData {
-	uint8_t Type;		// Data types (see defined code
-	uint8_t Data[1];	// type specific data follows can be more than 1 bytes
-} BLEAPP_ADV_MANDATA;
-
-#pragma pack(pop)
-
-typedef enum _BleAppMode {
-	BLEAPP_MODE_LOOP,		// just main loop, No scheduler, no RTOS
-	BLEAPP_MODE_APPSCHED,	// use app_cheduler
-	BLEAPP_MODE_RTOS,		// use RTOS
-	BLEAPP_MODE_NOCONNECT	// Connectionless beacon type of app.
+typedef enum __BleApp_Mode {
+	BLEAPP_MODE_LOOP,				//!< just main loop (event mode), No scheduler, no RTOS
+	BLEAPP_MODE_APPSCHED,			//!< use app_cheduler
+	BLEAPP_MODE_RTOS,				//!< use RTOS
+	BLEAPP_MODE_NOCONNECT,			//!< Connectionless beacon type of app.
+	BLEAPP_MODE_IBEACON				//!< Apple iBeacon
 } BLEAPP_MODE;
 
 // Service connection security types
-typedef enum {
-	BLEAPP_SECTYPE_NONE,				// open, no security
-	BLEAPP_SECTYPE_STATICKEY_NO_MITM,	// Bonding static pass key without Man In The Middle
-	BLEAPP_SECTYPE_STATICKEY_MITM,		// Bonding static pass key with MITM
-	BLEAPP_SECTYPE_LESC_MITM,			// LE secure encryption
-	BLEAPP_SECTYPE_SIGNED_NO_MITM,		// AES signed encryption without MITM
-	BLEAPP_SECTYPE_SIGNED_MITM,			// AES signed encryption with MITM
+typedef enum __BleApp_SecurityType {
+	BLEAPP_SECTYPE_NONE,					//!< open, no security
+	BLEAPP_SECTYPE_STATICKEY_NO_MITM,	//!< Bonding static pass key without Man In The Middle
+	BLEAPP_SECTYPE_STATICKEY_MITM,		//!< Bonding static pass key with MITM
+	BLEAPP_SECTYPE_LESC_MITM,			//!< LE secure encryption
+	BLEAPP_SECTYPE_SIGNED_NO_MITM,		//!< AES signed encryption without MITM
+	BLEAPP_SECTYPE_SIGNED_MITM,			//!< AES signed encryption with MITM
 } BLEAPP_SECTYPE;
 
-#define BLEAPP_SECEXCHG_NONE		    0
-#define BLEAPP_SECEXCHG_KEYBOARD	    (1<<0)
-#define BLEAPP_SECEXCHG_DISPLAY		    (1<<1)
-#define BLEAPP_SECEXCHG_OOB			    (1<<2)
+#define BLEAPP_SECEXCHG_NONE			0
+#define BLEAPP_SECEXCHG_KEYBOARD		(1<<0)
+#define BLEAPP_SECEXCHG_DISPLAY			(1<<1)
+#define BLEAPP_SECEXCHG_OOB				(1<<2)
 
 #define BLEAPP_DEVNAME_MAX_SIZE			BLE_GAP_DEVNAME_DEFAULT_LEN
 #define BLEAPP_INFOSTR_MAX_SIZE			20
 
-typedef void (*PRIVINITCB)();
-typedef void (*BLEEVTHANDLER)(ble_evt_t *pEvt);
+#define BLEAPP_CONN_CFG_TAG            1     /**< A tag identifying the SoftDevice BLE configuration. */
 
 #pragma pack(push, 4)
 
-typedef struct _BleAppDevInfo {
-	const char ModelName[BLEAPP_INFOSTR_MAX_SIZE];	// Model name
-	const char ManufName[BLEAPP_INFOSTR_MAX_SIZE];	// Manufacturer name
-	const char *pSerialNoStr;// Serial number string
-	const char *pFwVerStr;	// Firmware version string
-	const char *pHwVerStr;	// Hardware version string
+/// BLE App Device Info
+typedef struct __BleApp_DevInfo {
+	const char ModelName[BLEAPP_INFOSTR_MAX_SIZE];	//!< Model name
+	const char ManufName[BLEAPP_INFOSTR_MAX_SIZE];	//!< Manufacturer name
+	const char *pSerialNoStr;	//!< Serial number string
+	const char *pFwVerStr;		//!< Firmware version string
+	const char *pHwVerStr;		//!< Hardware version string
 } BLEAPP_DEVDESC;
 
-typedef struct _BleAppConfig {
-	nrf_clock_lf_cfg_t ClkCfg;	// Clock config
-	int CentLinkCount;			// Number of central link
-	int	PeriLinkCount;			// Number of peripheral link
-	BLEAPP_MODE AppMode;		// App use scheduler, rtos
-	const char *pDevName;		// Device name
-	uint16_t VendorID;			// PnP Bluetooth/USB vendor id
-	uint16_t ProductId;			// PnP product ID
-	uint16_t ProductVer;		// PnP product version
-	bool bEnDevInfoService;		// Enable device information service (DIS)
-	const BLEAPP_DEVDESC *pDevDesc;	// Pointer device info descriptor
-	const uint8_t *pManData;	// Manufacture specific data to advertise
-	int ManDataLen;				// Length of manufacture specific data
-	BLEAPP_SECTYPE SecType;		// Secure connection type
-	uint8_t SecExchg;			// Sec key exchange
-	const ble_uuid_t *pAdvUuids;// Service uuids to advertise
-	int NbAdvUuid;				// Total number of uuids
-	uint32_t AdvInterval;		// In msec
-	uint32_t AdvTimeout;		// In sec
-	uint32_t AdvSlowInterval;	// Slow advertising interval, if > 0, fallback to
-								// slow interval on adv timeout and advertise until connected
-	uint32_t ConnIntervalMin;   // Min. connection interval
-	uint32_t ConnIntervalMax;   // Max connection interval
-	int ConnLedPort;			// Connection LED port & pin number
-	int ConnLedPin;
-	uint32_t (*SDEvtHandler)(void) ;// Require for BLEAPP_MODE_RTOS
+/// BLE App configuration
+typedef struct __BleApp_Config {
+	nrf_clock_lf_cfg_t ClkCfg;		//!< Clock config
+	int CentLinkCount;				//!< Number of central link
+	int	PeriLinkCount;				//!< Number of peripheral link
+	BLEAPP_MODE AppMode;			//!< App use scheduler, rtos
+	const char *pDevName;			//!< Device name
+	uint16_t VendorID;				//!< PnP Bluetooth/USB vendor id. iBeacon mode, this is Major value
+	uint16_t ProductId;				//!< PnP product ID. iBeacon mode, this is Minor value
+	uint16_t ProductVer;			//!< PnP product version
+	bool bEnDevInfoService;			//!< Enable device information service (DIS)
+	const BLEAPP_DEVDESC *pDevDesc;	//!< Pointer device info descriptor
+	const uint8_t *pAdvManData;		//!< Manufacture specific data to advertise
+	int AdvManDataLen;				//!< Length of manufacture specific data
+	const uint8_t *pSrManData;		//!< Addition Manufacture specific data to advertise in scan response
+	int SrManDataLen;				//!< Length of manufacture specific data in scan response
+	BLEAPP_SECTYPE SecType;			//!< Secure connection type
+	uint8_t SecExchg;				//!< Sec key exchange
+	const ble_uuid_t *pAdvUuids;	//!< Service uuids to advertise
+	int NbAdvUuid;					//!< Total number of uuids
+	uint32_t AdvInterval;			//!< In msec
+	uint32_t AdvTimeout;			//!< In sec
+	uint32_t AdvSlowInterval;		//!< Slow advertising interval, if > 0, fallback to
+									//!< slow interval on adv timeout and advertise until connected
+	uint32_t ConnIntervalMin;   	//!< Min. connection interval
+	uint32_t ConnIntervalMax;   	//!< Max connection interval
+	int8_t ConnLedPort;			//!< Connection LED port number
+	int8_t ConnLedPin;				//!< Connection LED pin number
+	uint8_t ConnLedActLevel;        //!< Connection LED ON logic level (0: Logic low, 1: Logic high)
+	int TxPower;					//!< Tx power in dBm
+	uint32_t (*SDEvtHandler)(void); //!< Require for BLEAPP_MODE_RTOS
+	int	MaxMtu;						//!< Max MTU size or 0 for default
+	int PeriphDevCnt;				//!< Max number of peripheral connection
+//	BLEPERIPH_DEV *pPeriphDev;		//!< Connected peripheral data table
 } BLEAPP_CFG;
 
 #pragma pack(pop)
@@ -185,6 +197,8 @@ void BlePeriphEvtUserHandler(ble_evt_t * p_ble_evt);
  */
 void BleCentralEvtUserHandler(ble_evt_t * p_ble_evt);
 
+//void BleDevServiceDiscovered(uint16_t ConnHdl, uint16_t Count, ble_gattc_service_t * const pServices);
+
 //*** Require implementation if app operating mode is BLEAPP_MODE_RTOS
 // This function should normal wait for RTOS to signal an event on sent by
 // Softdevice
@@ -202,10 +216,25 @@ bool BleAppInit(const BLEAPP_CFG *pBleAppCfg, bool bEraseBond);
 void BleAppEnterDfu();
 void BleAppRun();
 uint16_t BleAppGetConnHandle();
+void BleAppGapDeviceNameSet(const char* ppDeviceName);
+void BleAppAdvManDataSet(uint8_t *pAdvData, int AdvLen, uint8_t *pSrData, int SrLen);
+void BleAppAdvTimeoutHandler();
+void BleAppAdvStart(BLEAPP_ADVMODE AdvMode);
+void BleAppAdvStop();
+void BleAppDisconnect();
+
+bool BleAppScanInit(ble_uuid128_t * const pBaseUid, ble_uuid_t * const pServUid);
+//bool BleAppScanStart();
+void BleAppScan();
+bool BleAppConnect(ble_gap_addr_t * const pDevAddr, ble_gap_conn_params_t * const pConnParam);
+bool BleAppEnableNotify(uint16_t ConnHandle, uint16_t CharHandle);
+bool BleAppWrite(uint16_t ConnHandle, uint16_t CharHandle, uint8_t *pData, uint16_t DatLen);
 
 #ifdef __cplusplus
 }
 #endif
+
+/** @} end group Bluetooth */
 
 #endif // __BLE_APP_H__
 

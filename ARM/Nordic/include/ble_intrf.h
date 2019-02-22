@@ -1,11 +1,14 @@
-/*--------------------------------------------------------------------------
-File   : ble_intrf.h
+/**-------------------------------------------------------------------------
+@file	ble_intrf.h
 
-Author : Hoang Nguyen Hoan          Feb. 6, 2017
+@brief	Implementation allow the creation of generic serial interface of
+a custom Bluetooth Smart service with multiple user defined characteristics.
 
-Desc   : Implementation allow the creation of generic serial interface of
-		 a custom Bluetooth Smart service with multiple user defined
-		 characteristics.
+
+@author	Hoang Nguyen Hoan
+@date	Feb. 6, 2017
+
+@license
 
 Copyright (c) 2017, I-SYST inc., all rights reserved
 
@@ -29,9 +32,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 
 #ifndef __BLE_INTRF_H__
@@ -40,6 +40,12 @@ Modified by          Date              Description
 #include "ble_service.h"
 #include "device_intrf.h"
 #include "cfifo.h"
+
+/** @addtogroup Bluetooth
+  * @{
+  */
+
+#define BLEINTRF_TRANSBUFF_MAXLEN       256
 
 /**
  * Calculate require mem
@@ -61,27 +67,30 @@ typedef struct __BleDeviceInterfPacket {
 #pragma pack(pop)
 
 #pragma pack(push, 4)
+
 typedef struct __BleDeviceInterfConfig {
-    BLESRVC	*pBleSrv;		// BLE Service
-    int		RxCharIdx;		// Write characteristic index (From BLE)
-    int		TxCharIdx;		// Read characteristic index (to BLE)
-    int		PacketSize;		// BLE packet size
-	int		RxFifoMemSize;	// Total memory size for CFIFO
-	uint8_t	*pRxFifoMem;	// Pointer to memory to be used by CFIFO
-	int		TxFifoMemSize;	// Total memory size for CFIFO
-	uint8_t	*pTxFifoMem;	// Pointer to memory to be used by CFIFO
-	DEVINTRF_EVTCB EvtCB;	// Event callback
+    BLESRVC	*pBleSrv;		//!< BLE Service
+    int		RxCharIdx;		//!< Write characteristic index (From BLE)
+    int		TxCharIdx;		//!< Read characteristic index (to BLE)
+    int		PacketSize;		//!< BLE packet size
+	int		RxFifoMemSize;	//!< Total memory size for CFIFO
+	uint8_t	*pRxFifoMem;	//!< Pointer to memory to be used by CFIFO
+	int		TxFifoMemSize;	//!< Total memory size for CFIFO
+	uint8_t	*pTxFifoMem;	//!< Pointer to memory to be used by CFIFO
+	DEVINTRF_EVTCB EvtCB;	//!< Event callback
 } BLEINTRF_CFG;
 
 // BLE interf instance data
 typedef struct __BleDeviceInterf {
-    DEVINTRF	DevIntrf;	// Base Device Interface
-    BLESRVC		*pBleSrv;	// BLE Service
-    int			RxCharIdx;	// Write characteristic index (from BLE)
-    int			TxCharIdx;	// Read characteristic index (to BLE)
-    int			PacketSize;	// BLE packet size
+    DEVINTRF	DevIntrf;	//!< Base Device Interface
+    BLESRVC		*pBleSrv;	//!< BLE Service
+    int			RxCharIdx;	//!< Write characteristic index (from BLE)
+    int			TxCharIdx;	//!< Read characteristic index (to BLE)
+    int			PacketSize;	//!< BLE packet size
     HCFIFO		hRxFifo;
     HCFIFO		hTxFifo;
+    uint8_t     TransBuff[BLEINTRF_TRANSBUFF_MAXLEN];  //
+    int         TransBuffLen;   //!< Data length
 } BLEINTRF;
 #pragma pack(pop)
 
@@ -91,7 +100,7 @@ class BleIntrf : public DeviceIntrf {
 public:
 	bool Init(const BLEINTRF_CFG &Cfg);
 
-	operator DEVINTRF* () { return &vBleIntrf.DevIntrf; }	// Get device interface data
+	operator DEVINTRF * const () { return &vBleIntrf.DevIntrf; }	// Get device interface data
 	// Set data rate in bits/sec (Hz)
 	virtual int Rate(int DataRate) { return DeviceIntrfSetRate(&vBleIntrf.DevIntrf, DataRate); }
 	// Get current data rate in bits/sec (Hz)
@@ -125,6 +134,8 @@ public:
 	// This functions MUST ONLY be called if StartTx returns true.
 	virtual void StopTx(void) { DeviceIntrfStopTx(&vBleIntrf.DevIntrf); }
 
+	virtual bool RequestToSend(int NbBytes);
+
 private:
 
 	BLEINTRF vBleIntrf;
@@ -133,10 +144,12 @@ private:
 extern "C" {
 #endif
 
-bool BleIntrfInit(BLEINTRF *pBleIntrf, const BLEINTRF_CFG *pCfg);
+bool BleIntrfInit(BLEINTRF * const pBleIntrf, const BLEINTRF_CFG *pCfg);
 
 #ifdef __cplusplus
 }
 #endif
+
+/** @} end group Bluetooth */
 
 #endif // __BLE_INTRF_H__

@@ -42,8 +42,8 @@ Modified by          Date              Description
 #include <stdbool.h>
 #endif
 
-#include "iopincfg.h"
-#include "uart.h"
+#include "coredev/iopincfg.h"
+#include "coredev/uart.h"
 
 // IER interrupt enable
 #define LPCUART_IER_RBR			1 		// RBR Interrupt enable
@@ -264,8 +264,8 @@ extern "C" {
 
 // Common to all LPC series
 uint32_t LpcGetUartClk();
-static inline void LpcUARTDisable(DEVINTRF *pDev) {}
-static inline void LpcUARTEnable(DEVINTRF *pDev) {}
+void LpcUARTDisable(DEVINTRF *pDev);
+void LpcUARTEnable(DEVINTRF *pDev);
 int LpcUARTGetRate(DEVINTRF *pDev);
 int LpcUARTSetRate(DEVINTRF *pDev, int Rate);
 static inline bool LpcUARTStartRx(DEVINTRF *pSerDev, int DevAddr) { return true; }

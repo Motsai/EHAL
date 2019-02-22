@@ -1,9 +1,8 @@
-/*--------------------------------------------------------------------------
-File   : atomic.h
+/**-------------------------------------------------------------------------
+@file	atomic.h
 
-Author : Hoang Nguyen Hoan          Sep. 12, 1996
+@brief	Atomic operations.
 
-Desc   : Atomic operations.
          Because of it's platform dependent nature, this file requires conditional
          compilation for each platform port.
 
@@ -12,7 +11,12 @@ Desc   : Atomic operations.
             __TCS__           - Trimedia
             __ADSPBLACKFIN__  - ADSP Blackfin
 
-Copyright (c) 1996-2008, I-SYST, all rights reserved
+@author	Hoang Nguyen Hoan
+@date	Sep. 12, 1996
+
+@license
+
+Copyright (c) 1996-2018, I-SYST, all rights reserved
 
 Permission to use, copy, modify, and distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright
@@ -34,9 +38,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by         Date           	Description
-Hoan				17 nov. 2014	Adapt to GNU GCC
 ----------------------------------------------------------------------------*/
 #ifndef __ATOMIC_H__
 #define __ATOMIC_H__
@@ -76,7 +77,10 @@ Hoan				17 nov. 2014	Adapt to GNU GCC
 #endif
 #endif
 
+#ifndef __unix__
 #include "cmsis_gcc.h"
+#endif
+
 #endif
 
 #else
@@ -155,7 +159,9 @@ static inline sig_atomic_t AtomicDec(sig_atomic_t *pVar) {
 	return --(*pVar);
 	//   AppModel_resume_scheduling();
 #elif defined(__GNUC__)
-	return __atomic_fetch_sub (pVar, 1, __ATOMIC_SEQ_CST);
+   	__atomic_store_n(pVar, *pVar - 1, __ATOMIC_SEQ_CST);
+   	return *pVar;
+//	return __atomic_fetch_sub (pVar, 1, __ATOMIC_SEQ_CST);
 #endif
 }
 #endif  // __TSOK__
@@ -232,6 +238,7 @@ sig_atomic_t AtomicExchange(sig_atomic_t *pVar, sig_atomic_t NewVal);
 static inline bool AtomicTestAndSet(void *pVar) {
 
 #if defined(_WIN32) || defined(WIN32)
+	return InterlockedCompareExchange((LONG *)pVar, (LONG)true, true) != 0;
 
 #elif defined(__TCS__)
 
@@ -265,6 +272,7 @@ static inline void AtomicClear(void *pVar) {
 #endif // __TSOK__
 
 #if defined(_WIN32) || defined(WIN32)
+#elif defined(__unix__)
 #else
 static inline uint32_t EnterCriticalSection(void) {
 #ifdef __arm__
@@ -283,7 +291,8 @@ static inline void ExitCriticalSection(uint32_t State) {
 }
 #endif
 
-#ifdef __arm__
+#ifdef __unix__
+#elif defined(__arm__)
 static inline uint32_t DisableInterrupt() {
 	uint32_t __primmask = __get_PRIMASK();
 	__disable_irq();

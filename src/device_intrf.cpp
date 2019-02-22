@@ -1,11 +1,16 @@
-/*--------------------------------------------------------------------------
-File   : device_intrf.cpp
+/**-------------------------------------------------------------------------
+@file	device_intrf.h
 
-Author : Hoang Nguyen Hoan          				Dec. 25, 2011
+@brief	Generic data transfer interface class
 
-Desc   : Generic device interface class
-		 This class is used to implement serial communication interfaces
-		 such as I2C, UART, etc...  Not limited to wired interface
+This class is used to implement device communication interfaces such as I2C, UART, etc...
+Not limited to wired or physical interface.  It could be soft interface as well such
+as SLIP protocol or any mean of transferring data between 2 entities.
+
+@author	Hoang Nguyen Hoan
+@date	Nov. 25, 2011
+
+@license
 
 Copyright (c) 2011, I-SYST inc., all rights reserved
 
@@ -29,9 +34,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              	Description
-Hoan				Mar. 3, 2017		Rename to DevIntrf
 ----------------------------------------------------------------------------*/
 #include <string.h>
 
@@ -44,7 +46,7 @@ Hoan				Mar. 3, 2017		Rename to DevIntrf
 // DeviceIntrfStartTx
 // DeviceIntrfStopTx
 //
-int DeviceIntrfRx(DEVINTRF *pDev, int DevAddr, uint8_t *pBuff, int BuffLen)
+int DeviceIntrfRx(DEVINTRF * const pDev, int DevAddr, uint8_t *pBuff, int BuffLen)
 {
 	if (pBuff == NULL || BuffLen <= 0)
 		return 0;
@@ -62,7 +64,7 @@ int DeviceIntrfRx(DEVINTRF *pDev, int DevAddr, uint8_t *pBuff, int BuffLen)
 	return count;
 }
 
-int DeviceIntrfTx(DEVINTRF *pDev, int DevAddr, uint8_t *pBuff, int BuffLen)
+int DeviceIntrfTx(DEVINTRF * const pDev, int DevAddr, uint8_t *pBuff, int BuffLen)
 {
 	if (pBuff == NULL || BuffLen <= 0)
 		return 0;
@@ -80,7 +82,7 @@ int DeviceIntrfTx(DEVINTRF *pDev, int DevAddr, uint8_t *pBuff, int BuffLen)
 	return count;
 }
 
-int DeviceIntrfRead(DEVINTRF *pDev, int DevAddr, uint8_t *pAdCmd, int AdCmdLen,
+int DeviceIntrfRead(DEVINTRF * const pDev, int DevAddr, uint8_t *pAdCmd, int AdCmdLen,
                  uint8_t *pRxBuff, int RxLen)
 {
     int count = 0;
@@ -109,24 +111,36 @@ int DeviceIntrfRead(DEVINTRF *pDev, int DevAddr, uint8_t *pAdCmd, int AdCmdLen,
     return count;
 }
 
-int DeviceIntrfWrite(DEVINTRF *pDev, int DevAddr, uint8_t *pAdCmd, int AdCmdLen,
-                  uint8_t *pTxData, int TxLen)
+int DeviceIntrfWrite(DEVINTRF * const pDev, int DevAddr, uint8_t *pAdCmd, int AdCmdLen,
+                  uint8_t *pData, int DataLen)
 {
-    int count = 0;
+    int count = 0, txlen = AdCmdLen;
     int nrtry = pDev->MaxRetry;
-    uint8_t d[AdCmdLen + TxLen];
 
-    if (pTxData == NULL || pAdCmd == NULL)
+    if (pAdCmd == NULL || (AdCmdLen + DataLen) <= 0)
         return 0;
 
+#ifdef WIN32
+	uint8_t d[100];
+#else
+	uint8_t d[AdCmdLen + DataLen];
+#endif
+
+	// NOTE : Some I2C devices that uses DMA transfer may require that the tx to be combined
+    // into single tx. Because it may generate a end condition at the end of the DMA
     memcpy(d, pAdCmd, AdCmdLen);
-    memcpy(&d[AdCmdLen], pTxData, TxLen);
+
+    if (pData != NULL && DataLen > 0)
+    {
+    	memcpy(&d[AdCmdLen], pData, DataLen);
+    	txlen += DataLen;
+    }
 
     do {
         if (DeviceIntrfStartTx(pDev, DevAddr))
         {
-            count = pDev->TxData(pDev, d, AdCmdLen + TxLen);
-            DeviceIntrfStopTx(pDev);
+            count = pDev->TxData(pDev, d, txlen);
+			DeviceIntrfStopTx(pDev);
         }
     } while (count <= 0 && nrtry-- > 0);
 

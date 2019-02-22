@@ -62,7 +62,10 @@ static volatile bool s_bEsbTxReady = true;
  */
 void EsbIntrfDisable(DEVINTRF *pDevIntrf)
 {
-    nrf_esb_disable();
+    //nrf_esb_disable();
+
+	// use this to avoid re-initialization
+	nrf_esb_suspend();
 }
 
 /**
@@ -76,11 +79,15 @@ void EsbIntrfDisable(DEVINTRF *pDevIntrf)
  */
 void EsbIntrfEnable(DEVINTRF *pDevIntrf)
 {
+	// We are using nrf_esb_suspend().  No need to re-enable
+	// just return
+
+#if 0
 	ESBINTRF *dev = (ESBINTRF*)pDevIntrf->pDevData;
 
     uint32_t err_code = nrf_esb_init(&dev->EsbCfg);
 //    VERIFY_SUCCESS(err_code);
-/*
+
     err_code = nrf_esb_set_base_address_0(dev->BaseAddr0);
     VERIFY_SUCCESS(err_code);
 
@@ -88,7 +95,8 @@ void EsbIntrfEnable(DEVINTRF *pDevIntrf)
     VERIFY_SUCCESS(err_code);
 
     err_code = nrf_esb_set_prefixes(dev->PipePrefix, 8);
-    VERIFY_SUCCESS(err_code);*/
+    VERIFY_SUCCESS(err_code);
+#endif
 }
 
 /**
@@ -109,9 +117,11 @@ int EsbIntrfGetRate(DEVINTRF *pDevIntrf)
 
     switch (dev->Rate)
     {
+#if !(defined(NRF52840_XXAA) || defined(NRF52810_XXAA))
         case NRF_ESB_BITRATE_250KBPS:
             rate = 250000;
             break;
+#endif
         case NRF_ESB_BITRATE_1MBPS:
         case NRF_ESB_BITRATE_1MBPS_BLE:
             rate = 1000000;
@@ -185,12 +195,16 @@ int EsbIntrfRxData(DEVINTRF *pDevIntrf, uint8_t *pBuff, int BuffLen)
     nrf_esb_payload_t *payload;
     int cnt = 0;
 
+//    uint32_t state = DisableInterrupt();
+
     payload = (nrf_esb_payload_t *)CFifoGet(intrf->hRxFifo);
     if (payload != NULL)
     {
         cnt = min(BuffLen, payload->length);
         memcpy(pBuff, payload->data, cnt);
     }
+
+//    EnableInterrupt(state);
 
     return cnt;
 }
@@ -257,6 +271,7 @@ int EsbIntrfTxData(DEVINTRF *pDevIntrf, uint8_t *pData, int DataLen)
         memset(payload, 0, sizeof(nrf_esb_payload_t));
         memcpy(payload->data, pData, l);
         payload->length = l;
+        payload->noack = false;
 
         DataLen -= l;
         pData += l;
@@ -319,11 +334,14 @@ void nRFEsbEventHandler(nrf_esb_evt_t const * p_event)
     nrf_esb_payload_t *payload = NULL;
     DEVINTRF *devintrf = (DEVINTRF*)*s_pEsbDevice;
     ESBINTRF *esbintrf = (ESBINTRF *)devintrf->pDevData;
+    uint32_t err;
 
     switch (p_event->evt_id)
     {
         case NRF_ESB_EVENT_TX_FAILED:
             nrf_esb_flush_tx();
+            nrf_esb_start_tx();
+            break;
         case NRF_ESB_EVENT_TX_SUCCESS:
             payload = (nrf_esb_payload_t*)CFifoGet(esbintrf->hTxFifo);
             if (payload)
@@ -341,14 +359,34 @@ void nRFEsbEventHandler(nrf_esb_evt_t const * p_event)
             break;
 
         case NRF_ESB_EVENT_RX_RECEIVED:
-            payload = (nrf_esb_payload_t*)CFifoPut(esbintrf->hRxFifo);
-            if (payload)
-            {
-                while(nrf_esb_read_rx_payload(payload) == NRF_SUCCESS);
-            }
+#if 1
+       		nrf_esb_payload_t pl;
+   			while (nrf_esb_read_rx_payload(&pl) == NRF_SUCCESS);
+
+			payload = (nrf_esb_payload_t*)CFifoPut(esbintrf->hRxFifo);
+			if (payload)
+			{
+				memcpy(payload, &pl, sizeof(nrf_esb_payload_t));
+			}
+#else
+        	do {
+        		nrf_esb_payload_t pl;
+    			err = nrf_esb_read_rx_payload(&pl);
+        		if (err != NRF_SUCCESS)
+        		{
+        			break;
+        		}
+
+				payload = (nrf_esb_payload_t*)CFifoPut(esbintrf->hRxFifo);
+				if (payload)
+				{
+					memcpy(payload, &pl, sizeof(nrf_esb_payload_t));
+				}
+        	} while (err == NRF_SUCCESS);
+#endif
             if (esbintrf->DevIntrf.EvtCB)
             {
-                esbintrf->DevIntrf.EvtCB(&esbintrf->DevIntrf, DEVINTRF_EVT_RX_DATA, NULL, 0);
+                esbintrf->DevIntrf.EvtCB(&esbintrf->DevIntrf, DEVINTRF_EVT_RX_DATA, NULL, CFifoUsed(esbintrf->hRxFifo));
             }
             break;
     }
@@ -376,11 +414,14 @@ bool EsbIntrfInit(ESBINTRF *pEsbIntrf, const ESBINTRF_CFG *pCfg)
         pEsbIntrf->hTxFifo = CFifoInit(pCfg->pTxFifoMem, pCfg->TxFifoMemSize, sizeof(nrf_esb_payload_t), true);
     }
 
+#if !(defined(NRF52840_XXAA) || defined(NRF52810_XXAA))
     if (pCfg->Rate < 1000000)
     {
         pEsbIntrf->Rate = NRF_ESB_BITRATE_250KBPS;
     }
-    else if (pCfg->Rate < 2000000)
+    else
+#endif
+    if (pCfg->Rate < 2000000)
     {
         pEsbIntrf->Rate = NRF_ESB_BITRATE_1MBPS;
     }
@@ -396,6 +437,9 @@ bool EsbIntrfInit(ESBINTRF *pEsbIntrf, const ESBINTRF_CFG *pCfg)
     esbcfg.payload_length = pCfg->PacketSize;
     esbcfg.retransmit_count = pCfg->NbRetry;
     esbcfg.event_handler = nRFEsbEventHandler;
+    esbcfg.selective_auto_ack = true;
+    //esbcfg.radio_irq_priority = 1;
+    esbcfg.event_irq_priority = pCfg->IntPrio;
 
     err_code = nrf_esb_init(&esbcfg);
     VERIFY_SUCCESS(err_code);
@@ -420,7 +464,7 @@ bool EsbIntrfInit(ESBINTRF *pEsbIntrf, const ESBINTRF_CFG *pCfg)
     pEsbIntrf->DevIntrf.StartTx = EsbIntrfStartTx;
     pEsbIntrf->DevIntrf.TxData = EsbIntrfTxData;
     pEsbIntrf->DevIntrf.StopTx = EsbIntrfStopTx;
-    pEsbIntrf->DevIntrf.Busy = false;
+    pEsbIntrf->DevIntrf.bBusy = false;
     pEsbIntrf->DevIntrf.MaxRetry = 0;
     pEsbIntrf->DevIntrf.EvtCB = pCfg->EvtCB;
 

@@ -150,11 +150,13 @@ SECTIONS {
 	
 	.eh_frame : ONLY_IF_RW 
 	{ 
+/*		. = ALIGN(4);*/
 		*(.eh_frame) 
 	} > RAM
 	
 	.gcc_except_table : ONLY_IF_RW 
 	{ 
+/*		. = ALIGN(4);*/
 		*(.gcc_except_table .gcc_except_table.*) 
 	} > RAM
 	
@@ -231,7 +233,7 @@ SECTIONS {
 	/* Set stack top to end of RAM, and stack limit move down by
 	 * size of stack_dummy section */
 	__StackTop = ORIGIN(RAM) + LENGTH(RAM);
-	__StackLimit = __StackTop - SIZEOF(.stack_dummy);
+	__StackLimit = __HeapLimit + 4;/*__StackTop - SIZEOF(.stack_dummy);*/
 	PROVIDE(__stack = __StackTop);
 	
 	/* Check if data + heap + stack exceeds RAM limit */

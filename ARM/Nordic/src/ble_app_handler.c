@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
 File   : ble_app_handler.cpp
 
-Author : Hoang Nguyen Hoan          Feb. 23, 2017
+Author : Hoang Nguyen Hoan          				Feb. 23, 2017
 
 Desc   : Nordic SDK based BLE peripheral application creation helper
 			Dummy user app handler.
@@ -33,31 +33,39 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Modified by          Date              Description
 
 ----------------------------------------------------------------------------*/
+#include "ble_advertising.h"
+
 #include "ble_app.h"
 
-void __WEAK BleAppInitUserData()
+__WEAK void BleAppInitUserData()
 {
 
 }
 
-void __WEAK BleAppInitUserServices()
+__WEAK void BleAppInitUserServices()
 {
 
 }
 
-void __WEAK BlePeriphEvtUserHandler(ble_evt_t * p_ble_evt)
+__WEAK void BleAppAdvTimeoutHandler()
 {
 
 }
 
-void __WEAK BleCentralEvtUserHandler(ble_evt_t * p_ble_evt)
+__WEAK void BlePeriphEvtUserHandler(ble_evt_t * p_ble_evt)
 {
 
 }
 
-void __WEAK BleAppRtosWaitEvt(void)
+__WEAK void BleCentralEvtUserHandler(ble_evt_t * p_ble_evt)
 {
 
 }
+
+__WEAK void BleAppRtosWaitEvt(void)
+{
+
+}
+
 
 

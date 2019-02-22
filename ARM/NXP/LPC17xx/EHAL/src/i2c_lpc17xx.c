@@ -38,7 +38,7 @@ Modified by          Date              Description
 #include "system_LPC17xx.h"
 
 #include "i2c_lpcxx.h"
-#include "iopincfg.h"
+#include "coredev/iopincfg.h"
 #include "iopinctrl.h"
 
 #define LPCI2C_MAX_INTRF			3			// Max number of I2C interface
@@ -250,6 +250,10 @@ void LpcI2CStopTx(DEVINTRF *pDev)
 
 bool I2CInit(I2CDEV *pDev, const I2CCFG *pCfgData)
 {
+	if (pDev == NULL || pCfgData == NULL)
+	{
+		return false;
+	}
 
 	uint32_t clk = (SystemCoreClock >> 2) / pCfgData->Rate;
 
@@ -262,10 +266,13 @@ bool I2CInit(I2CDEV *pDev, const I2CCFG *pCfgData)
 	// Pin selection for SDA
 //	IOPinConfig(pCfgData->SdaPortNo, pCfgData->SdaPinNo, pCfgData->SdaPinOp, IOPINDIR_BI,
 //				IOPINRES_PULLUP, IOPINTYPE_OPENDRAIN);
+
+	memcpy(pDev->Pins, pCfgData->Pins, sizeof(IOPINCFG) * I2C_MAX_NB_IOPIN);
+
 	// Configure I/O pins
-	IOPinCfg(pCfgData->IOPinMap, I2C_MAX_NB_IOPIN);
-    IOPinSet(pCfgData->IOPinMap[I2C_SCL_IOPIN_IDX].PortNo, pCfgData->IOPinMap[I2C_SCL_IOPIN_IDX].PinNo);
-    IOPinSet(pCfgData->IOPinMap[I2C_SDA_IOPIN_IDX].PortNo, pCfgData->IOPinMap[I2C_SDA_IOPIN_IDX].PinNo);
+	IOPinCfg(pCfgData->Pins, I2C_MAX_NB_IOPIN);
+    IOPinSet(pCfgData->Pins[I2C_SCL_IOPIN_IDX].PortNo, pCfgData->Pins[I2C_SCL_IOPIN_IDX].PinNo);
+    IOPinSet(pCfgData->Pins[I2C_SDA_IOPIN_IDX].PortNo, pCfgData->Pins[I2C_SDA_IOPIN_IDX].PinNo);
 
 	switch (pCfgData->DevNo)
 	{
@@ -298,7 +305,8 @@ bool I2CInit(I2CDEV *pDev, const I2CCFG *pCfgData)
 
 	pDev->Mode = pCfgData->Mode;
 	pDev->Rate = pCfgData->Rate;
-	pDev->SlaveAddr = pCfgData->SlaveAddr;
+	pDev->NbSlaveAddr = pCfgData->NbSlaveAddr;
+	memcpy(pDev->SlaveAddr, pCfgData->SlaveAddr, pDev->NbSlaveAddr * sizeof(uint8_t));
 //	pDev->MaxRetry = pCfgData->MaxRetry;
 
 	pDev->DevIntrf.pDevData = (void*)&g_LpcI2CDev[pCfgData->DevNo];
@@ -316,7 +324,7 @@ bool I2CInit(I2CDEV *pDev, const I2CCFG *pCfgData)
 	pDev->DevIntrf.Reset = NULL;
 	pDev->DevIntrf.IntPrio = pCfgData->IntPrio;
 	pDev->DevIntrf.EvtCB = pCfgData->EvtCB;
-	pDev->DevIntrf.Busy = false;
+	pDev->DevIntrf.bBusy = false;
 	pDev->DevIntrf.MaxRetry = pCfgData->MaxRetry;
 
 	return true;

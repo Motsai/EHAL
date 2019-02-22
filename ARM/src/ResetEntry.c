@@ -1,9 +1,12 @@
-/*--------------------------------------------------------------------------
-File   : ResetEntry.c
+/**-------------------------------------------------------------------------
+@file	ResetEntry.c
 
-Author : Hoang Nguyen Hoan          Mar. 14, 2014
+@brief	Generic ResetEntry code for ARM CMSIS with GCC compiler
 
-Desc   : Generic ResetEntry code for ARM CMSIS with GCC compiler
+@author	Hoang Nguyen Hoan
+@date	Mar. 14, 2014
+
+@license
 
 Copyright (c) 2014, I-SYST inc., all rights reserved
 
@@ -27,13 +30,12 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+
+#include <system_core_clock.h>
 
 extern unsigned long __etext;	// Begin of data in FLASH location
 extern unsigned long __data_loc__;
@@ -58,7 +60,7 @@ extern	void (* const g_Vectors[])(void);
 __attribute__ ((used)) static uint32_t s_StackPtr = (uint32_t)g_Vectors;
 
 // Nop count for usDelay base on ARM NOP instruction timing on 16MHz clock
-uint32_t SystemMicroSecNopCnt = 1;
+uint32_t SystemMicroSecLoopCnt = 1;
 
 /**
  *	This is entry point after reset
@@ -96,7 +98,7 @@ void ResetEntry (void)
 	SystemCoreClockUpdate();
 
 	// Update count for usDelay
-	SystemMicroSecNopCnt = (SystemCoreClock / 16000000);
+	SystemMicroSecLoopCnt = (SystemCoreClock / 16000000);
 
 	/*
 	 * We are ready to enter main application

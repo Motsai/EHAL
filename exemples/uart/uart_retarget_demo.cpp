@@ -1,12 +1,17 @@
-/*--------------------------------------------------------------------------
-File   : uart_retarget_demo.cpp
+/**-------------------------------------------------------------------------
+@example	uart_retarget_demo.cpp
 
-Author : Hoang Nguyen Hoan          Nov. 16, 2016
 
-Desc   : UART retarget demo
-		 Demo code using EHAL library to show how to remap stdio in/out
-		 over UART.  This is to allow using the standard printf/scanf
-		 functionality through UART interface.
+@brief	UART retarget demo
+
+Demo code using EHAL library to show how to remap stdio in/out over UART.
+This is to allow using the standard printf/scanf functionality through UART interface.
+
+
+@author	Hoang Nguyen Hoan
+@date	Nov. 16, 2016
+
+@license
 
 Copyright (c) 2016, I-SYST inc., all rights reserved
 
@@ -30,15 +35,12 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 
 #include <stdio.h>
 
-#include "iopincfg.h"
-#include "uart.h"
+#include "coredev/iopincfg.h"
+#include "coredev/uart.h"
 #include "stddev.h"
 
 // This include contain i/o definition the board in use
@@ -62,11 +64,11 @@ const UARTCFG g_UartCfg = {
 	0,
 	s_UartPins,
 	sizeof(s_UartPins) / sizeof(IOPINCFG),
-	1000000,			// Rate
+	115200,			// Rate
 	8,
 	UART_PARITY_NONE,
 	1,					// Stop bit
-	UART_FLWCTRL_NONE,
+	UART_FLWCTRL_HW,
 	true,
 	1, 					// use APP_IRQ_PRIORITY_LOW with Softdevice
 	nRFUartEvthandler,

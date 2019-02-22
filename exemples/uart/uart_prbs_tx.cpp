@@ -1,10 +1,15 @@
-/*--------------------------------------------------------------------------
-File   : uart_prbs_tx.cpp
+/**-------------------------------------------------------------------------
+@example	uart_prbs_tx.cpp
 
-Author : Hoang Nguyen Hoan          Aug. 31, 2016
+@brief	UART PRBS transmit test
 
-Desc   : UART PRBS transmit test
-		 Demo code using EHAL library to do PRBS transmit test using UART
+Demo code using EHAL library to do PRBS transmit test using UART
+
+
+@author	Hoang Nguyen Hoan
+@date	Aug. 31, 2016
+
+@license
 
 Copyright (c) 2016, I-SYST inc., all rights reserved
 
@@ -28,15 +33,12 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 
 #include <stdio.h>
 
-#include "iopincfg.h"
-#include "uart.h"
+#include "coredev/iopincfg.h"
+#include "coredev/uart.h"
 #include "prbs.h"
 
 // This include contain i/o definition the board in use
@@ -57,22 +59,23 @@ static IOPINCFG s_UartPins[] = {
 
 // UART configuration data
 const UARTCFG g_UartCfg = {
-	0,
-	s_UartPins,
-	sizeof(s_UartPins) / sizeof(IOPINCFG),
-	1000000,			// Rate
-	8,
-	UART_PARITY_NONE,
-	1,					// Stop bit
-	UART_FLWCTRL_NONE,
-	true,
-	1, 					// use APP_IRQ_PRIORITY_LOW with Softdevice
-	nRFUartEvthandler,
-	true,				// fifo blocking mode
-	0,
-	NULL,
-	FIFOSIZE,
-	g_TxBuff,
+	.DevNo = 0,
+	.pIoMap = s_UartPins,
+	.IoMapLen = sizeof(s_UartPins) / sizeof(IOPINCFG),
+	.Rate = 1000000,			// Rate
+	.DataBits = 8,
+	.Parity = UART_PARITY_NONE,
+	.StopBits = 1,					// Stop bit
+	.FlowControl = UART_FLWCTRL_NONE,
+	.bIntMode = true,
+	.IntPrio = 1, 					// use APP_IRQ_PRIORITY_LOW with Softdevice
+	.EvtCallback = nRFUartEvthandler,
+	.bFifoBlocking = true,				// fifo blocking mode
+	.RxMemSize = 0,
+	.pRxMem = NULL,
+	.TxMemSize = FIFOSIZE,
+	.pTxMem = g_TxBuff,
+	.bDMAMode = true,
 };
 
 #ifdef DEMO_C
@@ -121,6 +124,7 @@ int main()
 #ifdef DEMO_C
 		if (UARTTx(&g_UartDev, &d, 1) > 0)
 #else
+//			g_Uart.Tx((uint8_t*)"0123456789abcdefghijklmnopqrstuvwxyz\r\n", 38);
 		if (g_Uart.Tx(&d, 1) > 0)
 #endif
 		{

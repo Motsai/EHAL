@@ -1,9 +1,114 @@
-/*--------------------------------------------------------------------------
-File   : seep.h
+/**-------------------------------------------------------------------------
+@file	seep.h
 
-Author : Hoang Nguyen Hoan          Sept. 15, 2011
+@brief	Generic implementation of Serial EEPROM device
 
-Desc   : Serial EEPROM device implementation
+This implementation supports most Serial EEPROM.
+	- Automatic memory block selections
+	- Multi-bytes memory address length
+
+There is no need to write code for each type of EEPROM.  Just fill EEPROM
+information in the SEEP_CFG data structure then pass it to the init function.
+
+Example of defining EEPROM info :
+
+-----
+CAT24C32 : 32Kbits, 2 byte address length, 32 bytes per page, Write delays 5 ms
+
+static const SEEP_CFG s_CAT24C02EepCfg = {
+	0x50,			// Device address
+	2,				// Address length
+	32,				// Page size
+	32 * 1024 / 8,	// Total size in bytes
+	5,				// Twr : 5 ms
+};
+
+-----
+CAT24C02 : 2Kbits, 1 byte address length, 16 bytes per page, Write delays 5 ms
+
+static const SEEP_CFG s_CAT24C02EepCfg = {
+	0x50,		// Device address
+	1,			// Address length
+	16,			// Page size
+	2048 / 8,	// Total size in bytes
+	5,			// Twr : 5 ms
+};
+
+-----
+M24C64S : 64Kbits, 2 bytes address length, 32 bytes per page, Write delays 5 ms
+
+static const SEEP_CFG s_M24C64SEepCfg = {
+	0x50,		// Device address
+	2,			// Address length
+	32,			// Page size
+	64 * 1024 / 8,	// Total size in bytes
+	5,			// Twr : 5 ms
+};
+
+-----
+AT24CS08 : 8Kbits, 1 byte address length, 16 bytes per page, write delays 5 ms
+
+static const SEEP_CFG s_AT24CS08EepCfg = {
+	0x50,		// Device address
+	1,			// Address length
+	16,			// Page size
+	1024,		// Total size in bytes
+	5,			// Twr : 5 ms
+};
+
+-----
+24AA08/24LC08B : 8Kbits, 1 byte address length, 16 bytes per page, write delays 3 ms
+
+static const SEEP_CFG s_AT24CS08EepCfg = {
+	0x50,		// Device address
+	1,			// Address length
+	16,			// Page size
+	1024,		// Total size in bytes
+	3,			// Twr : 3 ms
+};
+
+----
+Usage in C++ :
+
+// I2C interface instance to be used. Assuming it is already initialized.
+I2C g_I2C;
+
+// Declare instance
+Seep g_Seep;
+
+// Initialize
+g_Seep.Init(s_AT24CS08EepCfg, &g_I2C);
+
+// Read/Write
+uint8_t buff[40];
+
+g_Seep.Write(0x100, buff, 40);	// Write 40 bytes at address 0x100
+g_Seep.Read(0x10, buff, 40); // Read 40 bytes from address 0x10
+
+-----
+Usage in C :
+
+// I2C interface instance to be used. Assuming it is already initialized.
+I2CDEV g_I2CDev;
+
+// Declare instance
+SEEPDEV g_SeepDev;
+
+// Initialize
+SeepInit(&g_SeepDev, &s_AT24CS08EepCfg, &g_I2CDev->DevIntrf);
+
+
+// Read/Write
+uint8_t buff[40];
+
+SeepWrite(&g_SeepDev, 0x100, buff, 40);	// Write 40 bytes at address 0x100
+SeepRead(&g_SeepDev, 0x10, buff, 40); // Read 40 bytes from address 0x10
+
+
+@author	Hoang Nguyen Hoan
+@date	Sep. 15, 2011
+
+@license
 
 Copyright (c) 2011, I-SYST, all rights reserved
 
@@ -27,9 +132,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------
-Modified by          Date              Description
-
 ----------------------------------------------------------------------------*/
 #ifndef __SEEP_H__
 #define __SEEP_H__
@@ -37,48 +139,58 @@ Modified by          Date              Description
 #include <stdbool.h>
 
 #include "device_intrf.h"
-#include "iopincfg.h"
+#include "coredev/iopincfg.h"
+
+/** @addtogroup Storage
+  * @{
+  */
 
 #pragma pack(push,4)
 
 /**
  * @brief SEEP callback function
- * 		  This is a general callback function hook for special purpose
- * 		  defined in SEEP_CFG
  *
- * @param DevAddr : Device address
- * 		  pInterf : Pointer to physical interface connected to the device
+ * This is a general callback function hook for special purpose defined in SEEP_CFG
+ *
+ * @param	DevAddr : Device address.
+ * @param	pInterf : Pointer to physical interface connected to the device
+ *
+ * @return	true - success
  */
-typedef bool (*SEEPCB)(int DevAddr, DEVINTRF *pInterf);
+typedef bool (*SEEPCB)(int DevAddr, DEVINTRF * const pInterf);
 
-typedef struct _Seep_Config {
-    uint8_t DevAddr;	// Device address
-    uint8_t AddrLen;	// Serial EEPROM memory address length in bytes
-    uint16_t PageSize;	// Wrap around page size in bytes
-    uint32_t Size;      // Total EEPROM size in bytes
-    uint32_t WrDelay;   // Write delay time in msec
-    IOPINCFG WrProtPin; // if Write protect pin is not used, set {-1, -1, }
-                        // This pin is assumed active high,
-                        // ie. Set to 1 to enable Write Protect
-	SEEPCB pInitCB;	    // For custom initialization. Set to NULL if not used
-	SEEPCB pWaitCB;	    // If provided, this is called when there are long delays
-					    // for a device to complete its write cycle
-   					    // This is to allow application to perform other tasks
-   					    // while waiting. Set to NULL is not used
+/// Structure defining Serial EEPROM device
+typedef struct __Seep_Config {
+    uint8_t DevAddr;	//<! Device address
+    uint8_t AddrLen;	//<! Serial EEPROM memory address length in bytes
+    uint16_t PageSize;	//<! Wrap around page size in bytes
+    uint32_t Size;      //<! Total EEPROM size in bytes
+    uint32_t WrDelay;   //<! Write delay time in msec
+    IOPINCFG WrProtPin; //<! if Write protect pin is not used, set {-1, -1, }
+                        //<! This pin is assumed active high,
+                        //<! ie. Set to 1 to enable Write Protect
+	SEEPCB pInitCB;	    //<! For custom initialization. Set to NULL if not used
+	SEEPCB pWaitCB;	    //<! If provided, this is called when there are long delays
+					    //<! for a device to complete its write cycle
+   					    //<! This is to allow application to perform other tasks
+   					    //<! while waiting. Set to NULL is not used
 } SEEP_CFG;
 
-typedef struct {
-	uint8_t DevAddr;    // Device address
-	uint8_t AddrLen;    // Serial EEPROM memory address length in bytes
-	uint16_t PageSize;	// Wrap around page size
-	uint32_t Size;      // Total EEPROM size in bytes
-	uint32_t WrDelay;   // Write delay in usec
-	IOPINCFG WrProtPin; // Write protect I/O pin
-	DEVINTRF	*pInterf;
-	SEEPCB pWaitCB;	    // If provided, this is called when there are long delays
-					    // for a device to complete its write cycle
-   					    // This is to allow application to perform other tasks
-   					    // while waiting. Set to NULL is not used
+/// @brief Device internal data.
+///
+/// Pointer to this structure serve as handle to the implementation function
+typedef struct __Seep_Device {
+	uint8_t DevAddr;    //<! Device address
+	uint8_t AddrLen;    //<! Serial EEPROM memory address length in bytes
+	uint16_t PageSize;	//<! Wrap around page size
+	uint32_t Size;      //<! Total EEPROM size in bytes
+	uint32_t WrDelay;   //<! Write delay in usec
+	IOPINCFG WrProtPin; //<! Write protect I/O pin
+	DEVINTRF *pInterf;  //<! Device interface
+	SEEPCB pWaitCB;	    //<! If provided, this is called when there are long delays
+					    //<! for a device to complete its write cycle
+   					    //<! This is to allow application to perform other tasks
+   					    //<! while waiting. Set to NULL is not used
 } SEEPDEV;
 
 #pragma pack(pop)
@@ -88,102 +200,151 @@ extern "C" {
 #endif
 
 /**
- * @brief Initialize Serial EEPROM driver
+ * @brief Initialize Serial EEPROM driver.
  *
- * @param   pDev     : Pointer to driver data to be initialized
- *          pCfgData : Pointer to serial EEPROM configuration data
- *          pInterf  : Pointer to the interface device on which the SEEPROM
+ * @param	pDev     : Pointer to driver data to be initialized
+ * @param	pCfgData : Pointer to serial EEPROM configuration data
+ * @param	pInterf  : Pointer to the interface device on which the SEEPROM
  *                     is connected to
  *
  * @return  true - initialization successful
  */
-bool SeepInit(SEEPDEV *pDev, SEEP_CFG *pCfgData, DEVINTRF *pInterf);
+bool SeepInit(SEEPDEV * const pDev, const SEEP_CFG *pCfgData, DEVINTRF * const pInterf);
 
 /**
- * @brief Get EEPROM size
+ * @brief Get EEPROM size.
  *
  * @param   pDev     : Pointer to driver data
  *
  * @return  Total size in bytes
  */
-static inline uint32_t SeepGetSize(SEEPDEV *pDev) {
+static inline uint32_t SeepGetSize(SEEPDEV * const pDev) {
     return pDev ? pDev->Size : 0;
 }
 
 /**
- * @brief Get EEPROM page size
+ * @brief Get EEPROM page size.
  *
  * @param   pDev     : Pointer to driver data
  *
  * @return  Page size in bytes
  */
-static inline uint16_t SeepGetPageSize(SEEPDEV *pDev) {
+static inline uint16_t SeepGetPageSize(SEEPDEV * const pDev) {
     return pDev? pDev->PageSize : 0;
 }
 
 /**
- * @brief Read Serial EEPROM data
+ * @brief Read Serial EEPROM data.
  *
  * @param   pDev     : Pointer to driver data
- *          Address  : Memory address to read
- *          pBuff    : Pointer to buffer to receive data
- *          Len      : Size of the buffer in bytes
+ * @param   Address  : Memory address to read
+ * @param   pBuff    : Pointer to buffer to receive data
+ * @param   Len      : Size of the buffer in bytes
  *
  * @return  Number of bytes read
  */
-int SeepRead(SEEPDEV *pDev, int Addr, uint8_t *pBuff, int Len);
+int SeepRead(SEEPDEV * const pDev, uint32_t Addr, uint8_t *pBuff, int Len);
 
 /**
- * @brief Write to data to Serial EEPROM
+ * @brief Write to data to Serial EEPROM.
  *
  * @param   pDev     : Pointer to driver data
- *          Address  : Memory address to write
- *          pData    : Pointer to data to write
- *          Len      : Number of bytes to write
+ * @param   Address  : Memory address to write
+ * @param   pData    : Pointer to data to write
+ * @param   Len      : Number of bytes to write
  *
  * @return  Number of bytes written
  */
-int SeepWrite(SEEPDEV *pDev, int Addr, uint8_t *pData, int Len);
+int SeepWrite(SEEPDEV * const pDev, uint32_t Addr, uint8_t *pData, int Len);
 
 /**
- * @brief Set the write protect pin
+ * @brief Set the write protect pin.
  *
  * @param   pDev     : Pointer to driver data
- *          bVal     : true - Enable write protect
+ * @param   bVal     : true - Enable write protect
  *                     false - Disable write protect
  */
-void SeepSetWriteProt(SEEPDEV *pDev, bool bVal);
+void SeepSetWriteProt(SEEPDEV * const pDev, bool bVal);
 
 #ifdef __cplusplus
 }
 
+/// @brief	Generic Serial EEPROM implementation class
+///
+/// The thing to know about an EEPROM is its device address and its page size
+/// Set those parameters in the SEEP_CFG data structure to initialize this class
 class Seep {
 public:
     Seep();
     virtual ~Seep();
     Seep(Seep&);    // copy ctor not allowed
 
-    virtual bool Init(SEEP_CFG &Cfg, DeviceIntrf *pInterf) {
+    /**
+     * @brief Initialize Serial EEPROM driver.
+     *
+     * @param	pCfgData : Pointer to serial EEPROM configuration data
+     * @param	pInterf  : Pointer to the interface device on which the SEEPROM
+     *                     is connected to
+     *
+     * @return  true - initialization successful
+     */
+    virtual bool Init(const SEEP_CFG &Cfg, DeviceIntrf * const pInterf) {
         return SeepInit(&vDevData, &Cfg, *pInterf);
     }
 
-/*    virtual void Set(int DevAddr, int PageSize, int AddrLen) {
-        vDevData.DevAddr = DevAddr;
-        vDevData.PageSize = PageSize;
-        vDevData.AddrLen = AddrLen;
-    }*/
-    virtual int Read(int Addr, uint8_t *pBuff, int Len) { return SeepRead(&vDevData, Addr, pBuff, Len); }
-    virtual int Write(int Addr, uint8_t *pData, int Len) { return SeepWrite(&vDevData, Addr, pData, Len); }
+    /**
+     * @brief Read Serial EEPROM data.
+     *
+     * @param   Address  : Memory address to read
+     * @param   pBuff    : Pointer to buffer to receive data
+     * @param   Len      : Size of the buffer in bytes
+     *
+     * @return  Number of bytes read
+     */
+    virtual int Read(uint32_t Addr, uint8_t *pBuff, int Len) { return SeepRead(&vDevData, Addr, pBuff, Len); }
 
+    /**
+     * @brief Write to data to Serial EEPROM.
+     *
+     * @param   Address  : Memory address to write
+     * @param   pData    : Pointer to data to write
+     * @param   Len      : Number of bytes to write
+     *
+     * @return  Number of bytes written
+     */
+    virtual int Write(uint32_t Addr, uint8_t *pData, int Len) { return SeepWrite(&vDevData, Addr, pData, Len); }
+
+    /**
+     * @brief Get EEPROM size.
+     *
+     * @return  Total size in bytes
+     */
     uint32_t GetSize() { return vDevData.Size; }
+
+    /**
+     * @brief Get EEPROM page size
+     *
+     * @return  Page size in bytes
+     */
     uint16_t GetPageSize() { return vDevData.PageSize; }
-    operator SEEPDEV* () { return &vDevData; }
+
+    /**
+     * @brief	Conversion to SEEPDEV operator.
+     *
+     * This operator convert SEEP class to SEEPDEV to be used in C function calls
+     *
+     * @return	Pointer to internal SEEPDEV data.
+     */
+    operator SEEPDEV*  const () { return &vDevData; }
 
 protected:
-    SEEPDEV vDevData;
+
+    SEEPDEV vDevData;	//!< Device address.
 };
 
 #endif
+
+/** @} End of group Storage */
 
 #endif	// __SEEP_H__
 

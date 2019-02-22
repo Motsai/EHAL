@@ -56,14 +56,29 @@
 			<locationURI>PARENT-2-PROJECT_LOC/include/blueio_board.h</locationURI>
 		</link>
 		<link>
+			<name>include/bluetooth</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>include/cfifo.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-WORKSPACE_LOC/include/cfifo.h</locationURI>
 		</link>
 		<link>
+			<name>include/converters</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>include/convutil.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-WORKSPACE_LOC/include/convutil.h</locationURI>
+		</link>
+		<link>
+			<name>include/coredev</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>include/crc.h</name>
@@ -101,11 +116,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/include/fatfs.h</locationURI>
 		</link>
 		<link>
-			<name>include/i2c.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/include/i2c.h</locationURI>
-		</link>
-		<link>
 			<name>include/idelay.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/include/idelay.h</locationURI>
@@ -121,9 +131,9 @@
 			<locationURI>PARENT-3-WORKSPACE_LOC/include/intelhex.h</locationURI>
 		</link>
 		<link>
-			<name>include/iopincfg.h</name>
+			<name>include/iopinctrl.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-WORKSPACE_LOC/include/iopincfg.h</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/include/iopinctrl.h</locationURI>
 		</link>
 		<link>
 			<name>include/isha1.h</name>
@@ -151,6 +161,11 @@
 			<locationURI>PARENT-3-WORKSPACE_LOC/include/ledmxfont.h</locationURI>
 		</link>
 		<link>
+			<name>include/miscdev</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>include/prbs.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/include/prbs.h</locationURI>
@@ -169,11 +184,6 @@
 			<name>include/sensors</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>include/spi.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/include/spi.h</locationURI>
 		</link>
 		<link>
 			<name>include/stddev.h</name>
@@ -196,9 +206,9 @@
 			<locationURI>PARENT-4-PROJECT_LOC/include/sysstatusdef.h</locationURI>
 		</link>
 		<link>
-			<name>include/uart.h</name>
+			<name>include/timer_nrf5x.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-WORKSPACE_LOC/include/uart.h</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/include/timer_nrf5x.h</locationURI>
 		</link>
 		<link>
 			<name>include/uart_nrf5x.h</name>
@@ -221,14 +231,14 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/CppRuntimeOverload.cpp</locationURI>
 		</link>
 		<link>
+			<name>src/atomic.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/atomic.c</locationURI>
+		</link>
+		<link>
 			<name>src/base64.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/base64.c</locationURI>
-		</link>
-		<link>
-			<name>src/ble_app.cpp</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/src/ble_app.cpp</locationURI>
 		</link>
 		<link>
 			<name>src/ble_app_handler.c</name>
@@ -249,6 +259,11 @@
 			<name>src/cfifo.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/cfifo.c</locationURI>
+		</link>
+		<link>
+			<name>src/coredev</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>src/crc.c</name>
@@ -276,6 +291,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/diskio_impl.cpp</locationURI>
 		</link>
 		<link>
+			<name>src/imu</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>src/intelhex.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/intelhex.c</locationURI>
@@ -296,19 +316,14 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/isha256.c</locationURI>
 		</link>
 		<link>
-			<name>src/ledmx.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/ledmx.c</locationURI>
-		</link>
-		<link>
-			<name>src/ledmxfont.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/ledmxfont.c</locationURI>
-		</link>
-		<link>
 			<name>src/ledmxio_nrf5x.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/src/ledmxio_nrf5x.c</locationURI>
+		</link>
+		<link>
+			<name>src/miscdev</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK</name>
@@ -361,14 +376,24 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/sysstatus.c</locationURI>
 		</link>
 		<link>
-			<name>src/uart.c</name>
+			<name>src/timer_hf_nrf5x.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/uart.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/timer_hf_nrf5x.cpp</locationURI>
 		</link>
 		<link>
-			<name>src/uart_nrf5x.c</name>
+			<name>src/timer_lf_nrf5x.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/src/uart_nrf5x.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/timer_lf_nrf5x.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/timer_nrf_app_timer.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/timer_nrf_app_timer.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/uart_bleintrf.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/uart_bleintrf.cpp</locationURI>
 		</link>
 		<link>
 			<name>src/uart_retarget.c</name>
@@ -386,24 +411,224 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/utf8cvt.cpp</locationURI>
 		</link>
 		<link>
-			<name>include/sensors/pth_bme280.h</name>
+			<name>include/bluetooth/bleadv_mandata.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/pth_bme280.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/include/bluetooth/bleadv_mandata.h</locationURI>
 		</link>
 		<link>
-			<name>include/sensors/pth_ms8607.h</name>
+			<name>include/bluetooth/blueio_blesrvc.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/pth_ms8607.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/include/bluetooth/blueio_blesrvc.h</locationURI>
 		</link>
 		<link>
-			<name>include/sensors/pth_sensor.h</name>
+			<name>include/converters/adc_device.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/pth_sensor.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/include/converters/adc_device.h</locationURI>
+		</link>
+		<link>
+			<name>include/converters/adc_ltc2495.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/converters/adc_ltc2495.h</locationURI>
+		</link>
+		<link>
+			<name>include/converters/dac_device.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/converters/dac_device.h</locationURI>
+		</link>
+		<link>
+			<name>include/coredev/i2c.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/coredev/i2c.h</locationURI>
+		</link>
+		<link>
+			<name>include/coredev/iopincfg.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/coredev/iopincfg.h</locationURI>
+		</link>
+		<link>
+			<name>include/coredev/spi.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/coredev/spi.h</locationURI>
+		</link>
+		<link>
+			<name>include/coredev/timer.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/coredev/timer.h</locationURI>
+		</link>
+		<link>
+			<name>include/coredev/uart.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/coredev/uart.h</locationURI>
+		</link>
+		<link>
+			<name>include/miscdev/led.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/miscdev/led.h</locationURI>
+		</link>
+		<link>
+			<name>include/miscdev/modem.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/miscdev/modem.h</locationURI>
+		</link>
+		<link>
+			<name>include/sensors/accel_sensor.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/accel_sensor.h</locationURI>
+		</link>
+		<link>
+			<name>include/sensors/gas_sensor.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/gas_sensor.h</locationURI>
+		</link>
+		<link>
+			<name>include/sensors/gyro_sensor.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/gyro_sensor.h</locationURI>
+		</link>
+		<link>
+			<name>include/sensors/humi_sensor.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/humi_sensor.h</locationURI>
+		</link>
+		<link>
+			<name>include/sensors/imu_bmi160.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/imu_bmi160.h</locationURI>
+		</link>
+		<link>
+			<name>include/sensors/imu_lsm9ds1.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/imu_lsm9ds1.h</locationURI>
+		</link>
+		<link>
+			<name>include/sensors/imu_mpu9250.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/imu_mpu9250.h</locationURI>
+		</link>
+		<link>
+			<name>include/sensors/imu_sensor.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/imu_sensor.h</locationURI>
+		</link>
+		<link>
+			<name>include/sensors/mag_sensor.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/mag_sensor.h</locationURI>
+		</link>
+		<link>
+			<name>include/sensors/press_sensor.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/press_sensor.h</locationURI>
+		</link>
+		<link>
+			<name>include/sensors/sensor.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/sensor.h</locationURI>
+		</link>
+		<link>
+			<name>include/sensors/temp_sensor.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/temp_sensor.h</locationURI>
+		</link>
+		<link>
+			<name>include/sensors/tph_bme280.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/tph_bme280.h</locationURI>
+		</link>
+		<link>
+			<name>include/sensors/tph_ms8607.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/tph_ms8607.h</locationURI>
+		</link>
+		<link>
+			<name>include/sensors/tph_sensor.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/tph_sensor.h</locationURI>
+		</link>
+		<link>
+			<name>include/sensors/tphg_bme680.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/sensors/tphg_bme680.h</locationURI>
 		</link>
 		<link>
 			<name>include/sys/dirent.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/include/sys/dirent.h</locationURI>
+		</link>
+		<link>
+			<name>src/coredev/i2c.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/coredev/i2c.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/coredev/i2c_nrf5x.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/i2c_nrf5x.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/coredev/i2c_spi_nrf5x_irq.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/i2c_spi_nrf5x_irq.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/coredev/spi.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/coredev/spi.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/coredev/spi_nrf5x.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/spi_nrf5x.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/coredev/timer.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/coredev/timer.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/coredev/uart.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/coredev/uart.c</locationURI>
+		</link>
+		<link>
+			<name>src/coredev/uart_nrf5x.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/uart_nrf5x.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/imu/imu.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/imu/imu.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/imu/imu_invn_icm20948.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/imu/imu_invn_icm20948.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/imu/imu_mpu9250.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/imu/imu_mpu9250.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/miscdev/led.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/led.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/miscdev/ledmx.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/ledmx.c</locationURI>
+		</link>
+		<link>
+			<name>src/miscdev/ledmxfont.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/ledmxfont.c</locationURI>
+		</link>
+		<link>
+			<name>src/miscdev/modem.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/modem.cpp</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/ble</name>
@@ -421,6 +646,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>src/nRF5_SDK/proprietary_rf</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>src/nRF5_SDK/softdevice</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -431,14 +661,44 @@
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK_12/external/micro-ecc/micro-ecc/uECC.c</locationURI>
 		</link>
 		<link>
-			<name>src/sensors/pth_bme280.cpp</name>
+			<name>src/sensors/a_adxl362.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/sensors/pth_bme280.cpp</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/sensors/a_adxl362.cpp</locationURI>
 		</link>
 		<link>
-			<name>src/sensors/pth_ms8607.cpp</name>
+			<name>src/sensors/ag_bmi160.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/sensors/pth_ms8607.cpp</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/sensors/ag_bmi160.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/sensors/agm_icm20948.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/sensors/agm_icm20948.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/sensors/agm_invn_icm20948.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/sensors/agm_invn_icm20948.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/sensors/agm_mpu9250.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/sensors/agm_mpu9250.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/sensors/tph_bme280.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/sensors/tph_bme280.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/sensors/tph_ms8607.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/sensors/tph_ms8607.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/sensors/tphg_bme680.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/sensors/tphg_bme680.cpp</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/ble/ble_advertising</name>
@@ -482,6 +742,11 @@
 		</link>
 		<link>
 			<name>src/nRF5_SDK/drivers_nrf/rng</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/drivers_nrf/timer</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -537,6 +802,11 @@
 		</link>
 		<link>
 			<name>src/nRF5_SDK/libraries/util</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/proprietary_rf/esb</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -666,6 +936,11 @@
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK_12/components/drivers_nrf/rng/nrf_drv_rng.c</locationURI>
 		</link>
 		<link>
+			<name>src/nRF5_SDK/drivers_nrf/timer/nrf_drv_timer.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK_12/components/drivers_nrf/timer/nrf_drv_timer.c</locationURI>
+		</link>
+		<link>
 			<name>src/nRF5_SDK/libraries/crc16/crc16.c</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK_12/components/libraries/crc16/crc16.c</locationURI>
@@ -749,6 +1024,11 @@
 			<name>src/nRF5_SDK/libraries/util/sdk_mapped_flags.c</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK_12/components/libraries/util/sdk_mapped_flags.c</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/proprietary_rf/esb/nrf_esb.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK_12/components/proprietary_rf/esb/nrf_esb.c</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/softdevice/common/softdevice_handler</name>

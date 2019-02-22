@@ -1,9 +1,13 @@
-/*--------------------------------------------------------------------------
-File   : sdcard.h
+/**-------------------------------------------------------------------------
+@file	sdcard.h
 
-Author : Hoang Nguyen Hoan          June 9, 2011
+@brief	SD card driver
 
-Desc   : SD card driver
+
+@author	Hoang Nguyen Hoan
+@date	June 9, 2011
+
+@license
 
 Copyright (c) 2011, I-SYST, all rights reserved
 
@@ -26,9 +30,6 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-----------------------------------------------------------------------------
-Modified by          Date              Description
 
 ----------------------------------------------------------------------------*/
 #ifndef __SDCARD_H__
@@ -80,8 +81,8 @@ public:
 	SDCard();
 	virtual ~SDCard();
 
-	virtual bool Init(DeviceIntrf *pDevInterf, uint8_t *pCacheMem = NULL, int CacheMemSize = 0);
-	virtual bool Init(DeviceIntrf *pDevInterf, DISKIO_CACHE_DESC *pCacheBlk = NULL, int NbCacheBlk = 0);
+	virtual bool Init(DeviceIntrf * const pDevInterf, uint8_t * const pCacheMem = NULL, int CacheMemSize = 0);
+	virtual bool Init(DeviceIntrf * const pDevInterf, DISKIO_CACHE_DESC * const pCacheBlk = NULL, int NbCacheBlk = 0);
 	int Cmd(uint8_t Cmd, uint32_t param);
 	int GetResponse(uint8_t *pBuff, int BuffLen);
 	int ReadData(uint8_t *pBuff, int BuffLen);
@@ -112,14 +113,14 @@ private:
 extern "C" {
 #endif
 
-bool SDInit(SDDEV *pDev, SDCFG *pCfg);
-int SDCmd(SDDEV *pDev, uint8_t Cmd, uint32_t param);
-int SDGetResponse(SDDEV *pDev, uint8_t *pData, int len);
-int SDReadData(SDDEV *pDev, uint8_t *pBuff, int BuffLen);
-int SDWriteData(SDDEV *pDev, uint8_t *pData, int DataLen);
-int SDReadSingleBlock(SDDEV *pDev, uint32_t Addr, uint8_t *pData, int len);
-int SDWriteSingleBlock(SDDEV *pDev, uint32_t Addr, uint8_t *pData, int len);
-uint32_t SDGetSize(SDDEV *pDev);
+bool SDInit(SDDEV * const pDev, const SDCFG *pCfg);
+int SDCmd(SDDEV * const pDev, uint8_t Cmd, uint32_t param);
+int SDGetResponse(SDDEV * const pDev, uint8_t *pData, int len);
+int SDReadData(SDDEV * const pDev, uint8_t *pBuff, int BuffLen);
+int SDWriteData(SDDEV * const pDev, uint8_t *pData, int DataLen);
+int SDReadSingleBlock(SDDEV * const pDev, uint32_t Addr, uint8_t *pData, int len);
+int SDWriteSingleBlock(SDDEV * const pDev, uint32_t Addr, uint8_t *pData, int len);
+uint32_t SDGetSize(SDDEV * const pDev);
 
 #ifdef __cplusplus
 }

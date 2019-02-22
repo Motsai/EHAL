@@ -39,14 +39,11 @@ Modified by          Date              Description
 #include "ble_intrf.h"
 #include "ble_app.h"
 
-#define NRFBLEINTRF_PACKET_SIZE		NRF_BLE_MAX_MTU_SIZE
+#define NRFBLEINTRF_PACKET_SIZE		(NRF_BLE_MAX_MTU_SIZE - 3)
 #define NRFBLEINTRF_CFIFO_SIZE		CFIFO_TOTAL_MEMSIZE(2, NRFBLEINTRF_PACKET_SIZE + sizeof(BLEINTRF_PKT) - 1)
 
-static uint8_t s_nRFBleRxFifoMem[NRFBLEINTRF_CFIFO_SIZE];
-static uint8_t s_nRFBleTxFifoMem[NRFBLEINTRF_CFIFO_SIZE];
-//static uint8_t s_BleInrfWrBuffer[NRFBLEINTRF_PACKET_SIZE];
-//static int s_BleIntrfWrBufferLen = 0;
-static volatile bool s_bBleIntrfTxReady = true;
+alignas(4) static uint8_t s_nRFBleRxFifoMem[NRFBLEINTRF_CFIFO_SIZE];
+alignas(4) static uint8_t s_nRFBleTxFifoMem[NRFBLEINTRF_CFIFO_SIZE];
 
 /**
  * @brief - Disable
@@ -197,6 +194,36 @@ bool BleIntrfStartTx(DEVINTRF *pDevIntrf, int DevAddr)
 	return true;
 }
 
+bool BleIntrfNotify(BLEINTRF *pIntrf)
+{
+    BLEINTRF_PKT *pkt;
+    uint32_t res = NRF_SUCCESS;
+
+    if (pIntrf->TransBuffLen > 0)
+    {
+        res = BleSrvcCharNotify(pIntrf->pBleSrv, pIntrf->TxCharIdx, pIntrf->TransBuff, pIntrf->TransBuffLen);
+    }
+    if (res != NRF_ERROR_RESOURCES)
+    {
+        pIntrf->TransBuffLen = 0;
+        do {
+            pkt = (BLEINTRF_PKT *)CFifoGet(pIntrf->hTxFifo);
+            if (pkt != NULL)
+            {
+                uint32_t res = BleSrvcCharNotify(pIntrf->pBleSrv, pIntrf->TxCharIdx, pkt->Data, pkt->Len);
+                if (res == NRF_ERROR_RESOURCES)
+                {
+                    memcpy(pIntrf->TransBuff, pkt->Data, pkt->Len);
+                    pIntrf->TransBuffLen = pkt->Len;
+                    break;
+                }
+            }
+        } while (pkt != NULL);
+    }
+
+    return true;
+}
+
 /**
  * @brief - TxData
  * 		Transfer data from pData passed in parameter.  Assuming StartTx was
@@ -228,24 +255,7 @@ int BleIntrfTxData(DEVINTRF *pDevIntrf, uint8_t *pData, int DataLen)
 		pData += l;
 		cnt += l;
 	}
-
-	if (s_bBleIntrfTxReady == true)
-	{
-		pkt = (BLEINTRF_PKT *)CFifoGet(intrf->hTxFifo);
-		if (pkt != NULL)
-		{
-	        s_bBleIntrfTxReady = false;
-			uint32_t res = BleSrvcCharNotify(intrf->pBleSrv, intrf->TxCharIdx, pkt->Data, pkt->Len);
-#if (NRF_SD_BLE_API_VERSION <= 3)
-			if (res != BLE_ERROR_NO_TX_PACKETS)
-#else
-			if (res != NRF_ERROR_RESOURCES)
-#endif
-			{
-				s_bBleIntrfTxReady = true;
-			}
-		}
-	}
+	BleIntrfNotify(intrf);
 
 	return cnt;
 }
@@ -287,31 +297,14 @@ void BleIntrfReset(DEVINTRF *pDevIntrf)
  */
 void BleIntrfTxComplete(BLESRVC *pBleSvc, int CharIdx)
 {
-    BLEINTRF *intrf = (BLEINTRF*)pBleSvc->pContext;
-    BLEINTRF_PKT *pkt;
-
-    s_bBleIntrfTxReady = true;
-    pkt = (BLEINTRF_PKT *)CFifoGet(intrf->hTxFifo);
-    if (pkt != NULL)
-    {
-        s_bBleIntrfTxReady = false;
-        uint32_t res = BleSrvcCharNotify(intrf->pBleSrv, intrf->TxCharIdx, pkt->Data, pkt->Len);
-#if (NRF_SD_BLE_API_VERSION <= 3)
-        if (res != BLE_ERROR_NO_TX_PACKETS)
-#else
-        if (res != NRF_ERROR_RESOURCES)
-#endif
-        {
-            s_bBleIntrfTxReady = true;
-        }
-    }
+    BleIntrfNotify((BLEINTRF*)pBleSvc->pContext);
 }
 
 void BleIntrfRxWrCB(BLESRVC *pBleSvc, uint8_t *pData, int Offset, int Len)
 {
 	BLEINTRF *intrf = (BLEINTRF*)pBleSvc->pContext;
     BLEINTRF_PKT *pkt;
-    int maxlen = intrf->hTxFifo->BlkSize - sizeof(pkt->Len);
+    //int maxlen = intrf->hTxFifo->BlkSize - sizeof(pkt->Len);
 
 	while (Len > 0) {
 		pkt = (BLEINTRF_PKT *)CFifoPut(intrf->hRxFifo);
@@ -335,17 +328,24 @@ bool BleIntrfInit(BLEINTRF *pBleIntrf, const BLEINTRF_CFG *pCfg)
 	if (pBleIntrf == NULL || pCfg == NULL)
 		return false;
 
-	if (pCfg->PacketSize <= 0 || pCfg->pRxFifoMem == NULL || pCfg->pTxFifoMem == NULL)
+	if (pCfg->PacketSize <= 0)
 	{
 		pBleIntrf->PacketSize = NRFBLEINTRF_PACKET_SIZE;
+	}
+	else
+	{
+		pBleIntrf->PacketSize = pCfg->PacketSize;
+	}
+
+	if (pCfg->pRxFifoMem == NULL || pCfg->pTxFifoMem == NULL)
+	{
 		pBleIntrf->hRxFifo = CFifoInit(s_nRFBleRxFifoMem, NRFBLEINTRF_CFIFO_SIZE, pBleIntrf->PacketSize, true);
 		pBleIntrf->hTxFifo = CFifoInit(s_nRFBleTxFifoMem, NRFBLEINTRF_CFIFO_SIZE, pBleIntrf->PacketSize, true);
 	}
 	else
 	{
-		pBleIntrf->PacketSize = pCfg->PacketSize;
-		pBleIntrf->hRxFifo = CFifoInit(pCfg->pRxFifoMem, pCfg->RxFifoMemSize, pCfg->PacketSize, true);
-		pBleIntrf->hTxFifo = CFifoInit(pCfg->pTxFifoMem, pCfg->TxFifoMemSize, pCfg->PacketSize, true);
+		pBleIntrf->hRxFifo = CFifoInit(pCfg->pRxFifoMem, pCfg->RxFifoMemSize, pBleIntrf->PacketSize, true);
+		pBleIntrf->hTxFifo = CFifoInit(pCfg->pTxFifoMem, pCfg->TxFifoMemSize, pBleIntrf->PacketSize, true);
 	}
 
 	pBleIntrf->DevIntrf.pDevData = (void*)pBleIntrf;
@@ -356,6 +356,7 @@ bool BleIntrfInit(BLEINTRF *pBleIntrf, const BLEINTRF_CFG *pCfg)
 	pBleIntrf->TxCharIdx = pCfg->TxCharIdx;
 
 	pBleIntrf->pBleSrv->pCharArray[pBleIntrf->RxCharIdx].WrCB = BleIntrfRxWrCB;
+	pBleIntrf->pBleSrv->pCharArray[pBleIntrf->TxCharIdx].TxCompleteCB = BleIntrfTxComplete;
 
 	pBleIntrf->DevIntrf.Enable = BleIntrfEnable;
 	pBleIntrf->DevIntrf.Disable = BleIntrfDisable;
@@ -367,9 +368,10 @@ bool BleIntrfInit(BLEINTRF *pBleIntrf, const BLEINTRF_CFG *pCfg)
 	pBleIntrf->DevIntrf.StartTx = BleIntrfStartTx;
 	pBleIntrf->DevIntrf.TxData = BleIntrfTxData;
 	pBleIntrf->DevIntrf.StopTx = BleIntrfStopTx;
-	pBleIntrf->DevIntrf.Busy = false;
+	pBleIntrf->DevIntrf.bBusy = false;
 	pBleIntrf->DevIntrf.MaxRetry = 0;
 	pBleIntrf->DevIntrf.EvtCB = pCfg->EvtCB;
+	pBleIntrf->TransBuffLen = 0;
 
 	return true;
 }
@@ -379,4 +381,28 @@ bool BleIntrf::Init(const BLEINTRF_CFG &Cfg)
 	return BleIntrfInit(&vBleIntrf, &Cfg);
 }
 
+bool BleIntrf::RequestToSend(int NbBytes)
+{
+	bool retval = false;
+
+	// ****
+	// Some threaded application firmware may stop sending when queue full
+	// causing lockup
+	// Try to send to free up the queue before validating.
+	//
+	BleIntrfNotify(&vBleIntrf);
+
+	if (vBleIntrf.hTxFifo)
+	{
+		int avail = CFifoAvail(vBleIntrf.hTxFifo);
+		if ((avail * vBleIntrf.PacketSize) > NbBytes)
+			retval = true;
+	}
+	else
+	{
+		retval = true;
+	}
+
+	return retval;
+}
 

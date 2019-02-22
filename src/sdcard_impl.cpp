@@ -34,10 +34,11 @@ Modified by          Date              Description
 #include <string.h>
 
 #include "istddef.h"
-#include "iopincfg.h"
+#include "coredev/iopincfg.h"
 #include "sdcard.h"
 #include "crc.h"
 #include "atomic.h"
+#include "idelay.h"
 
 SDCard::SDCard()
 {
@@ -48,13 +49,16 @@ SDCard::~SDCard()
 {
 }
 
-bool SDCard::Init(DeviceIntrf *pDevInterf, uint8_t *pCacheMem, int CacheMemSize)
+bool SDCard::Init(DeviceIntrf * const pDevInterf, uint8_t *  const pCacheMem, int CacheMemSize)
 {
-	int nbcache = CacheMemSize / DISKIO_SECT_SIZE;
+	int nbcache = 0;
 	DISKIO_CACHE_DESC *cachedesc = NULL;
+	uint8_t *p = pCacheMem;
 
 	if (pCacheMem)
 	{
+		nbcache = CacheMemSize / DISKIO_SECT_SIZE;
+
 		if (nbcache > SDCARD_CACHE_MAX)
 			nbcache = SDCARD_CACHE_MAX;
 
@@ -64,8 +68,8 @@ bool SDCard::Init(DeviceIntrf *pDevInterf, uint8_t *pCacheMem, int CacheMemSize)
 		{
 			for (int i = 0; i < nbcache; i++)
 			{
-				vCacheDesc[i].pSectData = pCacheMem;
-				pCacheMem += DISKIO_SECT_SIZE;
+				vCacheDesc[i].pSectData = p;
+				p += DISKIO_SECT_SIZE;
 			}
 
 			cachedesc = vCacheDesc;
@@ -75,7 +79,7 @@ bool SDCard::Init(DeviceIntrf *pDevInterf, uint8_t *pCacheMem, int CacheMemSize)
 	return Init(pDevInterf, cachedesc, nbcache);
 }
 
-bool SDCard::Init(DeviceIntrf *pDevInterf, DISKIO_CACHE_DESC *pCacheBlk, int NbCacheBlk)
+bool SDCard::Init(DeviceIntrf * const pDevInterf, DISKIO_CACHE_DESC * const pCacheBlk, int NbCacheBlk)
 {
 	uint8_t data[4];
 	uint16_t r = 0xffff;
@@ -95,13 +99,23 @@ bool SDCard::Init(DeviceIntrf *pDevInterf, DISKIO_CACHE_DESC *pCacheBlk, int NbC
 
 	vpInterf->Rate(speed);
 
+	// Give a little delays for slow card to initializes
+	usDelay(100000);
+
 	// Activate SPI mode
-	r = Cmd(0, 0);
+	int i = 1000;
+	do {
+		r = Cmd(0, 0);
+	} while (--i > 0 && (r & 0xfe));
+
 	if (r & 0xfe)
 	{
 		// Card not usable or not found
 		return false;
 	}
+
+	// Give a little delays for slow card to initializes
+	usDelay(100000);
 
 	// CMD8 must be sent before activating with ACMD41
 	uint32_t acmd = 0x10000000;
@@ -117,7 +131,7 @@ bool SDCard::Init(DeviceIntrf *pDevInterf, DISKIO_CACHE_DESC *pCacheBlk, int NbC
 
 	// Start card initialisation
 	// send ACMD41
-	int i = 10;
+	i = 1000;
 	do {
 		r = Cmd(55, 0x0000000);
 		if ((r & 0xfe) == 0)
@@ -127,14 +141,21 @@ bool SDCard::Init(DeviceIntrf *pDevInterf, DISKIO_CACHE_DESC *pCacheBlk, int NbC
 		}
 	} while (--i > 0 && r != 0);
 
+
 	if (r != 0)
 	{
 		// ACMD41 not succeeded
 		// use CMD1
-		i = 0x1ffff;
+		//i = 0x1ffff;
+		i = 1000;
 		do {
 			r = Cmd(1, 0);
 		} while (r != 0 && --i > 0);
+
+		if (r != 0)
+		{
+			return false;
+		}
 	}
 
 	if (r == 0)
@@ -206,7 +227,7 @@ int SDCard::ReadData(uint8_t *pBuff, int BuffLen)
 	if (pBuff == NULL)
 		return 0;
 
-	timeout = 100000;
+	timeout = 1000000;
 
 	do {
 		vpInterf->Rx(0, &d, 1);
@@ -256,9 +277,10 @@ int SDCard::WriteData(uint8_t *pData, int Len)
 
 	crc = crc16_ccitt(pData, Len, 0);
 
-	vpInterf->Tx(0, d, 2);
+	//vpInterf->Tx(0, d, 2);
 
-	cnt = vpInterf->Tx(0, pData, Len);
+	//cnt = vpInterf->Tx(0, pData, Len);
+	cnt = vpInterf->Write(0, d, 2, pData, Len);
 
 	d[0] = crc >> 8;
 	d[1] = crc & 0xff;
@@ -266,7 +288,7 @@ int SDCard::WriteData(uint8_t *pData, int Len)
 
 	// Wait for respond data
 	// It took about 99992 loop until receiving respond
-	int t = 100000;
+	int t = 1000000;
 	do
 	{
 		vpInterf->Rx(0, d, 1);
@@ -336,11 +358,11 @@ int SDCard::ReadSingleBlock(uint32_t Addr, uint8_t *pData, int len)
 
 	if (pData)
 	{
-		uint32_t state = DisableInterrupt();
+		//uint32_t state = DisableInterrupt();
 		int r = Cmd(17, Addr);
 		if (r == 0)
 			retval = ReadData(pData, len);
-		EnableInterrupt(state);
+		//EnableInterrupt(state);
 	}
 	return retval;
 }
@@ -351,11 +373,11 @@ int SDCard::WriteSingleBlock(uint32_t Addr, uint8_t *pData, int Len)
 
 	if (pData)
 	{
-		uint32_t state = DisableInterrupt();
+		//uint32_t state = DisableInterrupt();
 		int r = Cmd(24, Addr);
 		if (r == 0)
 			retval =  WriteData(pData, Len);
-		EnableInterrupt(state);
+		//EnableInterrupt(state);
 	}
 
 	return retval;
