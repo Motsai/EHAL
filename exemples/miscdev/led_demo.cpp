@@ -1,14 +1,15 @@
 /**-------------------------------------------------------------------------
-@file	PwmDemo.cpp
+@example	led_demo.cpp
 
-@brief	Example code using PWM (Pulse Width Modulation)
+@brief	Example code using LED object.
+
 
 @author	Hoang Nguyen Hoan
-@date	May 15, 2018
+@date	Feb. 23, 2019
 
 @license
 
-Copyright (c) 2018, I-SYST, all rights reserved
+Copyright (c) 2019, I-SYST, all rights reserved
 
 Permission to use, copy, modify, and distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright
@@ -32,13 +33,19 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ----------------------------------------------------------------------------*/
 #include <string.h>
-
 #include "pwm.h"
 #include "idelay.h"
+#include "blueio_board.h"
+#include "coredev/iopincfg.h"
+#include "iopinctrl.h"
+#include "miscdev/led.h"
+
+
+#include "board.h"
 
 static const PWM_CFG s_PwmCfg = {
 	.DevNo = 0,
-	.Freq = 1000,
+	.Freq = 100,
 	.Mode = PWM_MODE_EDGE,
 	.bIntEn = false,
 	.IntPrio = 6,
@@ -48,15 +55,21 @@ static const PWM_CFG s_PwmCfg = {
 static const PWM_CHAN_CFG s_PwmChanCfg[] = {
 	{
 		.Chan = 0,
-		.Pol = PWM_POL_HIGH,
-		.Port = 0,
-		.Pin = 25,
+		.Pol = PWM_POL_LOW,
+		.Port = LED2_PORT,
+		.Pin = LED2_PIN,
 	},
 	{
 		.Chan = 1,
-		.Pol = PWM_POL_HIGH,
-		.Port = 0,
-		.Pin = 22,
+		.Pol = PWM_POL_LOW,
+		.Port = LED3_PORT,
+		.Pin = LED3_PIN,
+	},
+	{
+		.Chan = 2,
+		.Pol = PWM_POL_LOW,
+		.Port = LED4_PORT,
+		.Pin = LED4_PIN,
 	},
 };
 
@@ -64,6 +77,8 @@ const int s_NbPwmChan = sizeof(s_PwmChanCfg) / sizeof(PWM_CHAN_CFG);
 
 Pwm g_Pwm;
 
+Led g_Led1;
+LedPwm g_Led2;
 
 //
 // Print a greeting message on standard output and exit.
@@ -81,51 +96,32 @@ Pwm g_Pwm;
 int main()
 {
 	g_Pwm.Init(s_PwmCfg);
-	g_Pwm.OpenChannel(s_PwmChanCfg, s_NbPwmChan);
 
-	// Set duty cycle 20% on channel 0
-	g_Pwm.DutyCycle(0, 50);
-	g_Pwm.DutyCycle(1, 25);
+	g_Led1.Init(LED1_PORT, LED1_PIN, LED_LOGIC_LOW);
 
-	g_Pwm.Start();
+	g_Led2.Init(&g_Pwm, (PWM_CHAN_CFG*)s_PwmChanCfg, s_NbPwmChan);
+	g_Led1.On();
+	g_Led2.Level(100);
 
-	// Let it runs for 1 sec
-	usDelay(1000000);
+	g_Led1.Off();
 
-	g_Pwm.Stop();
-
-	// Change PWM frequency
-	g_Pwm.Frequency(3333333);
-	g_Pwm.DutyCycle(0, 50);
-	g_Pwm.DutyCycle(1, 25);
-
-	g_Pwm.Start();
-
-	int x = 0;
+	uint32_t x = 0xFFFFFFFF;
 
 	while (1)
 	{
-#if 0
-		// Change duty cycle
-		g_Pwm.DutyCycle(0, x);
-		x+=1;
-		if (x > 100)
-			x = 0;
-#else
-		// Change PWM frequency
-		//g_Pwm.Stop();
-		g_Pwm.Frequency(x);
-		g_Pwm.DutyCycle(0, 50);
-		g_Pwm.DutyCycle(1, 25);
-		//g_Pwm.Start();
-		x += 10;
-		if (x > 8000000)
-			x = 0;
-#endif
-		usDelay(5000);
+		g_Led1.Toggle();
+		g_Led2.Level(x);
 
+		msDelay(100);
 
-		//__WFE();
+		g_Led2.Toggle();
+
+		x >>= 1;
+
+		if (x == 0)
+		{
+			x = 0xFFFFFFFF;
+		}
+		msDelay(20);
 	}
-	return 0;
 }

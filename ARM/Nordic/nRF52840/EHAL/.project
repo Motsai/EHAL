@@ -471,9 +471,9 @@
 			<locationURI>PARENT-4-PROJECT_LOC/include/bluetooth/bleadv_mandata.h</locationURI>
 		</link>
 		<link>
-			<name>include/bluetooth/blesrvc_blueio.h</name>
+			<name>include/bluetooth/blueio_blesrvc.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/include/bluetooth/blesrvc_blueio.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/include/bluetooth/blueio_blesrvc.h</locationURI>
 		</link>
 		<link>
 			<name>include/converters/adc_device.h</name>
@@ -589,6 +589,11 @@
 			<name>include/miscdev/led.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/include/miscdev/led.h</locationURI>
+		</link>
+		<link>
+			<name>include/miscdev/led_apa102.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/miscdev/led_apa102.h</locationURI>
 		</link>
 		<link>
 			<name>include/miscdev/ledmx.h</name>
@@ -846,9 +851,19 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/buzzer.cpp</locationURI>
 		</link>
 		<link>
-			<name>src/miscdev/led.cpp</name>
+			<name>src/miscdev/led_apa102.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/led.cpp</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/led_apa102.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/miscdev/led_gpio.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/led_gpio.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/miscdev/led_pwm.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/led_pwm.cpp</locationURI>
 		</link>
 		<link>
 			<name>src/miscdev/ledmx.c</name>

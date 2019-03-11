@@ -1,11 +1,20 @@
 /**-------------------------------------------------------------------------
-@file	led.cpp
+@file	led_gpio.cpp
 
-@brief	Generic implementation of LED device
+@brief	Implementation of basic LED control via gpio
 
+Usage example
+
+Standard LED controlled by GPIO pin (port 0, pin 30), LED turns on when pin is at level 0
+
+Led g_Led1;
+
+g_Led1.Init(0, 30, LED_LOGIC_LOW);
+
+g_Led.On();
 
 @author	Hoang Nguyen Hoan
-@date	Feb. 13, 2019
+@date	Feb. 23, 2019
 
 @license
 
@@ -35,95 +44,64 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "iopinctrl.h"
 #include "miscdev/led.h"
 
-bool Led::Init(int Port, int Pin, LED_LOGIC Active, Pwm * const pPwm)
+/**
+ * @brief	Initialize as standard GPIO LED
+ *
+ * This function initializes a single LED connected on a GPIO without PWM
+ * dimming.
+ *
+ * @param	Port 	: GPIO port number
+ * @param	Pin 	: GPIO pin number
+ * @param	Active	: LED active logic level
+ *
+ * @return	true on success
+ */
+bool Led::Init(int Port, int Pin, LED_LOGIC ActLevel)
 {
-	vNbLeds = 1;
-	vLeds[0].Port = Port;
-	vLeds[0].Pin = Pin;
-	vLeds[0].Act = Active;
+	Type(LED_TYPE_GPIO);
 
-	vpPwm = pPwm;
+	vPort = Port;
+	vPin = Pin;
+	vActLevel = ActLevel;
 
-	IOPinConfig(vLeds[0].Port, vLeds[0].Pin, 0, IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL);
-
-	return true;
-}
-
-bool Led::Init(LED_DEV * const pLedArray, int Count, Pwm * const pPwm)
-{
-	vNbLeds = Count;
-
-	for (int i = 0; i < vNbLeds; i++)
+	IOPinConfig(vPort, vPin, 0, IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL);
+	if (vActLevel == LED_LOGIC_LOW)
 	{
-		vLeds[i].Port = pLedArray[i].Port;
-		vLeds[i].Pin = pLedArray[i].Pin;
-		vLeds[i].Act = pLedArray[i].Act;
-
-		IOPinConfig(vLeds[i].Port, vLeds[i].Pin, 0, IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL);
+		IOPinSet(vPort, vPin);
 	}
-	vpPwm = pPwm;
-
-	return true;
-}
-
-bool Led::Init(DeviceIntrf * const pIntrf)
-{
-	Interface(pIntrf);
-
-	vNbLeds = 0;
-
-	return true;
-}
-
-void Led::Level(uint32_t Level)
-{
-	if (vpPwm == nullptr)
-		return;
-
-	uint8_t *p = (uint8_t*)Level;
-	for (int i = 0; i < vNbLeds; i++)
+	else
 	{
-		vpPwm->DutyCycle(i, p[i]);
+		IOPinClear(vPort, vPin);
 	}
+
+	return true;
 }
 
 void Led::On()
 {
-	for (int i = 0; i < vNbLeds; i++)
+	if (vActLevel)
 	{
-		if (vLeds[i].Act)
-		{
-			IOPinSet(vLeds[i].Port, vLeds[i].Pin);
-		}
-		else
-		{
-			IOPinClear(vLeds[i].Port, vLeds[i].Pin);
-		}
+		IOPinSet(vPort, vPin);
+	}
+	else
+	{
+		IOPinClear(vPort, vPin);
 	}
 }
 
 void Led::Off()
 {
-	for (int i = 0; i < vNbLeds; i++)
+	if (vActLevel)
 	{
-		if (vLeds[i].Act)
-		{
-			IOPinClear(vLeds[i].Port, vLeds[i].Pin);
-		}
-		else
-		{
-			IOPinSet(vLeds[i].Port, vLeds[i].Pin);
-		}
+		IOPinClear(vPort, vPin);
+	}
+	else
+	{
+		IOPinSet(vPort, vPin);
 	}
 }
 
 void Led::Toggle()
 {
-	for (int i = 0; i < vNbLeds; i++)
-	{
-		IOPinToggle(vLeds[i].Port, vLeds[i].Pin);
-	}
+	IOPinToggle(vPort, vPin);
 }
-
-
-
