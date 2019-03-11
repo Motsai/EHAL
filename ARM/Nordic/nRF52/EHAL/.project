@@ -1221,6 +1221,11 @@
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/ble/ble_advertising/ble_advertising.h</locationURI>
 		</link>
 		<link>
+			<name>src/nRF5_SDK/ble/ble_db_discovery/ble_db_discovery.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/ble/ble_db_discovery/ble_db_discovery.c</locationURI>
+		</link>
+		<link>
 			<name>src/nRF5_SDK/ble/ble_dtm/ble_dtm.c</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/ble/ble_dtm/ble_dtm.c</locationURI>
