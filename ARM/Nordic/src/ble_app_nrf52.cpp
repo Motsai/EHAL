@@ -1559,10 +1559,14 @@ void BleAppScan()
 	else
 	{
 	    g_BleAppData.bScan = true;
-
 		err_code = sd_ble_gap_scan_start(&s_BleScanParams, &g_BleScanReportData);
 	}
-	APP_ERROR_CHECK(err_code);
+
+	// It is okay to ignore this error, because the scan stopped earlier.
+	// See file nrf_ble_scan.c function nrf_ble_scan_start for more details.
+	if ( err_code != NRF_ERROR_INVALID_STATE && err_code != NRF_SUCCESS ) {
+	    APP_ERROR_CHECK(err_code);
+	}
 }
 
 void BleAppScanStop()
@@ -1570,7 +1574,9 @@ void BleAppScanStop()
 	if (g_BleAppData.bScan == true)
 	{
 		ret_code_t err_code = sd_ble_gap_scan_stop();
-		APP_ERROR_CHECK(err_code);
+	    // It is ok to ignore the function return value here, because this function can return NRF_SUCCESS or
+	    // NRF_ERROR_INVALID_STATE, when app is not in the scanning state.
+		//APP_ERROR_CHECK(err_code);
 		g_BleAppData.bScan = false;
 	}
 }
