@@ -971,6 +971,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>src/nRF5_SDK/ble/ble_db_discovery</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>src/nRF5_SDK/ble/ble_dtm</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
