@@ -995,7 +995,7 @@ void BleAppAdvStart(BLEAPP_ADVMODE AdvMode)
 	else
 	{
 		uint32_t err_code = ble_advertising_start(&g_AdvInstance, (ble_adv_mode_t)AdvMode);
-	    //APP_ERROR_CHECK(err_code);
+	    APP_ERROR_CHECK(err_code);
 	}
 }
 
