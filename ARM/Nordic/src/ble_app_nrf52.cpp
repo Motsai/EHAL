@@ -287,7 +287,7 @@ void BleAppDisconnect()
 {
 	if (g_BleAppData.ConnHdl != BLE_CONN_HANDLE_INVALID)
     {
-		uint32_t err_code = sd_ble_gap_disconnect(g_BleAppData.ConnHdl, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
+		uint32_t err_code = sd_ble_gap_disconnect(g_BleAppData.ConnHdl, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);//BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
         if (err_code == NRF_ERROR_INVALID_STATE)
         {
             g_BleAppData.ConnHdl = BLE_CONN_HANDLE_INVALID;
@@ -1593,6 +1593,7 @@ void BleAppScan()
 	{
 	    g_BleAppData.bScan = true;
 
+	    memset(g_BleScanBuff, 0, BLE_GAP_SCAN_BUFFER_EXTENDED_MAX);
 		err_code = sd_ble_gap_scan_start(&s_BleScanParams, &g_BleScanReportData);
 	}
 	APP_ERROR_CHECK(err_code);
@@ -1626,6 +1627,7 @@ bool BleAppScanInit(BLEAPP_SCAN_CFG *pCfg)
 
     g_BleAppData.bScan = true;
 
+    memset(g_BleScanBuff, 0, BLE_GAP_SCAN_BUFFER_EXTENDED_MAX);
 	err_code = sd_ble_gap_scan_start(&s_BleScanParams, &g_BleScanReportData);
 	APP_ERROR_CHECK(err_code);
 
@@ -1643,6 +1645,7 @@ bool BleAppScanInit(ble_uuid128_t * const pBaseUid, ble_uuid_t * const pServUid)
     //ble_db_discovery_evt_register(pServUid);
     g_BleAppData.bScan = true;
 
+    memset(g_BleScanBuff, 0, BLE_GAP_SCAN_BUFFER_EXTENDED_MAX);
 	err_code = sd_ble_gap_scan_start(&s_BleScanParams, &g_BleScanReportData);
 	APP_ERROR_CHECK(err_code);
 
