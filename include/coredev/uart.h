@@ -69,6 +69,17 @@ typedef enum {
 	UART_FLWCTRL_HW,
 } UART_FLWCTRL;
 
+typedef enum {
+	UART_MODE_UART,
+	UART_MODE_USART,
+	UART_MODE_NET,
+} UART_MODE;
+
+typedef enum {
+	UART_DUPLEX_FULL,
+	UART_DUPLEX_HALF
+} UART_DUPLEX;
+
 #define UART_LINESTATE_DCD		(1<<0)		//!< Carrier detect
 #define UART_LINESTATE_DSR		(1<<1)		//!< Data Set Ready
 #define UART_LINESTATE_BRK		(1<<2)		//!< Break
@@ -127,8 +138,8 @@ typedef int (*UARTEVTCB)(UARTDEV * const pDev, UART_EVT EvtId, uint8_t *pBuffer,
 /// Configuration data used to initialize device
 typedef struct {
 	int DevNo;					//!< UART device number
-	const void *pIoMap;			//!< Pointer to IO mapping.  This can be either IOPINCFG array or device path string
-	int IoMapLen;				//!< Nb of elements in IOPINCFG array or string length of device path
+	const void *pIOPinMap;		//!< Pointer to IO mapping.  This can be either IOPINCFG array or device path string
+	int NbIOPins;				//!< Nb of elements in IOPINCFG array or string length of device path
 	int Rate;					//!< Baudrate, set to 0 for auto baudrate
 	int DataBits;				//!< Number of data bits
 	UART_PARITY Parity;			//!< Data parity
@@ -147,10 +158,14 @@ typedef struct {
 	bool bIrDAInvert;			//!< IrDA input inverted
 	bool bIrDAFixPulse;			//!< Enable IrDA fix pulse
 	int	IrDAPulseDiv;			//!< Fix pulse divider
+	UART_DUPLEX Duplex;			//!< Duplex mode
+	UART_MODE Mode;				//!< UART operation mode async, sync, network...
 } UARTCFG;
 
 /// Device driver data require by low level functions
 struct __Uart_Dev {
+	UART_MODE Mode;				//!< UART operation mode async, sync, network...
+	UART_DUPLEX Duplex;			//!< Duplex mode
 	int Rate;					//!< Baudrate, set to 0 for auto baudrate
 	int DataBits;				//!< Number of data bits
 	UART_PARITY Parity;			//!< Data parity

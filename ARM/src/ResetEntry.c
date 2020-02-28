@@ -68,11 +68,7 @@ uint32_t SystemMicroSecLoopCnt = 1;
 __attribute__ ((section (".AppStart")))
 void ResetEntry (void)
 {
-	/*
-	 * Core initialization using CMSIS
-	 */
-	SystemInit();
-
+#ifndef __ICCARM__
 	/*
 	 * Copy the initialized data of the ".data" segment
 	 * from the flash to ram.
@@ -84,7 +80,11 @@ void ResetEntry (void)
 	 * Clear the ".bss" segment.
 	 */
 	memset((void *)&__bss_start__, 0, (size_t)&__bss_size__);
-
+#endif
+	/*
+	 * Core clock initialization using CMSIS
+	 */
+	SystemInit();
 
 	/*
 	 * Call C++ library initialization
@@ -105,7 +105,11 @@ void ResetEntry (void)
 	 */
 #ifndef __CMSIS_RTOS
 	// Bare bone app
+#ifdef __ICCARM__
+	   __cmain();
+#else
 	_start();
+#endif
 #else
 	// RTX based app
 	_rtos_start();

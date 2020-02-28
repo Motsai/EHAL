@@ -40,7 +40,9 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdint.h>
 #include <stdio.h>
+#ifndef __cplusplus
 #include <stdbool.h>
+#endif
 
 /// I/O pin resistor configuration
 typedef enum __iopin_resistor {
@@ -77,6 +79,14 @@ typedef enum __iopin_drive_strength {
 	IOPINSTRENGTH_STRONG,		//!< Stronger drive strength
 } IOPINSTRENGTH;
 
+/// I/O pin speed. This setting only available on some MCU
+typedef enum __iopin_speed {
+	IOPINSPEED_LOW,
+	IOPINSPEED_MEDIUM,
+	IOPINSPEED_HIGH,
+	IOPINSPEED_TURBO
+} IOPINSPEED;
+
 #pragma pack(push,4)
 
 /// I/O pin configuration data
@@ -109,7 +119,7 @@ extern "C" {
  *
  * @Param 	PortNo	: Port number
  * @Param	PinNo  	: Pin number
- * @Param	PinOp	: Pin function index from 0. MCU dependent
+ * @Param	PinOp	: Pin function. MCU dependent, see implementation for details
  * @Param	Dir     : I/O direction
  * @Param	Resistor : Resistor config
  * @Param	Type 	: I/O type
@@ -213,6 +223,17 @@ void IOPinSetSense(int PortNo, int PinNo, IOPINSENSE Sense);
  * @Param	Strength: Pin drive strength
  */
 void IOPinSetStrength(int PortNo, int PinNo, IOPINSTRENGTH Strength);
+
+/**
+ * @brief Set I/O pin speed option
+ *
+ * Some hardware allow setting pin speed. This requires the I/O already configured
+ *
+ * @param	PortNo 	: Port number (up to 32 ports)
+ * @Param	PinNo  	: Pin number (up to 32 pins)
+ * @Param	Speed	: Pin speed
+ */
+void IOPinSetSpeed(int PortNo, int PinNo, IOPINSPEED Speed);
 
 #ifdef __cplusplus
 }

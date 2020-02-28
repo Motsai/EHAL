@@ -43,17 +43,17 @@
 		<link>
 			<name>src/FreeRTOS/croutine.c</name>
 			<type>1</type>
-			<locationURI>PARENT-6-PROJECT_LOC/external/FreeRTOSv9.0.0/FreeRTOS/Source/croutine.c</locationURI>
+			<locationURI>PARENT-6-PROJECT_LOC/external/FreeRTOS/FreeRTOS/Source/croutine.c</locationURI>
 		</link>
 		<link>
 			<name>src/FreeRTOS/event_groups.c</name>
 			<type>1</type>
-			<locationURI>PARENT-6-PROJECT_LOC/external/FreeRTOSv9.0.0/FreeRTOS/Source/event_groups.c</locationURI>
+			<locationURI>PARENT-6-PROJECT_LOC/external/FreeRTOS/FreeRTOS/Source/event_groups.c</locationURI>
 		</link>
 		<link>
 			<name>src/FreeRTOS/list.c</name>
 			<type>1</type>
-			<locationURI>PARENT-6-PROJECT_LOC/external/FreeRTOSv9.0.0/FreeRTOS/Source/list.c</locationURI>
+			<locationURI>PARENT-6-PROJECT_LOC/external/FreeRTOS/FreeRTOS/Source/list.c</locationURI>
 		</link>
 		<link>
 			<name>src/FreeRTOS/portable</name>
@@ -63,20 +63,30 @@
 		<link>
 			<name>src/FreeRTOS/queue.c</name>
 			<type>1</type>
-			<locationURI>PARENT-6-PROJECT_LOC/external/FreeRTOSv9.0.0/FreeRTOS/Source/queue.c</locationURI>
+			<locationURI>PARENT-6-PROJECT_LOC/external/FreeRTOS/FreeRTOS/Source/queue.c</locationURI>
+		</link>
+		<link>
+			<name>src/FreeRTOS/stream_buffer.c</name>
+			<type>1</type>
+			<locationURI>PARENT-6-PROJECT_LOC/external/FreeRTOS/FreeRTOS/Source/stream_buffer.c</locationURI>
 		</link>
 		<link>
 			<name>src/FreeRTOS/tasks.c</name>
 			<type>1</type>
-			<locationURI>PARENT-6-PROJECT_LOC/external/FreeRTOSv9.0.0/FreeRTOS/Source/tasks.c</locationURI>
+			<locationURI>PARENT-6-PROJECT_LOC/external/FreeRTOS/FreeRTOS/Source/tasks.c</locationURI>
 		</link>
 		<link>
 			<name>src/FreeRTOS/timers.c</name>
 			<type>1</type>
-			<locationURI>PARENT-6-PROJECT_LOC/external/FreeRTOSv9.0.0/FreeRTOS/Source/timers.c</locationURI>
+			<locationURI>PARENT-6-PROJECT_LOC/external/FreeRTOS/FreeRTOS/Source/timers.c</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/freertos</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/nrfx</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -96,9 +106,19 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>src/nRF5_SDK/nrfx/drivers</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/nrfx/legacy</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>src/FreeRTOS/portable/Common/mpu_wrappers.c</name>
 			<type>1</type>
-			<locationURI>PARENT-6-PROJECT_LOC/external/FreeRTOSv9.0.0/FreeRTOS/Source/portable/Common/mpu_wrappers.c</locationURI>
+			<locationURI>PARENT-6-PROJECT_LOC/external/FreeRTOS/FreeRTOS/Source/portable/Common/mpu_wrappers.c</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/freertos/portable/CMSIS</name>
@@ -136,6 +156,16 @@
 			<locationURI>PARENT-6-PROJECT_LOC/external/nRF5_SDK/external/freertos/source/timers.c</locationURI>
 		</link>
 		<link>
+			<name>src/nRF5_SDK/nrfx/drivers/src</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/nrfx/legacy/nrf_drv_clock.c</name>
+			<type>1</type>
+			<locationURI>PARENT-6-PROJECT_LOC/external/nRF5_SDK/integration/nrfx/legacy/nrf_drv_clock.c</locationURI>
+		</link>
+		<link>
 			<name>src/nRF5_SDK/freertos/portable/CMSIS/nrf52</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -149,6 +179,11 @@
 			<name>src/nRF5_SDK/freertos/source/portable/MemMang</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/nrfx/drivers/src/nrfx_clock.c</name>
+			<type>1</type>
+			<locationURI>PARENT-6-PROJECT_LOC/external/nRF5_SDK/modules/nrfx/drivers/src/nrfx_clock.c</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/freertos/portable/CMSIS/nrf52/port_cmsis.c</name>

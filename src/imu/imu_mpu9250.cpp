@@ -33,6 +33,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ----------------------------------------------------------------------------*/
+#include "istddef.h"
 #include "convutil.h"
 #include "sensors/agm_mpu9250.h"
 #include "imu/imu_mpu9250.h"
@@ -536,9 +537,9 @@ bool ImuMpu9250::Init(const IMU_CFG &Cfg, AccelSensor * const pAccel, GyroSensor
 
 bool ImuMpu9250::UpdateData()
 {
-	uint8_t buf[32];
+	//uint8_t buf[32];
 	int32_t q[4];
-	int fidx = 0;
+	//int fidx = 0;
 
 	int len = vpMpu->GetFifoLen();
 	if (len >= vDmpFifoLen)
@@ -669,7 +670,7 @@ bool ImuMpu9250::Quaternion(bool bEn, int NbAxis)
 
 	if (NbAxis <= 3)
 	{
-		if (bEn = true)
+		if (bEn == true)
 		{
 		        regs[0] = DINBC0;
 		        regs[1] = DINBC2;
@@ -685,7 +686,7 @@ bool ImuMpu9250::Quaternion(bool bEn, int NbAxis)
 	}
 	else
 	{
-		if (bEn = true)
+		if (bEn == true)
 		{
 			regs[0] = DINA20;
 			regs[1] = DINA28;

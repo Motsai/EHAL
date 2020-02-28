@@ -33,6 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ----------------------------------------------------------------------------*/
 #include "nrf.h"
 
+#include "istddef.h"
 #include "coredev/i2c.h"
 #include "iopinctrl.h"
 #include "idelay.h"
@@ -556,6 +557,10 @@ bool I2CInit(I2CDEV * const pDev, const I2CCFG *pCfgData)
 	NRF_TWI_Type *reg = s_nRF5xI2CDev[pCfgData->DevNo].pReg;
 #endif
 
+	// Force power on in case it was powered off previously
+	*(volatile uint32_t *)((uint32_t)s_nRF5xI2CDev[pCfgData->DevNo].pReg + 0xFFC);
+	*(volatile uint32_t *)((uint32_t)s_nRF5xI2CDev[pCfgData->DevNo].pReg + 0xFFC) = 1;
+
 	memcpy(pDev->Pins, pCfgData->Pins, sizeof(IOPINCFG) * I2C_MAX_NB_IOPIN);
 
 	// Configure I/O pins
@@ -576,12 +581,10 @@ bool I2CInit(I2CDEV * const pDev, const I2CCFG *pCfgData)
 	s_nRF5xI2CDev[pCfgData->DevNo].pI2cDev  = pDev;
 	pDev->DevIntrf.pDevData = (void*)&s_nRF5xI2CDev[pCfgData->DevNo];
 
-	// Force power on in case it was powered off previously
-	*(volatile uint32_t *)((uint32_t)s_nRF5xI2CDev[pCfgData->DevNo].pReg + 0xFFC);
-	*(volatile uint32_t *)((uint32_t)s_nRF5xI2CDev[pCfgData->DevNo].pReg + 0xFFC) = 1;
 
 	nRF5xI2CSetRate(&pDev->DevIntrf, pCfgData->Rate);
 
+	pDev->DevIntrf.EnCnt = 1;
 	pDev->DevIntrf.Type = DEVINTRF_TYPE_I2C;
 	pDev->DevIntrf.bDma = pCfgData->bDmaEn;
 	pDev->DevIntrf.Disable = nRF5xI2CDisable;
@@ -607,8 +610,8 @@ bool I2CInit(I2CDEV * const pDev, const I2CCFG *pCfgData)
 	pDev->DevIntrf.Reset = nRF5xI2CReset;
 	pDev->DevIntrf.IntPrio = pCfgData->IntPrio;
 	pDev->DevIntrf.EvtCB = pCfgData->EvtCB;
-	pDev->DevIntrf.bBusy = false;
 	pDev->DevIntrf.MaxRetry = pCfgData->MaxRetry;
+	atomic_flag_clear(&pDev->DevIntrf.bBusy);
 
 	reg->SHORTS = 0;
 

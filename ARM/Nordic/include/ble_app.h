@@ -147,6 +147,14 @@ typedef struct __BleApp_Config {
 //	BLEPERIPH_DEV *pPeriphDev;		//!< Connected peripheral data table
 } BLEAPP_CFG;
 
+typedef struct __BleApp_Scan_Cfg {
+	uint32_t Interval;			//!< Scan interval in msec
+	uint32_t Duration;			//!< Scan window in msec
+	uint32_t Timeout;			//!< Scan timeout in sec
+	ble_uuid128_t BaseUid;		//!< Base UUID to look for
+	ble_uuid_t ServUid;			//!< Service Uid to look for
+} BLEAPP_SCAN_CFG;
+
 #pragma pack(pop)
 
 #ifdef __cplusplus
@@ -217,15 +225,28 @@ void BleAppEnterDfu();
 void BleAppRun();
 uint16_t BleAppGetConnHandle();
 void BleAppGapDeviceNameSet(const char* ppDeviceName);
-void BleAppAdvManDataSet(uint8_t *pAdvData, int AdvLen, uint8_t *pSrData, int SrLen);
+
+/**
+ *
+ * @param pAdvData
+ * @param AdvLen
+ * @param pSrData
+ * @param SrLen
+ *
+ * @return	true - Advertising
+ * 			false - Not advertising
+ */
+bool BleAppAdvManDataSet(uint8_t *pAdvData, int AdvLen, uint8_t *pSrData, int SrLen);
 void BleAppAdvTimeoutHandler();
 void BleAppAdvStart(BLEAPP_ADVMODE AdvMode);
 void BleAppAdvStop();
 void BleAppDisconnect();
 
-bool BleAppScanInit(ble_uuid128_t * const pBaseUid, ble_uuid_t * const pServUid);
+bool BleAppScanInit(BLEAPP_SCAN_CFG *pCfg);
+//bool BleAppScanInit(ble_uuid128_t * const pBaseUid, ble_uuid_t * const pServUid);
 //bool BleAppScanStart();
 void BleAppScan();
+void BleAppScanStop();
 bool BleAppConnect(ble_gap_addr_t * const pDevAddr, ble_gap_conn_params_t * const pConnParam);
 bool BleAppEnableNotify(uint16_t ConnHandle, uint16_t CharHandle);
 bool BleAppWrite(uint16_t ConnHandle, uint16_t CharHandle, uint8_t *pData, uint16_t DatLen);

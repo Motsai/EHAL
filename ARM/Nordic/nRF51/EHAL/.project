@@ -231,6 +231,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/CppRuntimeOverload.cpp</locationURI>
 		</link>
 		<link>
+			<name>src/Invn</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>src/atomic.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/atomic.c</locationURI>
@@ -301,11 +306,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/intelhex.c</locationURI>
 		</link>
 		<link>
-			<name>src/iopincfg_nrf5x.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/src/iopincfg_nrf5x.c</locationURI>
-		</link>
-		<link>
 			<name>src/isha1.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/isha1.c</locationURI>
@@ -334,11 +334,6 @@
 			<name>src/nrf_log_backend_printf.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/src/nrf_log_backend_printf.c</locationURI>
-		</link>
-		<link>
-			<name>src/nrf_uart_impl.cpp</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/src/nrf_uart_impl.cpp</locationURI>
 		</link>
 		<link>
 			<name>src/prbs.c</name>
@@ -466,6 +461,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/include/miscdev/led.h</locationURI>
 		</link>
 		<link>
+			<name>include/miscdev/led_apa102.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/include/miscdev/led_apa102.h</locationURI>
+		</link>
+		<link>
 			<name>include/miscdev/modem.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/include/miscdev/modem.h</locationURI>
@@ -556,6 +556,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/include/sys/dirent.h</locationURI>
 		</link>
 		<link>
+			<name>src/Invn/Devices</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>src/coredev/i2c.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/coredev/i2c.cpp</locationURI>
@@ -569,6 +574,11 @@
 			<name>src/coredev/i2c_spi_nrf5x_irq.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/src/i2c_spi_nrf5x_irq.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/coredev/iopincfg_nrfx.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/iopincfg_nrfx.c</locationURI>
 		</link>
 		<link>
 			<name>src/coredev/spi.cpp</name>
@@ -611,9 +621,19 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/imu/imu_mpu9250.cpp</locationURI>
 		</link>
 		<link>
-			<name>src/miscdev/led.cpp</name>
+			<name>src/miscdev/led_apa102.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/led.cpp</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/led_apa102.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/miscdev/led_gpio.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/led_gpio.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/miscdev/led_pwm.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/miscdev/led_pwm.cpp</locationURI>
 		</link>
 		<link>
 			<name>src/miscdev/ledmx.c</name>
@@ -699,6 +719,11 @@
 			<name>src/sensors/tphg_bme680.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/sensors/tphg_bme680.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/Invn/Devices/Drivers</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/ble/ble_advertising</name>
@@ -812,6 +837,16 @@
 		</link>
 		<link>
 			<name>src/nRF5_SDK/softdevice/common</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/Invn/Devices/Drivers/Ak0991x</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/Invn/Devices/Drivers/Icm20948</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -1034,6 +1069,71 @@
 			<name>src/nRF5_SDK/softdevice/common/softdevice_handler</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/Invn/Devices/Drivers/Ak0991x/Ak0991x.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/Invn/Devices/Drivers/Ak0991x/Ak0991x.c</locationURI>
+		</link>
+		<link>
+			<name>src/Invn/Devices/Drivers/Icm20948/Icm20948Augmented.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/Invn/Devices/Drivers/Icm20948/Icm20948Augmented.c</locationURI>
+		</link>
+		<link>
+			<name>src/Invn/Devices/Drivers/Icm20948/Icm20948AuxCompassAkm.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/Invn/Devices/Drivers/Icm20948/Icm20948AuxCompassAkm.c</locationURI>
+		</link>
+		<link>
+			<name>src/Invn/Devices/Drivers/Icm20948/Icm20948AuxTransport.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/Invn/Devices/Drivers/Icm20948/Icm20948AuxTransport.c</locationURI>
+		</link>
+		<link>
+			<name>src/Invn/Devices/Drivers/Icm20948/Icm20948DataBaseControl.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/Invn/Devices/Drivers/Icm20948/Icm20948DataBaseControl.c</locationURI>
+		</link>
+		<link>
+			<name>src/Invn/Devices/Drivers/Icm20948/Icm20948DataBaseDriver.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/Invn/Devices/Drivers/Icm20948/Icm20948DataBaseDriver.c</locationURI>
+		</link>
+		<link>
+			<name>src/Invn/Devices/Drivers/Icm20948/Icm20948DataConverter.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/Invn/Devices/Drivers/Icm20948/Icm20948DataConverter.c</locationURI>
+		</link>
+		<link>
+			<name>src/Invn/Devices/Drivers/Icm20948/Icm20948Dmp3Driver.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/Invn/Devices/Drivers/Icm20948/Icm20948Dmp3Driver.c</locationURI>
+		</link>
+		<link>
+			<name>src/Invn/Devices/Drivers/Icm20948/Icm20948LoadFirmware.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/Invn/Devices/Drivers/Icm20948/Icm20948LoadFirmware.c</locationURI>
+		</link>
+		<link>
+			<name>src/Invn/Devices/Drivers/Icm20948/Icm20948MPUFifoControl.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/Invn/Devices/Drivers/Icm20948/Icm20948MPUFifoControl.c</locationURI>
+		</link>
+		<link>
+			<name>src/Invn/Devices/Drivers/Icm20948/Icm20948SelfTest.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/Invn/Devices/Drivers/Icm20948/Icm20948SelfTest.c</locationURI>
+		</link>
+		<link>
+			<name>src/Invn/Devices/Drivers/Icm20948/Icm20948Setup.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/Invn/Devices/Drivers/Icm20948/Icm20948Setup.c</locationURI>
+		</link>
+		<link>
+			<name>src/Invn/Devices/Drivers/Icm20948/Icm20948Transport.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/Invn/Devices/Drivers/Icm20948/Icm20948Transport.c</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/ble/ble_services/ble_bas/ble_bas.c</name>
