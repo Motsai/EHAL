@@ -23,8 +23,10 @@ Library online documentation located here https://www.i-syst.com/docs/EHAL/
 Library source code on GitHub at https://github.com/I-SYST/EHAL 
 
 * Need to port a specific driver or MCU ? Put your request in issues. It will get done eventually. If you want to have it faster, a fee based port is available.   
+ 
+* EHAL is being outgrown. We've moved to the new [IOsonata](https://github.com/IOsonata/IOsonata) in order to support more archtecture & platforms.  We are re-organizing the new library for easier project integrations in order to response to more demands for other environnements.  Current status : progressing well. New features will be added to the IOsanata.  We will keep updating EHAL for bug fixes. If you are new user or starting a new project, it would be best to start with IOsonata.  Thank you for your supports. 
 ---
-
+ 
 external vendors' SDK and library required :
 --- 
  
@@ -32,11 +34,9 @@ external vendors' SDK and library required :
 
 [nRF5_SDK](https://developer.nordicsemi.com)  : Nordic nRF5x Bluetooth Low Energy
 
-[nrf5_SDK_Mesh](https://www.nordicsemi.com/eng/nordic/Products/nRF5-SDK-for-Mesh/nRF5-SDK-for-Mesh/62377) : Nordic nRF5 SDK for Bluetoth Mesh
+[nrf5_SDK_Mesh](https://www.nordicsemi.com/Software-and-Tools/Software/nRF5-SDK-for-Mesh/Download#infotabs) : Nordic nRF5 SDK for Bluetoth Mesh
 
 [Micro-ECC](https://github.com/kmackay/micro-ecc) : Encryption library
-
-[MPU-9250 Motion_Driver](https://www.invensense.com/developers) : Create a user at https://www.invensense.com/developers. Under "Downloads" download "Embedded MotionDriver 6.12". Unzip the downloaded motion_driver_6.12 folder and navigate to motion_driver_6.12/mpl libraries/arm/gcc4.9.3. Unzip the require libraries and copy to folders indicated in the folder tree bellow (external/MPL/lib/...). For the include (.h) files, navigate to motion_driver_6.12/arm/STM32F4_MD6/Projects/eMD6 and copy core folder to external/MPL as indicated bellow.
 
 [ICM-20948 Motion_Driver](https://www.invensense.com/developers) : Create a user at https://www.invensense.com/developers. Under "Downloads" download "DK-20948 eMD-SmartMotion ...". Unzip the downloaded file and navigate to EMD-Core/sources. Copy the folder Invn to external/Invn as indected in the folder tree bellow.
 
@@ -44,11 +44,11 @@ KSDK      : Kinetis SDK
 
 [BSEC](https://www.bosch-sensortec.com/bst/products/all_products/bsec) : Bosch Sensortec Environmental Cluster (BSEC) Software for #BME680 environmental sensor.  BSEC is needed for calculating Air Quality Index.  Go to https://www.bosch-sensortec.com/bst/products/all_products/bsec at the end of the page.  Select checkbox to accept license terms to download.  Unzip the the downloaded file. Rename the extracted folder BSEC and copy the whole folder to external as indicated in the folder tree bellow.  
 
-![IBK-BME680](https://www.i-syst.com/images/IBK-BME680_PinOut_640.png) 
+![BLUEIO-TAG-EVIM](https://www.i-syst.com/images/BLUEIO-TAG-EVIM_page.png) 
  
 <p align="center"> 
   
-[Bosch BME680 breakout board](https://www.tindie.com/products/hnhoan/bme680-temperature-pressure-humidity-gas-sensor/)
+[BLYST Nano sensor board](https://www.crowdsupply.com/i-syst/blyst-nano)
  
 </p> 
  
@@ -130,6 +130,9 @@ There are 2 main libraries in the EHAL for each ARM based MCU.
  |   |   |   |   |-- exemples     - exemple projects
  |   |   |
  |   |   |-- ST          - ST based MCU
+ |   |   |   |-- STM32F0xx
+ |   |   |   |-- STM32F4xx
+ |   |   |   |-- STM32L0xx
  |   |   |
  |   |   |-- TI          - Texas Instruments based MCU
  |   |   |   |-- CC3200

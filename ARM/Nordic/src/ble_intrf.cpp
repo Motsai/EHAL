@@ -43,8 +43,8 @@ Modified by          Date              Description
 #include "ble_app.h"
 #include "interrupt.h"
 
-#define NRFBLEINTRF_PACKET_SIZE		((NRF_BLE_MAX_MTU_SIZE - 3) + sizeof(BLEINTRF_PKT) - 1)
-#define NRFBLEINTRF_CFIFO_SIZE		CFIFO_TOTAL_MEMSIZE(2, NRFBLEINTRF_PACKET_SIZE)
+#define NRFBLEINTRF_PACKET_SIZE		(NRF_BLE_MAX_MTU_SIZE - 3)// + sizeof(BLEINTRF_PKT) - 1)
+#define NRFBLEINTRF_CFIFO_SIZE		BLEINTRF_CFIFO_TOTAL_MEMSIZE(2, NRFBLEINTRF_PACKET_SIZE)
 
 alignas(4) static uint8_t s_nRFBleRxFifoMem[NRFBLEINTRF_CFIFO_SIZE];
 alignas(4) static uint8_t s_nRFBleTxFifoMem[NRFBLEINTRF_CFIFO_SIZE];
@@ -90,7 +90,7 @@ void BleIntrfEnable(DEVINTRF *pDevIntrf)
  *
  * @return Transfer rate per second
  */
-int BleIntrfGetRate(DEVINTRF *pDevIntrf)
+uint32_t BleIntrfGetRate(DEVINTRF *pDevIntrf)
 {
 	return 0;	// BLE has no rate
 }
@@ -108,7 +108,7 @@ int BleIntrfGetRate(DEVINTRF *pDevIntrf)
  * @return 	Actual transfer rate per second set.  It is the real capable rate
  * 			closes to rate being requested.
  */
-int BleIntrfSetRate(DEVINTRF *pDevIntrf, int Rate)
+uint32_t BleIntrfSetRate(DEVINTRF *pDevIntrf, uint32_t Rate)
 {
 	return 0; // BLE has no rate
 }
@@ -127,7 +127,7 @@ int BleIntrfSetRate(DEVINTRF *pDevIntrf, int Rate)
  * @return 	true - Success
  * 			false - failed.
  */
-bool BleIntrfStartRx(DEVINTRF *pDevIntrf, int DevAddr)
+bool BleIntrfStartRx(DEVINTRF *pDevIntrf, uint32_t DevAddr)
 {
 	return true;
 }
@@ -193,7 +193,7 @@ void BleIntrfStopRx(DEVINTRF *pSerDev)
  * @return 	true - Success
  * 			false - failed
  */
-bool BleIntrfStartTx(DEVINTRF *pDevIntrf, int DevAddr)
+bool BleIntrfStartTx(DEVINTRF *pDevIntrf, uint32_t DevAddr)
 {
 	return true;
 }
@@ -246,30 +246,26 @@ int BleIntrfTxData(DEVINTRF *pDevIntrf, uint8_t *pData, int DataLen)
 {
 	BLEINTRF *intrf = (BLEINTRF*)pDevIntrf->pDevData;
     BLEINTRF_PKT *pkt;
-    int maxlen = intrf->PacketSize - sizeof(pkt->Len);
+    int maxlen = intrf->PacketSize - BLEINTRF_PKHDR_LEN;
 	int cnt = 0;
 
-    //uint32_t state = DisableInterrupt();
-	//while (DataLen > 0)
+	while (DataLen > 0)
 	{
+	    uint32_t state = DisableInterrupt();
 		pkt = (BLEINTRF_PKT *)CFifoPut(intrf->hTxFifo);
-		//if (pkt == NULL)
-		//	break;
-		if (pkt)
-		{
-			int l = min(DataLen, maxlen);
-			memcpy(pkt->Data, pData, l);
-			pkt->Len = l;
-			DataLen -= l;
-			pData += l;
-			cnt += l;
-		}
-		else
+		EnableInterrupt(state);
+		if (pkt == NULL)
 		{
 			intrf->TxDropCnt++;
+			break;
 		}
+		int l = min(DataLen, maxlen);
+		memcpy(pkt->Data, pData, l);
+		pkt->Len = l;
+		DataLen -= l;
+		pData += l;
+		cnt += l;
 	}
-   // EnableInterrupt(state);
 
     BleIntrfNotify(intrf);
 
@@ -329,7 +325,7 @@ void BleIntrfRxWrCB(BLESRVC *pBleSvc, uint8_t *pData, int Offset, int Len)
 			intrf->RxDropCnt++;
 			break;
 		}
-		int l = min(intrf->PacketSize - 4, Len);
+		int l = min(intrf->PacketSize - BLEINTRF_PKHDR_LEN, Len);
 		memcpy(pkt->Data, pData, l);
 		pkt->Len = l;
 		Len -= l;
@@ -349,11 +345,11 @@ bool BleIntrfInit(BLEINTRF *pBleIntrf, const BLEINTRF_CFG *pCfg)
 
 	if (pCfg->PacketSize <= 0)
 	{
-		pBleIntrf->PacketSize = NRFBLEINTRF_PACKET_SIZE;
+		pBleIntrf->PacketSize = NRFBLEINTRF_PACKET_SIZE + BLEINTRF_PKHDR_LEN;
 	}
 	else
 	{
-		pBleIntrf->PacketSize = pCfg->PacketSize;
+		pBleIntrf->PacketSize = pCfg->PacketSize + BLEINTRF_PKHDR_LEN;
 	}
 
 	if (pCfg->pRxFifoMem == NULL || pCfg->pTxFifoMem == NULL)
@@ -419,7 +415,7 @@ bool BleIntrf::RequestToSend(int NbBytes)
 	if (vBleIntrf.hTxFifo)
 	{
 		int avail = CFifoAvail(vBleIntrf.hTxFifo);
-		if ((avail * vBleIntrf.PacketSize) > NbBytes)
+		if ((avail * (vBleIntrf.PacketSize - BLEINTRF_PKHDR_LEN)) > NbBytes)
 			retval = true;
 	}
 	else

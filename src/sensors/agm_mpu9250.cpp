@@ -39,10 +39,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sensors/agm_mpu9250.h"
 #include "iopinctrl.h"
 
-#define MPU9250_ACCEL_IDX		0
-#define MPU9250_GYRO_IDX		1
-#define MPU9250_MAG_IDX			2
-
 bool AgmMpu9250::Init(uint32_t DevAddr, DeviceIntrf *pIntrf, Timer *pTimer)
 {
 	if (vbInitialized)
@@ -269,10 +265,6 @@ bool AccelMpu9250::Init(const ACCELSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Tim
 	regaddr = MPU9250_AG_INT_ENABLE;
 	Write8(&regaddr, 1, MPU9250_AG_INT_ENABLE_RAW_RDY_EN);
 
-	//vbSensorEnabled[MPU9250_ACCEL_IDX] = true;
-
-	AccelSensor::Type(SENSOR_TYPE_ACCEL);
-
 	return true;
 }
 
@@ -365,11 +357,8 @@ bool GyroMpu9250::Init(const GYROSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer
 	regaddr = MPU9250_AG_SMPLRT_DIV;
 	Write8(&regaddr, 1, smplrt - 1);
 
+	Range(MPU9250_AG_ADC_RANGE);
 	Sensitivity(CfgData.Sensitivity);
-
-
-	//vbSensorEnabled[MPU9250_GYRO_IDX] = true;
-	GyroSensor::Type(SENSOR_TYPE_GYRO);
 
 	//regaddr = MPU9250_AG_FIFO_EN;
 	//d = Read8(&regaddr, 1);
@@ -807,31 +796,33 @@ uint32_t GyroMpu9250::Sensitivity(uint32_t Value)
 {
 	uint8_t regaddr = MPU9250_AG_GYRO_CONFIG;
 	uint8_t d = Read8(&regaddr, 1) & MPU9250_AG_GYRO_CONFIG_FCHOICE_MASK;
+	uint32_t sen = 0;
 
 	if (Value < 500)
 	{
 		d |= MPU9250_AG_GYRO_CONFIG_GYRO_FS_SEL_250DPS;
-		GyroSensor::Sensitivity(250);
+		sen = 250;
 	}
 	else if (Value < 1000)
 	{
 		d |= MPU9250_AG_GYRO_CONFIG_GYRO_FS_SEL_500DPS;
-		GyroSensor::Sensitivity(500);
+		sen = 500;
 	}
 	else if (Value < 2000)
 	{
 		d |= MPU9250_AG_GYRO_CONFIG_GYRO_FS_SEL_1000DPS;
-		GyroSensor::Sensitivity(1000);
+		sen = 1000;
 	}
 	else
 	{
 		d |= MPU9250_AG_GYRO_CONFIG_GYRO_FS_SEL_2000DPS;
-		GyroSensor::Sensitivity(2000);
+		sen = 2000;
+
 	}
 
 	Write8(&regaddr, 1, d);
 
-	return GyroSensor::Sensitivity();
+	return GyroSensor::Sensitivity(sen);
 }
 
 bool AgmMpu9250::UpdateData()
