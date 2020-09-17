@@ -133,6 +133,12 @@ public:
 	 */
 	virtual bool UpdateData() = 0;
 
+	/**
+	 * @brief	Interrupt handler (optional)
+	 *
+	 * Sensor that supports interrupt can implement this to handle interrupt.
+	 * Use generic DEVEVTCB callback and DEV_EVT to send event to user application
+	 */
 	virtual void IntHandler() {}
 
 	/**
@@ -184,7 +190,7 @@ public:
 	 * @brief	Get sampling frequency.
 	 * 		The sampling frequency is relevant only in continuous mode
 	 *
-	 * @return	Frequency in mHz (milliHerz)
+	 * @return	Frequency in mHz (milliHertz)
 	 */
 	virtual uint32_t SamplingFrequency() { return vSampFreq; }
 
@@ -193,7 +199,7 @@ public:
 	 *
 	 * The sampling frequency is relevant only in continuous mode.
 	 *
-	 * @return	Frequency in mHz (milliHerz)
+	 * @return	Frequency in mHz (milliHertz)
 	 */
 	virtual uint32_t SamplingFrequency(uint32_t Freq) {
 		vSampFreq = Freq;
@@ -227,7 +233,6 @@ public:
 	 *				- SENSOR_STATE_SAMPLING
 	 */
 	virtual SENSOR_STATE State() { return vState; }
-
 	operator SENSOR_STATE () { return vState; }
 
 	static void TimerTrigHandler(Timer * const pTimer, int TrigNo, void * const pContext) {
@@ -256,13 +261,53 @@ public:
 	 * @brief	Get type of this object.
 	 */
 	SENSOR_TYPE Type() { return vType; }
-
 	operator SENSOR_TYPE () { return vType; }
 
 	/**
 	 * @brief	Set this object type.
 	 */
 	SENSOR_TYPE Type(SENSOR_TYPE SensorType) { vType = SensorType; return vType; }
+
+	/**
+	 * @brief	Get the current filter cutoff frequency
+	 *
+	 * @return	Frequency in mHz
+	 */
+	virtual uint32_t FilterFreq() { return vFilterrFreq; }
+
+	/**
+	 * @brief	Set and enable filter cutoff frequency
+	 *
+	 * Optional implementation can override this to implement filtering supported by the device
+	 *
+	 * @param	Freq : Filter frequency in mHz
+	 *
+	 * @return	Actual frequency in mHz
+	 */
+	virtual uint32_t FilterFreq(uint32_t Freq) { vFilterrFreq = Freq; return vFilterrFreq; }
+
+	/**
+	 * @brief	Get max measurement range of the device
+	 *
+	 * This function gets the maximum positive value of the raw data that can be read from
+	 * the sensor.
+	 *
+	 * @return	Maximum positive range value of the raw data
+	 */
+	virtual uint32_t Range() { return vRange; }
+
+	/**
+	 * @brief	Set max measurement range of the device
+	 *
+	 * This function sets the maximum positive value of the raw data that can be read from
+	 * the sensor. Sensor device can implement this function to allow configuration variable
+	 * range value.
+	 *
+	 * @param	Max positive range value
+	 *
+	 * @return	Actual maximum positive range value of the raw data
+	 */
+	virtual uint32_t Range(uint32_t Value) { vRange = Value; return vRange; }
 
 protected:
 
@@ -274,7 +319,10 @@ protected:
 	bool vbSampling;			//!< true - measurement in progress
 	uint64_t vSampleCnt;		//!< Keeping sample count
 	uint64_t vSampleTime;		//!< Time stamp when sampling is started
-	int vTimerTrigId;
+	uint32_t vDropCnt;			//!< Count the number of sample that was dropped
+	uint32_t vFilterrFreq;		//!< Filter frequency in mHz, many sensors can set a filter cutoff frequency
+	int vTimerTrigId;			//!< Timer interrupt trigger id (implementation dependent
+	uint32_t vRange;            //!< ADC range of the sensor, contains max value for conversion factor
 };
 
 extern "C" {
@@ -282,7 +330,6 @@ extern "C" {
 
 #ifdef __cplusplus
 }
-
 #endif	// __cplusplus
 
 /** @} End of group Sensors */

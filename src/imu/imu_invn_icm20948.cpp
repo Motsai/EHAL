@@ -183,7 +183,7 @@ bool ImuInvnIcm20948::Enable()
 
 	/* Disable all sensors */
 	while(i-- > 0) {
-		int rc = inv_icm20948_enable_sensor(vpIcmDevice, (inv_icm20948_sensor)i, 1);
+		inv_icm20948_enable_sensor(vpIcmDevice, (inv_icm20948_sensor)i, 1);
 	}
 
 	return true;
@@ -195,7 +195,7 @@ void ImuInvnIcm20948::Disable()
 
 	/* Disable all sensors */
 	while(i-- > 0) {
-		int rc = inv_icm20948_enable_sensor(vpIcmDevice, (inv_icm20948_sensor)i, 0);
+		inv_icm20948_enable_sensor(vpIcmDevice, (inv_icm20948_sensor)i, 0);
 	}
 	inv_icm20948_set_chip_power_state(vpIcmDevice, CHIP_AWAKE, 0);
 }
@@ -266,7 +266,7 @@ void ImuInvnIcm20948::SensorEventHandler(void * context, enum inv_icm20948_senso
 
 void ImuInvnIcm20948::UpdateData(enum inv_icm20948_sensor sensortype, uint64_t timestamp, const void * data, const void *arg)
 {
-	float raw_bias_data[6];
+	//float raw_bias_data[6];
 	inv_sensor_event_t event;
 	//uint8_t sensor_id = convert_to_generic_ids[sensortype];
 
@@ -330,10 +330,10 @@ void ImuInvnIcm20948::UpdateData(enum inv_icm20948_sensor sensortype, uint64_t t
 		gyro_accuracy = (uint8_t)inv_icm20948_get_gyro_accuracy();
 
 		event.data.quaternion.accuracy_flag = min(accel_accuracy, gyro_accuracy);
-		vQuat.Q1 = event.data.quaternion.quat[0] * 32768.0;
-		vQuat.Q2 = event.data.quaternion.quat[1] * 32768.0;
-		vQuat.Q3 = event.data.quaternion.quat[2] * 32768.0;
-		vQuat.Q4 = event.data.quaternion.quat[3] * 32768.0;
+		vQuat.Q1 = event.data.quaternion.quat[0];// * 32768.0;
+		vQuat.Q2 = event.data.quaternion.quat[1];// * 32768.0;
+		vQuat.Q3 = event.data.quaternion.quat[2];// * 32768.0;
+		vQuat.Q4 = event.data.quaternion.quat[3];// * 32768.0;
 		vQuat.Timestamp = timestamp;
 	}
 		break;

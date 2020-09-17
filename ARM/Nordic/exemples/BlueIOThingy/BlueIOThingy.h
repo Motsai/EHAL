@@ -51,7 +51,11 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __BLUEIOTHINGY_H__
 
 #include "coredev/spi.h"
-#include "timer_nrf5x.h"
+#include "timer_nrfx.h"
+
+#ifdef NRF51
+#define BLE_GATT_ATT_MTU_DEFAULT 23
+#endif
 
 /// Thingy custom service UUID
 #define THINGY_BASE_UUID    {{0x42, 0x00, 0x74, 0xA9, 0xFF, 0x52, 0x10, 0x9B, 0x33, 0x49, 0x35, 0x9B, 0x00, 0x00, 0x68, 0xEF}} //!< Used vendor specific UUID

@@ -41,7 +41,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define DEVICE_NAME                     "Advertiser"
 
-#define APP_ADV_INTERVAL                MSEC_TO_UNITS(500, UNIT_0_625_MS)
+#define APP_ADV_INTERVAL                MSEC_TO_UNITS(100, UNIT_0_625_MS)
 #define APP_ADV_TIMEOUT_IN_SECONDS      MSEC_TO_UNITS(1000, UNIT_10_MS)
 
 uint32_t g_AdvCnt = 0;
@@ -53,6 +53,7 @@ const BLEAPP_CFG s_BleAppCfg = {
 		1, 1, 0
 #else
 		NRF_CLOCK_LF_SRC_XTAL,	// Source 32KHz XTAL
+		//NRF_CLOCK_LF_SRC_RC,
 #ifdef NRF51
 		0, 0, NRF_CLOCK_LF_XTAL_ACCURACY_20_PPM
 #else
@@ -61,7 +62,7 @@ const BLEAPP_CFG s_BleAppCfg = {
 #endif
 	},
 	0,						// Number of central link
-	0,						// Number of peripheral link
+	1,						// Number of peripheral link
 	BLEAPP_MODE_NOCONNECT,	// Connectionless beacon type
 	DEVICE_NAME,			// Device name
 	ISYST_BLUETOOTH_ID,		// PnP Bluetooth/USB vendor id
@@ -131,3 +132,4 @@ int main()
 
 	return 0;
 }
+

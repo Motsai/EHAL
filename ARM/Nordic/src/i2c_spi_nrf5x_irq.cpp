@@ -31,11 +31,12 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ----------------------------------------------------------------------------*/
+#include <string.h>
 
 #include "nrf.h"
 
 #include "device_intrf.h"
-#include "i2c_spi_nrf5x_irq.h"
+#include "coredev/shared_irq.h"
 
 typedef struct {
 	DEVINTRF *pDev;				// Device interface data
@@ -50,7 +51,8 @@ typedef struct {
 
 static IRQDATA s_DevIrq[MAX_NB_DEV] = { {NULL, }, };
 
-void SetI2cSpiIntHandler(int DevNo, DEVINTRF *pDev, IRQHANDLER Handler)
+//void SetI2cSpiIntHandler(int DevNo, DEVINTRF *pDev, IRQHANDLER Handler)
+void SetSharedIntHandler(int DevNo, DEVINTRF * const pDev, IRQHANDLER Handler)
 {
 	if (DevNo < 0 || DevNo >= MAX_NB_DEV)
 	{

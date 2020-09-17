@@ -7,6 +7,7 @@
 #include "app_util_platform.h"
 #include "app_scheduler.h"
 
+#include "istddef.h"
 #include "ble_app.h"
 #include "ble_service.h"
 #include "device_intrf.h"
@@ -24,7 +25,7 @@ static const ACCELSENSOR_CFG s_AccelCfg = {
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,
 	.Freq = 50000,
 	.Scale = 2,
-	.LPFreq = 0,
+	.FltrFreq = 0,
 	.bInter = true,
 	.IntPol = DEVINTR_POL_LOW,
 };
@@ -34,14 +35,14 @@ static const GYROSENSOR_CFG s_GyroCfg = {
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,
 	.Freq = 50000,
 	.Sensitivity = 10,
-	.LPFreq = 200,
+	.FltrFreq = 200,
 };
 
 static const MAGSENSOR_CFG s_MagCfg = {
 	.DevAddr = 0,
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,//SENSOR_OPMODE_SINGLE,
 	.Freq = 50000,
-	.Precision = 14,
+	.Precision = MAGSENSOR_PRECISION_HIGH,
 };
 
 AgmMpu9250 g_Mpu9250;
@@ -276,7 +277,10 @@ bool MPU9250Init(DeviceIntrf * const pIntrF, Timer * const pTimer)
 	s_pTimer = pTimer;
 
 
-	g_Mpu9250.Init(s_AccelCfg, pIntrF, pTimer);
+	bool res = g_Mpu9250.Init(s_AccelCfg, pIntrF, pTimer);
+	if (res == false)
+		return res;
+
 	g_Mpu9250.Init(s_GyroCfg, NULL);
 	g_Mpu9250.Init(s_MagCfg, NULL);
 

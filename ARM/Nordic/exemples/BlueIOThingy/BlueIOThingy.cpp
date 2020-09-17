@@ -68,12 +68,12 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sensors/tph_ms8607.h"
 #include "sensors/tphg_bme680.h"
 #include "sensors/agm_mpu9250.h"
-#include "sensors/a_adxl362.h"
-#include "timer_nrf5x.h"
-#include "timer_nrf_app_timer.h"
+#include "sensors/accel_adxl362.h"
+#include "timer_nrfx.h"
 #include "board.h"
 #include "idelay.h"
 #include "seep.h"
+#include "diskio_flash.h"
 
 #include "BlueIOThingy.h"
 #include "BlueIOMPU9250.h"
@@ -121,7 +121,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 
-uint8_t g_AdvDataBuff[9] = {
+uint8_t g_AdvDataBuff[10] = {
 	BLEADV_MANDATA_TYPE_TPH,
 };
 
@@ -144,56 +144,13 @@ const static TIMER_CFG s_TimerCfg = {
 #ifdef NRF51
 TimerAppTimer g_Timer;
 #else
-TimerLFnRF5x g_Timer;
+TimerLFnRFx g_Timer;
 //TimerAppTimer g_Timer;
 #endif
 
 static const ble_uuid_t  s_AdvUuids[] = {
     {BLE_UUID_TCS_SERVICE, BLE_UUID_TYPE_VENDOR_BEGIN}
 };
-
-#if 0
-static const BLEAPP_CFG s_BleAppCfg = {
-	{ // Clock config nrf_clock_lf_cfg_t
-#ifdef IMM_NRF51822
-		NRF_CLOCK_LF_SRC_RC,	// Source RC
-		1, 1, 0
-#else
-		NRF_CLOCK_LF_SRC_XTAL,	// Source 32KHz XTAL
-		0, 0, NRF_CLOCK_LF_ACCURACY_20_PPM
-#endif
-
-	},
-	0, 						// Number of central link
-	1, 						// Number of peripheral link
-	BLEAPP_MODE_APPSCHED,   	// Connectionless beacon type
-	DEVICE_NAME,         	// Device name
-	ISYST_BLUETOOTH_ID,    	// PnP Bluetooth/USB vendor id
-	1,                     	// PnP Product ID
-	0,						// Pnp prod version
-	false,					// Enable device information service (DIS)
-	NULL,
-	(uint8_t*)&g_AdvDataBuff,	// Manufacture specific data to advertise
-	sizeof(g_AdvDataBuff),  // Length of manufacture specific data
-	NULL,					// Manufacture specific data to advertise
-	0,  					// Length of manufacture specific data
-	BLEAPP_SECTYPE_NONE,    // Secure connection type
-	BLEAPP_SECEXCHG_NONE,   // Security key exchange
-	s_AdvUuids,      		// Service uuids to advertise
-	sizeof(s_AdvUuids) / sizeof(ble_uuid_t), 						// Total number of uuids
-	APP_ADV_INTERVAL,       // Advertising interval in msec
-	APP_ADV_TIMEOUT_IN_SECONDS,	// Advertising timeout in sec
-	0,                      // Slow advertising interval, if > 0, fallback to
-							// slow interval on adv timeout and advertise until connected
-	MIN_CONN_INTERVAL,
-	MAX_CONN_INTERVAL,
-	BLUEIO_LED1_PORT,		// Led port nuber
-	BLUEIO_LED1_PIN,     	// Led pin number
-	0, 						// Tx power
-	NULL,					// RTOS Softdevice handler
-	53,
-};
-#endif
 
 const BLEAPP_CFG s_BleAppCfg = {
 #ifdef IMM_NRF51822
@@ -226,6 +183,7 @@ const BLEAPP_CFG s_BleAppCfg = {
 	.ConnIntervalMax = MAX_CONN_INTERVAL,
 	.ConnLedPort = BLUEIO_CONNECT_LED_PORT,// Led port nuber
 	.ConnLedPin = BLUEIO_CONNECT_LED_PIN,// Led pin number
+	.ConnLedActLevel = 0,
 	.TxPower = 0,						// Tx power
 	.SDEvtHandler = NULL,				// RTOS Softdevice handler
 	.MaxMtu = 53,
@@ -244,37 +202,44 @@ static const IOPINCFG s_GpioPins[] = {
 	 IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
 	{BLUEIO_TAG_EVIM_LED2_BLUE_PORT, BLUEIO_TAG_EVIM_LED2_BLUE_PIN, BLUEIO_TAG_EVIM_LED2_BLUE_PINOP,
 	 IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
+	{BLUEIO_TAG_EVIM_EEP_WP_PORT, BLUEIO_TAG_EVIM_EEP_WP_PIN, BLUEIO_TAG_EVIM_EEP_WP_PINOP,				// EEP WP
+	 IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
+	{BLUEIO_TAG_EVIM_BUZZ_PORT, BLUEIO_TAG_EVIM_BUZZ_PIN, BLUEIO_TAG_EVIM_BUZZ_PINOP,
+	 IOPINDIR_OUTPUT, IOPINRES_PULLDOWN, IOPINTYPE_NORMAL},
 };
 
 static const int s_NbGpioPins = sizeof(s_GpioPins) / sizeof(IOPINCFG);
 
 static const IOPINCFG s_SpiPins[] = {
     {SPI2_SCK_PORT, SPI2_SCK_PIN, SPI2_SCK_PINOP,
-     IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
+		IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
     {SPI2_MISO_PORT, SPI2_MISO_PIN, SPI2_MISO_PINOP,
-     IOPINDIR_INPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
+		IOPINDIR_INPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
     {SPI2_MOSI_PORT, SPI2_MOSI_PIN, SPI2_MOSI_PINOP,
-     IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
+		IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
     {BLUEIO_TAG_EVIM_IMU_CS_PORT, BLUEIO_TAG_EVIM_IMU_CS_PIN, BLUEIO_TAG_EVIM_IMU_CS_PINOP,
-     IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
+		IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
+	{BLUEIO_TAG_EVIM_FLASH_CS_PORT, BLUEIO_TAG_EVIM_FLASH_CS_PIN, BLUEIO_TAG_EVIM_FLASH_CS_PINOP,
+		IOPINDIR_OUTPUT, IOPINRES_PULLUP, IOPINTYPE_NORMAL},	// CS
 };
 
 static const SPICFG s_SpiCfg = {
-    SPI2_DEVNO,
-    SPIMODE_MASTER,
-    s_SpiPins,
-    sizeof(s_SpiPins) / sizeof(IOPINCFG),
-    1000000,   // Speed in Hz
-    8,      // Data Size
-    5,      // Max retries
-    SPIDATABIT_MSB,
-    SPIDATAPHASE_SECOND_CLK, // Data phase
-    SPICLKPOL_LOW,         // clock polarity
-    SPICSEL_AUTO,
-	true,
-	false,
-    APP_IRQ_PRIORITY_LOW,      // Interrupt priority
-    NULL
+    .DevNo = SPI2_DEVNO,
+    .Phy = SPIPHY_NORMAL,
+	.Mode = SPIMODE_MASTER,
+    .pIOPinMap = s_SpiPins,
+    .NbIOPins = sizeof(s_SpiPins) / sizeof(IOPINCFG),
+    .Rate = 1000000,   // Speed in Hz
+    .DataSize = 8,      // Data Size
+    .MaxRetry = 5,      // Max retries
+    .BitOrder = SPIDATABIT_MSB,
+    .DataPhase = SPIDATAPHASE_SECOND_CLK, // Data phase
+    .ClkPol = SPICLKPOL_LOW,         // clock polarity
+    .ChipSel = SPICSEL_AUTO,
+	.bDmaEn = true,
+	.bIntEn = false,
+    .IntPrio = APP_IRQ_PRIORITY_LOW,      // Interrupt priority
+    .EvtCB = NULL
 };
 
 SPI g_Spi;
@@ -283,9 +248,8 @@ SPI g_Spi;
 
 // Configure I2C interface
 static const I2CCFG s_I2cCfg = {
-	0,			// I2C device number
-	{
-
+	.DevNo = 0,			// I2C device number
+	.Pins = {
 #if defined(TPH_BME280) || defined(TPH_BME680)
 		{I2C0_SDA_PORT, I2C0_SDA_PIN, I2C0_SDA_PINOP, IOPINDIR_BI, IOPINRES_NONE, IOPINTYPE_NORMAL},
 		{I2C0_SCL_PORT, I2C0_SCL_PIN, I2C0_SCL_PINOP, IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
@@ -295,15 +259,15 @@ static const I2CCFG s_I2cCfg = {
 		{0, 3, 0, IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
 #endif
 	},
-	100000,		// Rate
-	I2CMODE_MASTER,
-	5,			// Retry
-	0,			// Number of slave addresses
-	{0,},		// Slave addresses
-	true,
-	false,		// use interrupt
-	APP_IRQ_PRIORITY_LOW,// Interrupt prio
-	NULL		// Event callback
+	.Rate = 100000,		// Rate
+	.Mode = I2CMODE_MASTER,
+	.MaxRetry = 5,			// Retry
+	.NbSlaveAddr = 0,			// Number of slave addresses
+	.SlaveAddr = {0,},		// Slave addresses
+	.bDmaEn = true,
+	.bIntEn = false,		// use interrupt
+	.IntPrio = APP_IRQ_PRIORITY_LOW,// Interrupt prio
+	.EvtCB = NULL		// Event callback
 };
 
 // I2C interface instance
@@ -314,16 +278,16 @@ I2C g_I2c;
 // Configure environmental sensor
 static TPHSENSOR_CFG s_TphSensorCfg = {
 #ifdef NEBLINA_MODULE
-    0,      // SPI CS index 0 connected to BME280
+	.DevAddr = 0,      // SPI CS index 0 connected to BME280
 #else
-	BME680_I2C_DEV_ADDR0,   // I2C device address
+	.DevAddr = BME680_I2C_DEV_ADDR0,   // I2C device address
 #endif
-	SENSOR_OPMODE_SINGLE,
-	100,						// Sampling frequency in mHz
-	1,
-	1,
-	1,
-	1
+	.OpMode = SENSOR_OPMODE_SINGLE,
+	.Freq = 100,						// Sampling frequency in mHz
+	.TempOvrs = 1,
+	.PresOvrs = 1,
+	.HumOvrs = 1,
+	.FilterCoeff = 1,
 };
 
 static const GASSENSOR_HEAT s_HeaterProfile[] = {
@@ -376,7 +340,52 @@ static const SEEP_CFG s_SeepCfg = {
 
 Seep g_Seep;
 
+FlashDiskIO g_FlashDiskIO;
 
+static uint8_t s_FlashCacheMem[DISKIO_SECT_SIZE];
+DISKIO_CACHE_DESC g_FlashCache = {
+    -1, 0xFFFFFFFF, s_FlashCacheMem
+};
+
+bool MX25U1635E_init(int pDevNo, DeviceIntrf* ppInterface);
+
+static FLASHDISKIO_CFG s_FlashDiskCfg = {
+    .DevNo = 1,
+    .TotalSize = 16 * 1024 * 1024 / 8,      // 256 Mbits
+    .SectSize = 4,
+	.BlkSize = 32,
+    .WriteSize = 128,
+    .AddrSize = 3,                          // 256+ Mbits needs 4 bytes addressing
+    .pInitCB = MX25U1635E_init,//mx66u51235f_init,
+    .pWaitCB = NULL,//FlashWriteDelayCallback,
+};
+
+bool FlashWriteDelayCallback(int DevNo, DeviceIntrf *pInterf)
+{
+	return true;
+}
+
+bool MX25U1635E_init(int DevNo, DeviceIntrf* pInterface)
+{
+    if (pInterface == NULL)
+        return false;
+
+    int cnt = 0;
+
+    uint32_t d;
+    uint32_t r = 0;
+
+    d = FLASH_CMD_READID;
+    cnt = pInterface->Read(DevNo, (uint8_t*)&d, 1, (uint8_t*)&r, 3);
+    if ( r != 0x25C2 )
+    	return false;
+
+    // Enable write
+    d = FLASH_CMD_EN4B;
+    cnt = pInterface->Tx(DevNo, (uint8_t*)&d, 1);
+
+    return true;
+}
 
 void ReadPTHData()
 {
@@ -407,7 +416,7 @@ void ReadPTHData()
 		// NOTE : M0 does not access unaligned data
 		// use local 4 bytes align stack variable then mem copy
 		// skip timestamp as advertising pack is limited in size
-		memcpy(&g_TPHData, ((uint8_t*)&data) + 8, sizeof(BLEADV_MANDATA_TPHSENSOR));
+		memcpy(&g_TPHData, ((uint8_t*)&data) + sizeof(data.Timestamp), sizeof(BLEADV_MANDATA_TPHSENSOR));
 	}
 
 
@@ -428,7 +437,7 @@ void ReadPTHData()
 
 void SchedAdvData(void * p_event_data, uint16_t event_size)
 {
-	//ReadPTHData();
+	ReadPTHData();
 }
 
 void AppTimerHandler(Timer *pTimer, int TrigNo, void *pContext)
@@ -477,6 +486,80 @@ void BleAppInitUserServices()
     res = ImuSrvcInit();
 }
 
+void FlashTest()
+{
+	g_FlashDiskIO.Init(s_FlashDiskCfg, &g_Spi, &g_FlashCache, 1);
+
+	uint8_t buff[512];
+	uint8_t tmp[512];
+	uint16_t *p = (uint16_t*)buff;
+
+	memset(tmp, 0, 512);
+	for (int i = 0; i < 256; i++)
+	{
+		p[i] = i;
+	}
+
+
+	printf("Erasing... Please wait\r\n");
+
+	// Ease could take a few minutes
+	g_FlashDiskIO.Erase();
+
+	printf("Writing 2KB data...\r\n");
+
+	g_FlashDiskIO.SectWrite(0, buff);
+	g_FlashDiskIO.SectWrite(2, buff);
+	g_FlashDiskIO.SectWrite(4, buff);
+	g_FlashDiskIO.SectWrite(8, buff);
+
+	printf("Validate readback...\r\n");
+
+	g_FlashDiskIO.SectRead(0, tmp);
+
+	if (memcmp(buff, tmp, 512) != 0)
+	{
+		printf("Sector 0 verify failed\r\n");
+	}
+	else
+	{
+		printf("Sector 0 verify success\r\n");
+	}
+
+	memset(tmp, 0, 512);
+	g_FlashDiskIO.SectRead(2, tmp);
+	if (memcmp(buff, tmp, 512) != 0)
+	{
+		printf("Sector 2 verify failed\r\n");
+	}
+	else
+	{
+		printf("Sector 2 verify success\r\n");
+	}
+
+	memset(tmp, 0, 512);
+	g_FlashDiskIO.SectRead(4, tmp);
+	if (memcmp(buff, tmp, 512) != 0)
+	{
+		printf("Sector 4 verify failed\r\n");
+	}
+	else
+	{
+		printf("Sector 4 verify success\r\n");
+	}
+
+	memset(tmp, 0, 512);
+	g_FlashDiskIO.SectRead(8, tmp);
+	if (memcmp(buff, tmp, 512) != 0)
+	{
+		printf("Sector 8 verify failed\r\n");
+	}
+	else
+	{
+		printf("Sector 8 verify success\r\n");
+	}
+}
+
 void HardwareInit()
 {
 	// Set this only if nRF is power at 2V or more
@@ -486,13 +569,19 @@ void HardwareInit()
 
 	// Turn off all LEDs
 	IOPinSet(BLUEIO_LED1_PORT, BLUEIO_LED1_PIN);
-	IOPinSet(BLUEIO_TAG_EVIM_LED2_RED_PORT, BLUEIO_TAG_EVIM_LED2_RED_PIN);
-	IOPinSet(BLUEIO_TAG_EVIM_LED2_GREEN_PORT, BLUEIO_TAG_EVIM_LED2_GREEN_PIN);
-	IOPinSet(BLUEIO_TAG_EVIM_LED2_BLUE_PORT, BLUEIO_TAG_EVIM_LED2_BLUE_PIN);
+	IOPinClear(BLUEIO_TAG_EVIM_LED2_RED_PORT, BLUEIO_TAG_EVIM_LED2_RED_PIN);
+	IOPinClear(BLUEIO_TAG_EVIM_LED2_GREEN_PORT, BLUEIO_TAG_EVIM_LED2_GREEN_PIN);
+	IOPinClear(BLUEIO_TAG_EVIM_LED2_BLUE_PORT, BLUEIO_TAG_EVIM_LED2_BLUE_PIN);
+
+	//IOPinSet(BLUEIO_TAG_EVIM_LED2_RED_PORT, BLUEIO_TAG_EVIM_LED2_RED_PIN);
+	//IOPinSet(BLUEIO_TAG_EVIM_LED2_GREEN_PORT, BLUEIO_TAG_EVIM_LED2_GREEN_PIN);
+	//IOPinSet(BLUEIO_TAG_EVIM_LED2_BLUE_PORT, BLUEIO_TAG_EVIM_LED2_BLUE_PIN);
 
     g_Timer.Init(s_TimerCfg);
 
     g_Spi.Init(s_SpiCfg);
+
+
     g_I2c.Init(s_I2cCfg);
 
     g_Seep.Init(s_SeepCfg, &g_I2c);

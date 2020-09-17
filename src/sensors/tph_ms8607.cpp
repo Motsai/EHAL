@@ -78,7 +78,7 @@ bool TphMS8607::Init(const TPHSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *p
 	//TPHSENSOR_CFG *cfg = (TPHSENSOR_CFG*)pCfgData;
 
 	Interface(pIntrf);
-	DeviceAddess(CfgData.DevAddr);
+	DeviceAddress(CfgData.DevAddr);
 
 	vpTimer = pTimer;
 
@@ -181,7 +181,7 @@ void TphMS8607::Reset()
 
 bool TphMS8607::Read(TPHSENSOR_DATA &TphData)
 {
-	bool retval = false;
+//	bool retval = false;
 
 // TODO: Create UpdateData function
 // so that we get correct timestamp
@@ -256,7 +256,7 @@ float TphMS8607::ReadPressure()
 
 		int64_t off  = ((int64_t)vPTProm[2] << 17LL) + (((int64_t)vPTProm[4] * vCurDT) >> 6LL);
 		int64_t sens = ((int64_t)vPTProm[1] << 16LL) + (((int64_t)vPTProm[3] * vCurDT) >> 7LL);
-		int64_t t2;
+		//int64_t t2;
 		int64_t off2, sens2;
 
 		// Second order compensation
@@ -299,7 +299,7 @@ float TphMS8607::ReadHumidity()
 	uint8_t d[4];
 
 	vpIntrf->Tx(MS8607_RHDEV_ADDR, &cmd, 1);
-	int count = vpIntrf->Rx(MS8607_RHDEV_ADDR, (uint8_t*)d, 3);
+	vpIntrf->Rx(MS8607_RHDEV_ADDR, (uint8_t*)d, 3);
 
 	raw = ((uint32_t)d[0] << 8) + (d[1] & 0xFC);
 

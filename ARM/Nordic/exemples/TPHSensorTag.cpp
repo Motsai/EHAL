@@ -24,27 +24,27 @@ bsec_library_return_t res = bsec_init();
 
 @license
 
-Copyright (c) 2017, I-SYST inc., all rights reserved
+MIT License
 
-Permission to use, copy, modify, and distribute this software for any purpose
-with or without fee is hereby granted, provided that the above copyright
-notice and this permission notice appear in all copies, and none of the
-names : I-SYST or its contributors may be used to endorse or
-promote products derived from this software without specific prior written
-permission.
+Copyright (c) 2017 I-SYST inc. All rights reserved.
 
-For info or contributing contact : hnhoan at i-syst dot com
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND ANY
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ----------------------------------------------------------------------------*/
 
@@ -57,7 +57,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ble_app.h"
 #include "ble_service.h"
 
-#include "bsec_interface.h"
+#include "sensors/bsec_interface.h"
 
 #include "blueio_board.h"
 #include "coredev/uart.h"
@@ -66,10 +66,10 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "custom_board.h"
 #include "coredev/iopincfg.h"
 #include "iopinctrl.h"
-#include "tph_bme280.h"
-#include "tph_ms8607.h"
-#include "tphg_bme680.h"
-#include "timer_nrf5x.h"
+#include "sensors/tph_bme280.h"
+#include "sensors/tph_ms8607.h"
+#include "sensors/tphg_bme680.h"
+#include "timer_nrfx.h"
 #ifdef NRF51
 #include "timer_nrf_app_timer.h"
 #else
@@ -80,6 +80,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define DEVICE_NAME                     "EnvSensorTag"                            /**< Name of device. Will be included in the advertising data. */
 
+#define EVIM
 #ifdef NEBLINA_MODULE
 #define TPH_BME280
 #else
@@ -128,7 +129,7 @@ const static TIMER_CFG s_TimerCfg = {
 #ifdef NRF51
 TimerAppTimer g_Timer;
 #else
-TimerLFnRF5x g_Timer;
+TimerLFnRFx g_Timer;
 #endif
 
 const BLEAPP_CFG s_BleAppCfg = {
@@ -143,7 +144,7 @@ const BLEAPP_CFG s_BleAppCfg = {
 
 	},
 	0, 						// Number of central link
-	0, 						// Number of peripheral link
+	1, 						// Number of peripheral link
 	BLEAPP_MODE_NOCONNECT,   // Connectionless beacon type
 	DEVICE_NAME,                 // Device name
 	ISYST_BLUETOOTH_ID,     // PnP Bluetooth/USB vendor id
@@ -165,8 +166,8 @@ const BLEAPP_CFG s_BleAppCfg = {
 								// slow interval on adv timeout and advertise until connected
 	0,
 	0,
-	-1,		// Led port nuber
-	-1,     // Led pin number
+	BLUEIO_LED1_PORT,		// Led port nuber
+	BLUEIO_LED1_PIN,     // Led pin number
 	0,
 	0, 		// Tx power
 	NULL						// RTOS Softdevice handler
@@ -300,6 +301,7 @@ TphSensor &g_TphSensor = g_MS8607Sensor;
 
 GasSensor &g_GasSensor = g_Bme680Sensor;
 
+#ifdef NRF52_SERIES
 // Define available voltage sources
 static const ADC_REFVOLT s_RefVolt[] = {
 	{.Type = ADC_REFVOLT_TYPE_INTERNAL, .Voltage = 0.6 },
@@ -309,7 +311,7 @@ static const int s_NbRefVolt = sizeof(s_RefVolt) / sizeof(ADC_REFVOLT);
 
 #define ADC_CFIFO_SIZE		CFIFO_TOTAL_MEMSIZE(200, sizeof(ADC_DATA))
 
-void ADCEventHandler(AdcDevice *pAdcDev, ADC_EVT Evt);
+void ADCEventHandler(Device *pAdcDev, DEV_EVT Evt);
 
 static uint8_t s_AdcFifoMem[ADC_CFIFO_SIZE];
 
@@ -335,10 +337,14 @@ static const ADC_CHAN_CFG s_ChanCfg[] = {
 		.Chan = 0,
 		.RefVoltIdx = 0,
 		.Type = ADC_CHAN_TYPE_SINGLE_ENDED,
-		.Gain = 5,//1 << 8,
+		.Gain = 3,//5,//1 << 8,
 		.AcqTime = 10,
 		.BurstMode = true,
+#ifdef EVIM
+		.PinP = { .PinNo = 2, .Conn = ADC_PIN_CONN_NONE },
+#else
 		.PinP = { .PinNo = 8, .Conn = ADC_PIN_CONN_NONE },
+#endif
 	},
 };
 
@@ -346,9 +352,9 @@ static const int s_NbChan = sizeof(s_ChanCfg) / sizeof(ADC_CHAN_CFG);
 volatile bool g_bDataReady = false;
 BLUEIO_DATA_BAT g_BatData;
 
-void ADCEventHandler(AdcDevice *pAdcDev, ADC_EVT Evt)
+void ADCEventHandler(Device *pAdcDev, DEV_EVT Evt)
 {
-	if (Evt == ADC_EVT_DATA_READY)
+	if (Evt == DEV_EVT_DATA_RDY)
 	{
 		g_bDataReady = true;
 		int cnt = 0;
@@ -359,15 +365,20 @@ void ADCEventHandler(AdcDevice *pAdcDev, ADC_EVT Evt)
 		{
 //			g_Uart.printf("%d ADC[0] = %.2fV, ADC[1] = %.2fV, ADC[2] = %.2fV, ADC[3] = %.2fV\r\n",
 //					df[0].Timestamp, df[0].Data, df[1].Data, df[2].Data, df[3].Data);
-
+#ifdef EVIM
+			uint8_t level = 100 * ((df->Data * 2.0) - 1.75)/ 1.25;
+			g_BatData.Voltage = (int32_t)(df->Data * 2000.0);
+#else
 			uint8_t level = 100 * (df->Data - 1.75)/ 1.25;
-			g_BatData.Level = level;
 			g_BatData.Voltage = (int32_t)(df->Data * 1000.0);
+#endif
+			g_BatData.Level = level;
 		}
 
 		g_Adc.Disable();
 	}
 }
+#endif
 
 void ReadPTHData()
 {
@@ -389,6 +400,7 @@ void ReadPTHData()
 */
 	if ((gascnt & 0xf) == 0)
 	{
+#ifdef NRF52_SERIES
 		g_Adc.Enable();
 		g_Adc.OpenChannel(s_ChanCfg, s_NbChan);
 		g_Adc.StartConversion();
@@ -396,6 +408,7 @@ void ReadPTHData()
 		g_AdvData.Type = BLEADV_MANDATA_TYPE_BAT;
 
 		memcpy(&g_AdvBat, &g_BatData, sizeof(BLUEIO_DATA_BAT));
+#endif
 	}
 	else if ((gascnt & 0x3) == 0)
 	{
@@ -425,10 +438,11 @@ void ReadPTHData()
 
 	g_I2c.Disable();
 
+#ifdef NRF52_SERIES
 	g_Adc.Enable();
 	g_Adc.OpenChannel(s_ChanCfg, s_NbChan);
 	g_Adc.StartConversion();
-
+#endif
 
 #endif
 	// Update advertisement data
@@ -485,9 +499,9 @@ void HardwareInit()
 
     IOPinCfg(s_GpioPins, s_NbGpioPins);
 
-	IOPinSet(0, BLUEIO_TAG_BME680_LED2_BLUE_PIN);
-	IOPinSet(0, BLUEIO_TAG_BME680_LED2_GREEN_PIN);
-	IOPinSet(0, BLUEIO_TAG_BME680_LED2_RED_PIN);
+	IOPinClear(0, BLUEIO_TAG_BME680_LED2_BLUE_PIN);
+	IOPinClear(0, BLUEIO_TAG_BME680_LED2_GREEN_PIN);
+	IOPinClear(0, BLUEIO_TAG_BME680_LED2_RED_PIN);
 
 	g_Timer.Init(s_TimerCfg);
 
@@ -552,14 +566,16 @@ void HardwareInit()
 
 	g_I2c.Disable();
 
+#ifdef NRF52_SERIES
 	g_Adc.Init(s_AdcCfg);
 	g_Adc.OpenChannel(s_ChanCfg, s_NbChan);
 	g_Adc.StartConversion();
+#endif
 
 #ifdef USE_TIMER_UPDATE
 	// Only with SDK14
 
-//	uint64_t period = g_Timer.EnableTimerTrigger(0, 500UL, TIMER_TRIG_TYPE_CONTINUOUS);
+	uint64_t period = g_Timer.EnableTimerTrigger(0, 500UL, TIMER_TRIG_TYPE_CONTINUOUS);
 #endif
 }
 

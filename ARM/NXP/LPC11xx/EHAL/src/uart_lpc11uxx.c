@@ -35,7 +35,7 @@ Modified by          Date              Description
 #include "LPC11Uxx.h"
 #include "uart_lpcxx.h"
 #include "idelay.h"
-#include "atomic.h"
+#include "interrupt.h"
 
 #define LPC_SYSAHBCLKCTRL_UART0_EN		(1 << 12)
 #define LPC_SYSAHBCLKCTRL_UART1_EN		(1 << 20)
@@ -222,8 +222,8 @@ bool UARTInit(UARTDEV *pDev, const UARTCFG *pCfg)
 	}
 
 	// Configure I/O pins
-	IOPINCFG *pincfg = (IOPINCFG*)pCfg->pIoMap;
-	IOPinCfg(pincfg, pCfg->IoMapLen);
+	IOPINCFG *pincfg = (IOPINCFG*)pCfg->pIOPinMap;
+	IOPinCfg(pincfg, pCfg->NbIOPins);
 
 
 	reg->TER = 0;	// Disable Tx
@@ -336,9 +336,9 @@ bool UARTInit(UARTDEV *pDev, const UARTCFG *pCfg)
 	pDev->DevIntrf.StartTx = LpcUARTStartTx;
 	pDev->DevIntrf.TxData = LpcUARTTxData;
 	pDev->DevIntrf.StopTx = LpcUARTStopTx;
-	pDev->DevIntrf.bBusy = false;
 	pDev->DevIntrf.MaxRetry = 0;
 	pDev->EvtCallback = pCfg->EvtCallback;
+	atomic_flag_clear(&pDev->DevIntrf.bBusy);
 
 	g_LpcUartDev[pCfg->DevNo].bTxReady = true;
 

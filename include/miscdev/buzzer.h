@@ -37,6 +37,18 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pwm.h"
 
+/** @addtogroup MiscDev
+  * @{
+  */
+
+typedef struct __Buzzer_Device {
+	PWM_DEV *pPwm;			//!< Pointer to external PWM interface
+	int DutyCycle;			//!< PWM duty cycle value for volume
+	int Chan;				//!< PWM Channel used for the buzzer
+} BUZZER_DEV;
+
+#ifdef __cplusplus
+
 class Buzzer {
 public:
 
@@ -68,6 +80,16 @@ public:
 	virtual void Play(uint32_t Freq, uint32_t msDuration);
 
 	/**
+	 * @brief	Play Midi note
+	 *
+	 * @param	MidiNote : Midi note value 0-255
+	 * @param	msDuration	: Play duration in msec.
+	 *							if != 0, wait for it then stop
+	 *							else let running and return (no stop)
+	 */
+	virtual void Play(uint8_t MidiNote, uint32_t msDuration);
+
+	/**
 	 * @brief	Stop buzzer
 	 *
 	 */
@@ -80,7 +102,14 @@ private:
 	int vChan;			//!< PWM Channel used for the buzzer
 };
 
+extern "C" {
+#endif // __cplusplus
 
+#ifdef __cplusplus
+}
+#endif	// __cplusplus
+
+/** @} end group IMU */
 
 #endif // __BUZZER_H__
 

@@ -42,8 +42,10 @@ Device::Device()
 {
 	vDevAddr = 0;
 	vpIntrf = NULL;
+	vpTimer = NULL;
 	vbValid = false;
 	vDevId = -1;
+	vbIntEn = false;
 }
 
 /**

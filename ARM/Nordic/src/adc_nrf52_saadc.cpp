@@ -42,11 +42,15 @@ Modified by          Date              Description
 ----------------------------------------------------------------------------*/
 #include <stdint.h>
 
+#ifdef __ICCARM__
+#include "intrinsics.h"
+#endif
+
 #include "adc_nrf52_saadc.h"
 
 typedef struct __ADC_nRF52_Data {
 	AdcnRF52 *pDevObj;
-	ADC_EVTCB EvtHandler;
+	//DEVEVTCB EvtHandler;
 	int NbChanAct;
     int SampleCnt;
 	uint16_t ChanState[SAADC_NRF52_MAX_CHAN];
@@ -68,7 +72,7 @@ static ADCNRF52_DATA s_AdcnRF52DevData = {
 
 extern "C" void SAADC_IRQHandler()
 {
-	ADC_EVT evt = ADC_EVT_UNKNOWN;
+	DEV_EVT evt = DEV_EVT_DATA_RDY;
 
 	if (NRF_SAADC->EVENTS_STARTED)
 	{
@@ -116,9 +120,9 @@ extern "C" void SAADC_IRQHandler()
 				}
 			}
 
-	        evt = ADC_EVT_DATA_READY;
+	        evt = DEV_EVT_DATA_RDY;
 
-			s_AdcnRF52DevData.EvtHandler(s_AdcnRF52DevData.pDevObj, evt);
+			s_AdcnRF52DevData.pDevObj->EvtHandler(evt);
 		}
 
         NRF_SAADC->EVENTS_RESULTDONE = 0;
@@ -230,6 +234,9 @@ bool AdcnRF52::Init(const ADC_CFG &Cfg, Timer *pTimer, DeviceIntrf *pIntrf)
 	if (s_AdcnRF52DevData.pDevObj != NULL && s_AdcnRF52DevData.pDevObj != this)
 		return false;
 
+	// Undocumented : Forced power on just in case that it was turned off.
+	*(volatile uint32_t *)((uint32_t)NRF_SAADC + 0xFFC) = 1;
+
 	memset(&s_AdcnRF52DevData, 0, sizeof(s_AdcnRF52DevData));
 
 	// Stop current process
@@ -253,7 +260,11 @@ bool AdcnRF52::Init(const ADC_CFG &Cfg, Timer *pTimer, DeviceIntrf *pIntrf)
 
 	Resolution(Cfg.Resolution);
 
+#ifdef __ICCARM__
+	int ov = 31 - __CLZ(Cfg.OvrSample);
+#else
 	int ov = 31 - __builtin_clzl(Cfg.OvrSample);
+#endif
 
 	if (ov > 0)
 	{
@@ -283,7 +294,7 @@ bool AdcnRF52::Init(const ADC_CFG &Cfg, Timer *pTimer, DeviceIntrf *pIntrf)
 
 	SetRefVoltage(Cfg.pRefVolt, Cfg.NbRefVolt);
 	SetEvtHandler(Cfg.EvtHandler);
-	s_AdcnRF52DevData.EvtHandler = Cfg.EvtHandler;
+	//s_AdcnRF52DevData.EvtHandler = Cfg.EvtHandler;
 
 	NVIC_ClearPendingIRQ(SAADC_IRQn);
 
@@ -372,6 +383,16 @@ void AdcnRF52::Reset()
 
 	Disable();
 	Enable();
+}
+
+void AdcnRF52::PowerOff()
+{
+	StopConversion();
+
+	// Undocumented : Turn power off
+	*(volatile uint32_t *)((uint32_t)NRF_SAADC + 0xFFC);
+	*(volatile uint32_t *)((uint32_t)NRF_SAADC + 0xFFC) = 1;
+	*(volatile uint32_t *)((uint32_t)NRF_SAADC + 0xFFC) = 0;
 }
 
 uint32_t AdcnRF52::Rate(uint32_t Val)
@@ -486,6 +507,8 @@ bool AdcnRF52::OpenChannel(const ADC_CHAN_CFG *pChanCfg, int NbChan)
 				case ADC_PIN_CONN_VDD:
 					chconfig |= (SAADC_CH_CONFIG_RESN_VDD1_2 << SAADC_CH_CONFIG_RESN_Pos);
 					break;
+				default:
+					;
 			}
 		}
 		else
@@ -524,7 +547,11 @@ bool AdcnRF52::OpenChannel(const ADC_CHAN_CFG *pChanCfg, int NbChan)
 		else
 		{
 			s_AdcnRF52DevData.GainFactor[pChanCfg[i].Chan] /= (float)resdiv * (float)((pChanCfg[i].Gain >> 8)& 0xFF);
+#ifdef __ICCARM__
+			chconfig |= ((5 + (31 - __CLZ(pChanCfg[i].Gain >> 8))) << SAADC_CH_CONFIG_GAIN_Pos) & SAADC_CH_CONFIG_GAIN_Msk;
+#else
 			chconfig |= ((5 + (31 - __builtin_clzl(pChanCfg[i].Gain >> 8))) << SAADC_CH_CONFIG_GAIN_Pos) & SAADC_CH_CONFIG_GAIN_Msk;
+#endif
 		}
 
 		if (pChanCfg[i].PinP.Conn == ADC_PIN_CONN_VDD)
@@ -603,8 +630,9 @@ bool AdcnRF52::StartConversion()
 	if (vbInterrupt == false)
 	{
 	    int timeout = 10000;
-	    while (NRF_SAADC->EVENTS_STARTED == 0 && timeout-- > 0);
-        NRF_SAADC->EVENTS_STARTED = 0;
+	    while (NRF_SAADC->EVENTS_STARTED == 0 && timeout-- > 0)
+				;
+      NRF_SAADC->EVENTS_STARTED = 0;
 	    NRF_SAADC->TASKS_SAMPLE = 1;
 		s_AdcnRF52DevData.SampleCnt++;
 	}
@@ -738,3 +766,7 @@ bool AdcnRF52::Read(int Chan, ADC_DATA *pBuff)
 	return true;
 }
 
+bool AdcnRF52::UpdateData()
+{
+	return true;
+}

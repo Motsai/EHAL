@@ -50,7 +50,11 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "board.h"
 
+//#define NORDIC_NUS_SERVICE
+
 #define DEVICE_NAME                     "UARTBridge"                            /**< Name of device. Will be included in the advertising data. */
+
+#define PACKET_SIZE						20
 
 #define MANUFACTURER_NAME               "I-SYST inc."							/**< Manufacturer. Will be passed to Device Information Service. */
 #define MODEL_NAME                      "IMM-NRF51x"                            /**< Model number. Will be passed to Device Information Service. */
@@ -72,14 +76,14 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define BLE_UART_UUID_BASE			NUS_BASE_UUID
 
 #define BLE_UART_UUID_SERVICE		BLE_UUID_NUS_SERVICE			/**< The UUID of the Nordic UART Service. */
-#define BLE_UART_UUID_TX_CHAR		BLE_UUID_NUS_RX_CHARACTERISTIC	/**< The UUID of the TX Characteristic. */
-#define BLE_UART_UUID_RX_CHAR		BLE_UUID_NUS_TX_CHARACTERISTIC	/**< The UUID of the RX Characteristic. */
+#define BLE_UART_UUID_READ_CHAR		BLE_UUID_NUS_TX_CHARACTERISTIC	/**< The UUID of the TX Characteristic. */
+#define BLE_UART_UUID_WRITE_CHAR	BLE_UUID_NUS_RX_CHARACTERISTIC	/**< The UUID of the RX Characteristic. */
 #else
 #define BLE_UART_UUID_BASE			BLUEIO_UUID_BASE
 
 #define BLE_UART_UUID_SERVICE		BLUEIO_UUID_UART_SERVICE		//!< BlueIO default service
-#define BLE_UART_UUID_TX_CHAR		BLUEIO_UUID_UART_RX_CHAR		//!< Data characteristic
-#define BLE_UART_UUID_RX_CHAR		BLUEIO_UUID_UART_TX_CHAR		//!< Command control characteristic
+#define BLE_UART_UUID_READ_CHAR		BLUEIO_UUID_UART_RX_CHAR		//!< Data characteristic
+#define BLE_UART_UUID_WRITE_CHAR		BLUEIO_UUID_UART_TX_CHAR		//!< Command control characteristic
 #endif
 
 int BleIntrfEvtCallback(DEVINTRF *pDev, DEVINTRF_EVT EvtId, uint8_t *pBuffer, int BufferLen);
@@ -104,8 +108,8 @@ uint8_t g_ManData[8];
 BLESRVC_CHAR g_UartChars[] = {
 	{
 		// Read characteristic
-		BLE_UART_UUID_RX_CHAR,
-		20,
+		BLE_UART_UUID_READ_CHAR,
+		PACKET_SIZE,
 		BLESVC_CHAR_PROP_READ | BLESVC_CHAR_PROP_NOTIFY | BLESVC_CHAR_PROP_VARLEN,
 		s_RxCharDescString,         // char UTF-8 description string
 		NULL,                       // Callback for write char, set to NULL for read char
@@ -116,9 +120,9 @@ BLESRVC_CHAR g_UartChars[] = {
 	},
 	{
 		// Write characteristic
-		BLE_UART_UUID_TX_CHAR,	// char UUID
-		20,                         // char max data length
-		BLESVC_CHAR_PROP_WRITEWORESP | BLESVC_CHAR_PROP_VARLEN,	// char properties define by BLUEIOSVC_CHAR_PROP_...
+		BLE_UART_UUID_WRITE_CHAR,	// char UUID
+		PACKET_SIZE,                // char max data length
+		BLESVC_CHAR_PROP_WRITE | BLESVC_CHAR_PROP_WRITEWORESP | BLESVC_CHAR_PROP_VARLEN,	// char properties define by BLUEIOSVC_CHAR_PROP_...
 		s_TxCharDescString,			// char UTF-8 description string
 		NULL,         				// Callback for write char, set to NULL for read char
 		NULL,						// Callback on set notification
@@ -134,7 +138,8 @@ uint8_t g_LWrBuffer[512];
 
 const BLESRVC_CFG s_UartSrvcCfg = {
 	BLESRVC_SECTYPE_NONE,		// Secure or Open service/char
-	BLE_UART_UUID_BASE,			// Base UUID
+	{BLE_UART_UUID_BASE,},		// Base UUID
+	1,
 	BLE_UART_UUID_SERVICE,   	// Service UUID
 	s_BleUartNbChar,            // Total number of characteristics for the service
 	g_UartChars,                // Pointer a an array of characteristic
@@ -187,15 +192,20 @@ const BLEAPP_CFG s_BleAppCfg = {
 	.SDEvtHandler = NULL				// RTOS Softdevice handler
 };
 
+#define BLEINTRF_FIFOSIZE			CFIFO_TOTAL_MEMSIZE(10, 22)
+
+alignas(4) static uint8_t s_BleIntrfRxFifo[BLEINTRF_FIFOSIZE];
+alignas(4) static uint8_t s_BleIntrfTxFifo[BLEINTRF_FIFOSIZE];
+
 static const BLEINTRF_CFG s_BleInrfCfg = {
 	&g_UartBleSrvc,
 	BLESRV_WRITE_CHAR_IDX,
 	BLESRV_READ_CHAR_IDX,
-	0,			// Packet size : use default
-	0,			// Rx Fifo mem size
-	NULL,		// Rx Fifo mem pointer
-	0,			// Tx Fifo mem size
-	NULL,		// Tx Fifo mem pointer
+	20,			// Packet size : use default
+	BLEINTRF_FIFOSIZE,			// Rx Fifo mem size
+	s_BleIntrfRxFifo,		// Rx Fifo mem pointer
+	BLEINTRF_FIFOSIZE,			// Tx Fifo mem size
+	s_BleIntrfTxFifo,		// Tx Fifo mem pointer
 	BleIntrfEvtCallback
 };
 
@@ -207,8 +217,8 @@ int nRFUartEvthandler(UARTDEV *pDev, UART_EVT EvtId, uint8_t *pBuffer, int Buffe
 
 #define UARTFIFOSIZE			CFIFO_MEMSIZE(256)
 
-static uint8_t s_UartRxFifo[UARTFIFOSIZE];
-static uint8_t s_UartTxFifo[UARTFIFOSIZE];
+alignas(4) static uint8_t s_UartRxFifo[UARTFIFOSIZE];
+alignas(4) static uint8_t s_UartTxFifo[UARTFIFOSIZE];
 
 
 static const IOPINCFG s_UartPins[] = {
@@ -221,9 +231,9 @@ static const IOPINCFG s_UartPins[] = {
 /// UART configuration
 const UARTCFG g_UartCfg = {
 	.DevNo = 0,							// Device number zero based
-	.pIoMap = s_UartPins,				// UART assigned pins
-	.IoMapLen = sizeof(s_UartPins) / sizeof(IOPINCFG),	// Total number of UART pins used
-	.Rate = 1000000,						// Baudrate
+	.pIOPinMap = s_UartPins,				// UART assigned pins
+	.NbIOPins = sizeof(s_UartPins) / sizeof(IOPINCFG),	// Total number of UART pins used
+	.Rate = 115200,						// Baudrate
 	.DataBits = 8,						// Data bits
 	.Parity = UART_PARITY_NONE,			// Parity
 	.StopBits = 1,						// Stop bit
@@ -287,12 +297,32 @@ void BleAppInitUserData()
 
 void UartRxChedHandler(void * p_event_data, uint16_t event_size)
 {
-	uint8_t buff[128];
+	static uint8_t buff[PACKET_SIZE];
+	static int bufflen = 0;
+	bool flush = false;
 
-	int l = g_Uart.Rx(buff, 128);
+	int l = g_Uart.Rx(&buff[bufflen], PACKET_SIZE - bufflen);
 	if (l > 0)
 	{
-		g_BleIntrf.Tx(0, buff, l);
+		bufflen += l;
+		if (bufflen >= PACKET_SIZE)
+		{
+			flush = true;
+		}
+	}
+	else
+	{
+		if (bufflen > 0)
+		{
+			flush = true;
+		}
+	}
+
+	if (flush)
+	{
+		g_BleIntrf.Tx(0, buff, bufflen);
+		bufflen = 0;
+		app_sched_event_put(NULL, 0, UartRxChedHandler);
 	}
 }
 

@@ -35,12 +35,16 @@ Modified by          Date              Description
 ----------------------------------------------------------------------------*/
 #include <string.h>
 
+#include "app_util_platform.h"
+
+#include "istddef.h"
 #include "cfifo.h"
 #include "ble_intrf.h"
 #include "ble_app.h"
+#include "interrupt.h"
 
-#define NRFBLEINTRF_PACKET_SIZE		(NRF_BLE_MAX_MTU_SIZE - 3)
-#define NRFBLEINTRF_CFIFO_SIZE		CFIFO_TOTAL_MEMSIZE(2, NRFBLEINTRF_PACKET_SIZE + sizeof(BLEINTRF_PKT) - 1)
+#define NRFBLEINTRF_PACKET_SIZE		(NRF_BLE_MAX_MTU_SIZE - 3)// + sizeof(BLEINTRF_PKT) - 1)
+#define NRFBLEINTRF_CFIFO_SIZE		BLEINTRF_CFIFO_TOTAL_MEMSIZE(2, NRFBLEINTRF_PACKET_SIZE)
 
 alignas(4) static uint8_t s_nRFBleRxFifoMem[NRFBLEINTRF_CFIFO_SIZE];
 alignas(4) static uint8_t s_nRFBleTxFifoMem[NRFBLEINTRF_CFIFO_SIZE];
@@ -86,7 +90,7 @@ void BleIntrfEnable(DEVINTRF *pDevIntrf)
  *
  * @return Transfer rate per second
  */
-int BleIntrfGetRate(DEVINTRF *pDevIntrf)
+uint32_t BleIntrfGetRate(DEVINTRF *pDevIntrf)
 {
 	return 0;	// BLE has no rate
 }
@@ -104,7 +108,7 @@ int BleIntrfGetRate(DEVINTRF *pDevIntrf)
  * @return 	Actual transfer rate per second set.  It is the real capable rate
  * 			closes to rate being requested.
  */
-int BleIntrfSetRate(DEVINTRF *pDevIntrf, int Rate)
+uint32_t BleIntrfSetRate(DEVINTRF *pDevIntrf, uint32_t Rate)
 {
 	return 0; // BLE has no rate
 }
@@ -123,7 +127,7 @@ int BleIntrfSetRate(DEVINTRF *pDevIntrf, int Rate)
  * @return 	true - Success
  * 			false - failed.
  */
-bool BleIntrfStartRx(DEVINTRF *pDevIntrf, int DevAddr)
+bool BleIntrfStartRx(DEVINTRF *pDevIntrf, uint32_t DevAddr)
 {
 	return true;
 }
@@ -189,39 +193,41 @@ void BleIntrfStopRx(DEVINTRF *pSerDev)
  * @return 	true - Success
  * 			false - failed
  */
-bool BleIntrfStartTx(DEVINTRF *pDevIntrf, int DevAddr)
+bool BleIntrfStartTx(DEVINTRF *pDevIntrf, uint32_t DevAddr)
 {
 	return true;
 }
 
 bool BleIntrfNotify(BLEINTRF *pIntrf)
 {
-    BLEINTRF_PKT *pkt;
+    BLEINTRF_PKT *pkt = NULL;
     uint32_t res = NRF_SUCCESS;
 
     if (pIntrf->TransBuffLen > 0)
     {
         res = BleSrvcCharNotify(pIntrf->pBleSrv, pIntrf->TxCharIdx, pIntrf->TransBuff, pIntrf->TransBuffLen);
     }
-    if (res != NRF_ERROR_RESOURCES)
-    {
-        pIntrf->TransBuffLen = 0;
-        do {
-            pkt = (BLEINTRF_PKT *)CFifoGet(pIntrf->hTxFifo);
-            if (pkt != NULL)
-            {
-                uint32_t res = BleSrvcCharNotify(pIntrf->pBleSrv, pIntrf->TxCharIdx, pkt->Data, pkt->Len);
-                if (res == NRF_ERROR_RESOURCES)
-                {
-                    memcpy(pIntrf->TransBuff, pkt->Data, pkt->Len);
-                    pIntrf->TransBuffLen = pkt->Len;
-                    break;
-                }
-            }
-        } while (pkt != NULL);
-    }
 
-    return true;
+    while (res == NRF_SUCCESS)
+	{
+		pIntrf->TransBuffLen = 0;
+		uint32_t state = DisableInterrupt();
+		pkt = (BLEINTRF_PKT *)CFifoGet(pIntrf->hTxFifo);
+		EnableInterrupt(state);
+		if (pkt == NULL)
+		{
+			return true;
+		}
+		res = BleSrvcCharNotify(pIntrf->pBleSrv, pIntrf->TxCharIdx, pkt->Data, pkt->Len);
+	}
+
+	if (pkt != NULL)
+	{
+		memcpy(pIntrf->TransBuff, pkt->Data, pkt->Len);
+		pIntrf->TransBuffLen = pkt->Len;
+	}
+
+	return false;
 }
 
 /**
@@ -240,22 +246,28 @@ int BleIntrfTxData(DEVINTRF *pDevIntrf, uint8_t *pData, int DataLen)
 {
 	BLEINTRF *intrf = (BLEINTRF*)pDevIntrf->pDevData;
     BLEINTRF_PKT *pkt;
-    int maxlen = intrf->hTxFifo->BlkSize - sizeof(pkt->Len);
+    int maxlen = intrf->PacketSize - BLEINTRF_PKHDR_LEN;
 	int cnt = 0;
 
 	while (DataLen > 0)
 	{
+	    uint32_t state = DisableInterrupt();
 		pkt = (BLEINTRF_PKT *)CFifoPut(intrf->hTxFifo);
+		EnableInterrupt(state);
 		if (pkt == NULL)
+		{
+			intrf->TxDropCnt++;
 			break;
-        int l = min(DataLen, maxlen);
+		}
+		int l = min(DataLen, maxlen);
 		memcpy(pkt->Data, pData, l);
 		pkt->Len = l;
 		DataLen -= l;
 		pData += l;
 		cnt += l;
 	}
-	BleIntrfNotify(intrf);
+
+    BleIntrfNotify(intrf);
 
 	return cnt;
 }
@@ -309,8 +321,11 @@ void BleIntrfRxWrCB(BLESRVC *pBleSvc, uint8_t *pData, int Offset, int Len)
 	while (Len > 0) {
 		pkt = (BLEINTRF_PKT *)CFifoPut(intrf->hRxFifo);
 		if (pkt == NULL)
+		{
+			intrf->RxDropCnt++;
 			break;
-		int l = min(intrf->PacketSize, Len);
+		}
+		int l = min(intrf->PacketSize - BLEINTRF_PKHDR_LEN, Len);
 		memcpy(pkt->Data, pData, l);
 		pkt->Len = l;
 		Len -= l;
@@ -330,11 +345,11 @@ bool BleIntrfInit(BLEINTRF *pBleIntrf, const BLEINTRF_CFG *pCfg)
 
 	if (pCfg->PacketSize <= 0)
 	{
-		pBleIntrf->PacketSize = NRFBLEINTRF_PACKET_SIZE;
+		pBleIntrf->PacketSize = NRFBLEINTRF_PACKET_SIZE + BLEINTRF_PKHDR_LEN;
 	}
 	else
 	{
-		pBleIntrf->PacketSize = pCfg->PacketSize;
+		pBleIntrf->PacketSize = pCfg->PacketSize + BLEINTRF_PKHDR_LEN;
 	}
 
 	if (pCfg->pRxFifoMem == NULL || pCfg->pTxFifoMem == NULL)
@@ -358,6 +373,7 @@ bool BleIntrfInit(BLEINTRF *pBleIntrf, const BLEINTRF_CFG *pCfg)
 	pBleIntrf->pBleSrv->pCharArray[pBleIntrf->RxCharIdx].WrCB = BleIntrfRxWrCB;
 	pBleIntrf->pBleSrv->pCharArray[pBleIntrf->TxCharIdx].TxCompleteCB = BleIntrfTxComplete;
 
+	pBleIntrf->DevIntrf.Type = DEVINTRF_TYPE_BLE;
 	pBleIntrf->DevIntrf.Enable = BleIntrfEnable;
 	pBleIntrf->DevIntrf.Disable = BleIntrfDisable;
 	pBleIntrf->DevIntrf.GetRate = BleIntrfGetRate;
@@ -368,10 +384,14 @@ bool BleIntrfInit(BLEINTRF *pBleIntrf, const BLEINTRF_CFG *pCfg)
 	pBleIntrf->DevIntrf.StartTx = BleIntrfStartTx;
 	pBleIntrf->DevIntrf.TxData = BleIntrfTxData;
 	pBleIntrf->DevIntrf.StopTx = BleIntrfStopTx;
-	pBleIntrf->DevIntrf.bBusy = false;
 	pBleIntrf->DevIntrf.MaxRetry = 0;
 	pBleIntrf->DevIntrf.EvtCB = pCfg->EvtCB;
 	pBleIntrf->TransBuffLen = 0;
+	pBleIntrf->RxDropCnt = 0;
+	pBleIntrf->TxDropCnt = 0;
+	atomic_flag_clear(&pBleIntrf->DevIntrf.bBusy);
+
+	DeviceIntrfEnable(&pBleIntrf->DevIntrf);
 
 	return true;
 }
@@ -395,7 +415,7 @@ bool BleIntrf::RequestToSend(int NbBytes)
 	if (vBleIntrf.hTxFifo)
 	{
 		int avail = CFifoAvail(vBleIntrf.hTxFifo);
-		if ((avail * vBleIntrf.PacketSize) > NbBytes)
+		if ((avail * (vBleIntrf.PacketSize - BLEINTRF_PKHDR_LEN)) > NbBytes)
 			retval = true;
 	}
 	else

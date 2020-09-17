@@ -33,14 +33,11 @@ Modified by          Date              Description
 ----------------------------------------------------------------------------*/
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "stddev.h"
 
 #define STDDEV_FDIDX_MASK		0xF
 #define STDDEV_FDIDX_NBITS		4
-
-
 
 STDDEV *g_DevTable[STDDEV_MAX] = {
 	NULL,

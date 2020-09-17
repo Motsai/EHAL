@@ -27,9 +27,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>src/PwmDemo.cpp</name>
+			<name>src/pwm_demo.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/exemples/pwm/PwmDemo.cpp</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/exemples/pwm/pwm_demo.cpp</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

@@ -38,8 +38,13 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "device.h"
 
+/** @addtogroup MiscDev
+  * @{
+  */
+
 typedef struct {
 	char *pInitStr;			//<<! pointer to initialization string
+
 } MODEM_CFG;
 
 typedef struct {
@@ -49,11 +54,15 @@ typedef struct {
 class Modem : public Device {
 public:
 	virtual bool Init(MODEM_CFG &Cfg, DeviceIntrf * const pIntrf) = 0;
+	virtual bool Connect();
+	virtual bool Disconnect();
 
 protected:
 
 private:
 };
+
+/** @} end group IMU */
 
 #endif // __MODEM_H__
 
