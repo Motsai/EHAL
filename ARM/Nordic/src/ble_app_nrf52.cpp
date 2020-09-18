@@ -1649,13 +1649,24 @@ void BleAppScan()
 	if (g_BleAppData.bScan == true)
 	{
 		err_code = sd_ble_gap_scan_start(NULL, &g_BleScanReportData);
+		if (err_code == NRF_ERROR_INVALID_STATE)
+        {
+             err_code = sd_ble_gap_scan_stop();
+             g_BleAppData.bScan = false;
+        }
 	}
-	else
-	{
-	    g_BleAppData.bScan = true;
+	if (g_BleAppData.bScan == false)
+    {
+        g_BleAppData.bScan = true;
 
-		err_code = sd_ble_gap_scan_start(&s_BleScanParams, &g_BleScanReportData);
-	}
+        err_code = sd_ble_gap_scan_start(&s_BleScanParams, &g_BleScanReportData);
+        if (err_code == NRF_ERROR_INVALID_STATE)
+        {
+             err_code = sd_ble_gap_scan_stop();
+             err_code = sd_ble_gap_scan_start(&s_BleScanParams, &g_BleScanReportData);
+        }
+        APP_ERROR_CHECK(err_code);
+    }
 	APP_ERROR_CHECK(err_code);
 }
 
