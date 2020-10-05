@@ -69,26 +69,46 @@ static SAM4_UARTDEV s_Sam4UartDev[] = {
 	{
 		.DevNo = 0,
 		.SamDevId = ID_UART0,
-		.pUartReg = SAM4E_UART0,
+		{.pUartReg = SAM4E_UART0,},
 		.pPdc = SAM4E_PDC_UART0,
+		.pUartDev = NULL,
+		.RxFifoMem = { 0, },
+		.TxFifoMem = { 0, },
+		.PdcRxByte = 0,
+		.PdcTxBuff = {0,}
 	},
 	{
 		.DevNo = 1,
 		.SamDevId = ID_UART1,
-		.pUartReg = SAM4E_UART1,
+		{.pUartReg = SAM4E_UART1,},
 		.pPdc = SAM4E_PDC_UART1,
+		.pUartDev = NULL,
+		.RxFifoMem = { 0, },
+		.TxFifoMem = { 0, },
+		.PdcRxByte = 0,
+		.PdcTxBuff = {0,}
 	},
 	{
 		.DevNo = 2,
 		.SamDevId = ID_USART0,
-		.pUSartReg = SAM4E_USART0,
+		{.pUSartReg = SAM4E_USART0,},
 		.pPdc = SAM4E_PDC_USART0,
+		.pUartDev = NULL,
+		.RxFifoMem = { 0, },
+		.TxFifoMem = { 0, },
+		.PdcRxByte = 0,
+		.PdcTxBuff = {0,}
 	},
 	{
 		.DevNo = 3,
 		.SamDevId = ID_USART1,
-		.pUSartReg = SAM4E_USART1,
+		{.pUSartReg = SAM4E_USART1,},
 		.pPdc = SAM4E_PDC_USART1,
+		.pUartDev = NULL,
+		.RxFifoMem = { 0, },
+		.TxFifoMem = { 0, },
+		.PdcRxByte = 0,
+		.PdcTxBuff = {0,}
 	},
 };
 
@@ -206,11 +226,13 @@ void Sam4UartIntHandler(SAM4_UARTDEV *pDev)
 void UART0_Handler(void)
 {
 	Sam4UartIntHandler(&s_Sam4UartDev[0]);
+	NVIC_ClearPendingIRQ(UART0_IRQn);
 }
 
 void UART1_Handler( void )
 {
 	Sam4UartIntHandler(&s_Sam4UartDev[1]);
+	NVIC_ClearPendingIRQ(UART1_IRQn);
 }
 
 void Sam4USartIntHandler(SAM4_UARTDEV *pDev)
@@ -307,11 +329,13 @@ void Sam4USartIntHandler(SAM4_UARTDEV *pDev)
 void USART0_Handler( void )
 {
 	Sam4USartIntHandler(&s_Sam4UartDev[2]);
+	NVIC_ClearPendingIRQ(USART0_IRQn);
 }
 
 void USART1_Handler( void )
 {
 	Sam4USartIntHandler(&s_Sam4UartDev[3]);
+	NVIC_ClearPendingIRQ(USART1_IRQn);
 }
 
 static inline uint32_t Sam4UARTGetRate(DEVINTRF * const pDev) {

@@ -57,7 +57,7 @@ extern "C" {
 /**
  * @brief	16 bits endianess conversion.
  *
- * @param	x : 16 bits data to covert.
+ * @param	x : 16 bits number to covert.
  *
  * @return	converted data.
  */
@@ -68,7 +68,7 @@ static inline int16_t EndianCvt16(int16_t x) {
 /**
  * @brief	32 bits endianess conversion.
  *
- * @param	x : 32 bits data to covert.
+ * @param	x : 32 bits number to covert.
  *
  * @return	converted data.
  */
