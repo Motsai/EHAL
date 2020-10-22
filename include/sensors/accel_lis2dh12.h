@@ -1,28 +1,19 @@
 /**-------------------------------------------------------------------------
 @file	accel_lis22dh12.h
-
 @brief	Implementation of ST LIS2DH12 accel. sensor
-
-
 @author	Hoang Nguyen Hoan
 @date	Jan. 17, 2020
-
 @license
-
 MIT License
-
 Copyright (c) 2020 I-SYST inc. All rights reserved.
-
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
-
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
-
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,7 +21,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
 ----------------------------------------------------------------------------*/
 
 #ifndef __ACCEL_LIS2DH12_H__
@@ -40,7 +30,6 @@ SOFTWARE.
 
 #include "coredev/iopincfg.h"
 #include "sensors/accel_sensor.h"
-#include "sensors/temp_sensor.h"
 
 #define LIS2DH12_I2C_DEVADDR				0x18	//!< 7 bits i2c address for SA0 = 0
 #define LIS2DH12_I2C_DEVADDR1				0x19	//!< 7 bits i2c address for SA0 = 1
@@ -246,9 +235,8 @@ SOFTWARE.
 
 #define LIS2DH12_ACT_DUR					0x3F		//!< Sleep-to-wake duration
 
-#define LIS2DH12_TEMP_MAX_C					127
 
-class AccelLis2dh12 : public AccelSensor, public TempSensor {
+class AccelLis2dh12 : public AccelSensor {
 public:
 	/**
 	 * @brief	Initialize accelerometer sensor.
@@ -262,25 +250,6 @@ public:
 	 * @return	true - Success
 	 */
 	bool Init(const ACCELSENSOR_CFG &Cfg, DeviceIntrf * const pIntrf, Timer * const pTimer = NULL);
-
-	/**
-	 * @brief	Initialize sensor (require implementation).
-	 *
-	 * @param 	CfgData : Reference to configuration data
-	 * @param	pIntrf 	: Pointer to interface to the sensor.
-	 * 					  This pointer will be kept internally
-	 * 					  for all access to device.
-	 * 					  DONOT delete this object externally
-	 * @param	pTimer	: Pointer to timer for retrieval of time stamp
-	 * 					  This pointer will be kept internally
-	 * 					  for all access to device.
-	 * 					  DONOT delete this object externally
-	 *
-	 * @return
-	 * 			- true	: Success
-	 * 			- false	: Failed
-	 */
-	bool Init(const TEMPSENSOR_CFG &CfgData, DeviceIntrf * const pIntrf = NULL, Timer * const pTimer = NULL);
 
 	uint16_t Scale(uint16_t Value);
 	/**
@@ -317,14 +286,10 @@ public:
 	void IntHandler();
 	bool UpdateData();
 
-	bool Read(ACCELSENSOR_RAWDATA &Data) { return AccelSensor::Read(Data); }
-	bool Read(ACCELSENSOR_DATA &Data) { return AccelSensor::Read(Data); }
-	void Read(TEMPSENSOR_DATA &Data) { TempSensor::Read(Data); }
-	bool StartSampling() { return true; }
+	int8_t ReadTemperature(); //reads temperature in degrees Celsius, but is not very accurate as the reference temperature is assumed to be 25 degrees
 
 private:
-
-	bool Init(uint32_t DevAddr, DeviceIntrf * const pIntrf, Timer * const pTimer = NULL);
+	bool vbIntEn;
 };
 
 #endif // __ACCEL_LIS2DH12_H__
