@@ -8,27 +8,27 @@
 
 @license
 
-MIT License
+Copyright (c) 2017, I-SYST inc., all rights reserved
 
-Copyright (c) 2017-2019 I-SYST inc. All rights reserved.
+Permission to use, copy, modify, and distribute this software for any purpose
+with or without fee is hereby granted, provided that the above copyright
+notice and this permission notice appear in all copies, and none of the
+names : I-SYST or its contributors may be used to endorse or
+promote products derived from this software without specific prior written
+permission.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+For info or contributing contact : hnhoan at i-syst dot com
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ----------------------------------------------------------------------------*/
 
@@ -78,7 +78,7 @@ typedef struct __AccelSensor_Config {
 	SENSOR_OPMODE 	OpMode;		//!< Operating mode
 	uint32_t		Freq;		//!< Sampling frequency in mHz (miliHertz) if continuous mode is used
 	uint16_t		Scale;		//!< Accelerometer sensor scale in g force (2g, 4g, ...
-	uint32_t		FltrFreq;	//!< Filter cutoff frequency in mHz
+	uint32_t		LPFreq;		//!< Low pass filter cutoff frequency in Hz
 	bool 			bInter;		//!< true - enable interrupt
 	DEVINTR_POL		IntPol;		//!< interrupt polarity
 	ACCELINTCB		IntHandler;
@@ -132,7 +132,15 @@ public:
 	 *
 	 * @return	True - Success.
 	 */
-	virtual bool Read(ACCELSENSOR_DATA &Data);
+	virtual bool Read(ACCELSENSOR_DATA &Data) {
+		if (vData.Range == 0)
+			return false;
+		Data.Timestamp = vData.Timestamp;
+		Data.X = (float)(vData.X * vData.Scale) / (float)vData.Range;
+        Data.Y = (float)(vData.Y * vData.Scale) / (float)vData.Range;
+        Data.Z = (float)(vData.Z * vData.Scale) / (float)vData.Range;
+		return true;
+	}
 
 	/**
 	 * @brief	Get the current G scale value.
@@ -151,40 +159,23 @@ public:
 	 *
 	 * @return	Real scale value
 	 */
-	virtual uint16_t Scale(uint16_t Value);
+	virtual uint16_t Scale(uint16_t Value) { vScale = Value; return vScale; }
 
-	/**
-	 * @brief	Set max measurement range of the device
-	 *
-	 * This function sets the maximum positive value of the raw data that can be read from
-	 * the sensor. Sensor device can implement this function to allow configuration variable
-	 * range value.
-	 *
-	 * @param	Max positive range value
-	 *
-	 * @return	Actual maximum positive range value of the raw data
-	 */
-	virtual uint32_t Range(uint32_t Value) { vData.Range = Value; return Sensor::Range(Value); }
+	virtual uint16_t Range() { return vRange; }
+	virtual uint16_t Range(uint16_t Value) { vRange = Value; return vRange; }
 
-    virtual void SetCalibration(float (&Gain)[3][3], float (&Offset)[3]);
-	virtual void ClearCalibration();
-	virtual bool StartSampling() { return true; }
-
-	AccelSensor() {
-		Type(SENSOR_TYPE_ACCEL);
-		ClearCalibration();
-	}
-	AccelSensor(AccelSensor&);	// Copy ctor not allowed
+	virtual uint32_t LowPassFreq() { return vLPFreq; }
+	virtual uint32_t LowPassFreq(uint32_t Freq) { vLPFreq = Freq; return vLPFreq; }
 
 protected:
 
 	ACCELSENSOR_RAWDATA vData;		//!< Current sensor data updated with UpdateData()
-	ACCELINTCB vIntHandler;
 
 private:
+	ACCELINTCB vIntHandler;
 	uint16_t vScale;			//!< Sensor data scale in g force (2g, 4g, ...)
-	float vCalibGain[3][3];
-	float vCalibOffset[3];
+	uint16_t vRange;            //!< ADC range of the sensor, contains max value for conversion factor
+	uint32_t vLPFreq;			//!< Low pass filter cutoff frequency in Hz
 };
 
 #endif // __cplusplus

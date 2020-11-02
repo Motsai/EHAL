@@ -46,7 +46,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // DeviceIntrfStartTx
 // DeviceIntrfStopTx
 //
-int DeviceIntrfRx(DEVINTRF * const pDev, uint32_t DevAddr, uint8_t *pBuff, int BuffLen)
+int DeviceIntrfRx(DEVINTRF * const pDev, int DevAddr, uint8_t *pBuff, int BuffLen)
 {
 	if (pBuff == NULL || BuffLen <= 0)
 		return 0;
@@ -64,7 +64,7 @@ int DeviceIntrfRx(DEVINTRF * const pDev, uint32_t DevAddr, uint8_t *pBuff, int B
 	return count;
 }
 
-int DeviceIntrfTx(DEVINTRF * const pDev, uint32_t DevAddr, uint8_t *pBuff, int BuffLen)
+int DeviceIntrfTx(DEVINTRF * const pDev, int DevAddr, uint8_t *pBuff, int BuffLen)
 {
 	if (pBuff == NULL || BuffLen <= 0)
 		return 0;
@@ -82,7 +82,7 @@ int DeviceIntrfTx(DEVINTRF * const pDev, uint32_t DevAddr, uint8_t *pBuff, int B
 	return count;
 }
 
-int DeviceIntrfRead(DEVINTRF * const pDev, uint32_t DevAddr, uint8_t *pAdCmd, int AdCmdLen,
+int DeviceIntrfRead(DEVINTRF * const pDev, int DevAddr, uint8_t *pAdCmd, int AdCmdLen,
                  uint8_t *pRxBuff, int RxLen)
 {
     int count = 0;
@@ -96,21 +96,12 @@ int DeviceIntrfRead(DEVINTRF * const pDev, uint32_t DevAddr, uint8_t *pAdCmd, in
         {
             if (pAdCmd)
             {
-            	if (pDev->TxSrData)
-            	{
-            		count = pDev->TxSrData(pDev, pAdCmd, AdCmdLen);
-            	}
-            	else
-            	{
-            		count = pDev->TxData(pDev, pAdCmd, AdCmdLen);
-            	}
+                count = pDev->TxData(pDev, pAdCmd, AdCmdLen);
             }
-           // if (pDev->TxSrData)
-            {
-            	// Note : this is restart condition in read mode,
-            	// must not generate any stop condition here
-            	pDev->StartRx(pDev, DevAddr);
-            }
+            // Note : this is restart condition in read mode,
+            // must not generate any stop condition here
+            pDev->StartRx(pDev, DevAddr);
+
            	count = pDev->RxData(pDev, pRxBuff, RxLen);
 
            	DeviceIntrfStopRx(pDev);
@@ -120,7 +111,7 @@ int DeviceIntrfRead(DEVINTRF * const pDev, uint32_t DevAddr, uint8_t *pAdCmd, in
     return count;
 }
 
-int DeviceIntrfWrite(DEVINTRF * const pDev, uint32_t DevAddr, uint8_t *pAdCmd, int AdCmdLen,
+int DeviceIntrfWrite(DEVINTRF * const pDev, int DevAddr, uint8_t *pAdCmd, int AdCmdLen,
                   uint8_t *pData, int DataLen)
 {
     int count = 0, txlen = AdCmdLen;
@@ -129,7 +120,7 @@ int DeviceIntrfWrite(DEVINTRF * const pDev, uint32_t DevAddr, uint8_t *pAdCmd, i
     if (pAdCmd == NULL || (AdCmdLen + DataLen) <= 0)
         return 0;
 
-#if defined(WIN32) || defined(__ICCARM__)
+#ifdef WIN32
 	uint8_t d[100];
 #else
 	uint8_t d[AdCmdLen + DataLen];

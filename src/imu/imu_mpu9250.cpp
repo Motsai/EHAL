@@ -33,7 +33,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ----------------------------------------------------------------------------*/
-#include "istddef.h"
 #include "convutil.h"
 #include "sensors/agm_mpu9250.h"
 #include "imu/imu_mpu9250.h"

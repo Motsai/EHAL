@@ -33,23 +33,14 @@ static const IOPINCFG s_UartPins[] = {
 static const int s_NbUartPins = sizeof(s_UartPins) / sizeof(IOPINCFG);
 
 const UARTCFG g_UartCfg = {
-	.DevNo = 0,
-	.pIOPinMap = s_UartPins,
-	.NbIOPins = sizeof(s_UartPins) / sizeof(IOPINCFG),
-	.Rate = 115200,
-	.DataBits = 8,
-	.Parity = UART_PARITY_NONE,
-	.StopBits = 1,	// Stop bit
-	.FlowControl = UART_FLWCTRL_NONE,
-	.bIntMode = true,
-	.IntPrio = 6,
-	.EvtCallback = NULL,
-	.bFifoBlocking = true,
-	.RxMemSize = 0,
-	.pRxMem = NULL,
-	.TxMemSize = 0,
-	.pTxMem = NULL,
-	.bDMAMode = false,
+	0,
+	s_UartPins,
+	s_NbUartPins,
+	115200,
+	8,
+	UART_PARITY_NONE,
+	1,	// Stop bit
+	UART_FLWCTRL_NONE,
 };
 
 // UART device instance
@@ -75,7 +66,8 @@ void HardwareInit()
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 */
-int main (int argc, char* argv[])
+int
+main (int argc, char* argv[])
 {
 	uint32_t len = 10;
 	uint8_t buffer[100];

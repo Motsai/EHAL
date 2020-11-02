@@ -40,9 +40,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __IOPINCTRL_H__
 
 #include <stdint.h>
-
 #include "nrf.h"
-
 #include "coredev/iopincfg.h"
 
 /**
@@ -56,18 +54,10 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @Param	Dir     : I/O direction
  */
 static inline __attribute__((always_inline)) void IOPinSetDir(int PortNo, int PinNo, IOPINDIR Dir) {
-#if defined(NRF91_SERIES) || defined(NRF53_SERIES)
-#ifdef NRF5340_XXAA_NETWORK
-	NRF_GPIO_Type *reg = NRF_P0_NS;
-#else
-	NRF_GPIO_Type *reg = NRF_P0_S;
-	if (PortNo & 0x80)
-	{
-		reg = NRF_P0_NS;
-	}
-#endif
-#else
+#ifndef NRF91_SERIES
 	NRF_GPIO_Type *reg = NRF_GPIO;
+#else
+	NRF_GPIO_Type *reg = NRF_P0_NS;
 #endif
 
 #ifdef NRF52840_XXAA
@@ -78,16 +68,10 @@ static inline __attribute__((always_inline)) void IOPinSetDir(int PortNo, int Pi
 
 #endif
 
-	reg->PIN_CNF[PinNo] &= ~GPIO_PIN_CNF_INPUT_Disconnect << GPIO_PIN_CNF_INPUT_Pos;
 	if (Dir == IOPINDIR_OUTPUT)
-	{
-		reg->PIN_CNF[PinNo] |= GPIO_PIN_CNF_INPUT_Disconnect << GPIO_PIN_CNF_INPUT_Pos;
 		reg->DIRSET = (1 << PinNo);
-	}
 	else if (Dir == IOPINDIR_INPUT)
-	{
 		reg->DIRCLR = (1 << PinNo);
-	}
 }
 
 /**
@@ -99,16 +83,8 @@ static inline __attribute__((always_inline)) void IOPinSetDir(int PortNo, int Pi
  * @return	Pin state 1 or 0
  */
 static inline __attribute__((always_inline)) int IOPinRead(int PortNo, int PinNo) {
-#if defined(NRF91_SERIES) || defined(NRF53_SERIES)
-#ifdef NRF5340_XXAA_NETWORK
+#ifdef NRF91_SERIES
 	return (NRF_P0_NS->IN >> PinNo) & 1;
-#else
-	if (PortNo & 0x80)
-	{
-		return (NRF_P0_NS->IN >> PinNo) & 1;
-	}
-	return (NRF_P0_S->IN >> PinNo) & 1;
-#endif
 #else
 
 #ifdef NRF52840_XXAA
@@ -131,19 +107,8 @@ static inline __attribute__((always_inline)) int IOPinRead(int PortNo, int PinNo
  * @Param	PinNo  	: Pin number
  */
 static inline __attribute__((always_inline)) void IOPinSet(int PortNo, int PinNo) {
-#if defined(NRF91_SERIES) || defined(NRF53_SERIES)
-#ifdef NRF5340_XXAA_NETWORK
+#ifdef NRF91_SERIES
 	NRF_P0_NS->OUTSET = (1 << PinNo);
-#else
-	if (PortNo & 0x80)
-	{
-		NRF_P0_NS->OUTSET = (1 << PinNo);
-	}
-	else
-	{
-		NRF_P0_S->OUTSET = (1 << PinNo);
-	}
-#endif
 #else
 
 #ifdef NRF52840_XXAA
@@ -166,19 +131,8 @@ static inline __attribute__((always_inline)) void IOPinSet(int PortNo, int PinNo
  * @Param	PinNo  	: Pin number
  */
 static inline __attribute__((always_inline)) void IOPinClear(int PortNo, int PinNo) {
-#if defined(NRF91_SERIES) || defined(NRF53_SERIES)
-#ifdef NRF5340_XXAA_NETWORK
+#ifdef NRF91_SERIES
 	NRF_P0_NS->OUTCLR = (1 << PinNo);
-#else
-	if (PortNo & 0x80)
-	{
-		NRF_P0_NS->OUTCLR = (1 << PinNo);
-	}
-	else
-	{
-		NRF_P0_S->OUTCLR = (1 << PinNo);
-	}
-#endif
 #else
 
 #ifdef NRF52840_XXAA
@@ -201,19 +155,8 @@ static inline __attribute__((always_inline)) void IOPinClear(int PortNo, int Pin
  * @Param	PinNo  	: Pin number
  */
 static inline __attribute__((always_inline)) void IOPinToggle(int PortNo, int PinNo) {
-#if defined(NRF91_SERIES) || defined(NRF53_SERIES)
-#ifdef NRF5340_XXAA_NETWORK
+#ifdef NRF91_SERIES
 	NRF_P0_NS->OUT ^= (1 << PinNo);
-#else
-	if (PortNo & 0x80)
-	{
-		NRF_P0_NS->OUT ^= (1 << PinNo);
-	}
-	else
-	{
-		NRF_P0_S->OUT ^= (1 << PinNo);
-	}
-#endif
 #else
 
 #ifdef NRF52840_XXAA
@@ -237,16 +180,8 @@ static inline __attribute__((always_inline)) void IOPinToggle(int PortNo, int Pi
  * @return	Bit field pin states
  */
 static inline __attribute__((always_inline)) uint32_t IOPinReadPort(int PortNo) {
-#if defined(NRF91_SERIES) || defined(NRF53_SERIES)
-#ifdef NRF5340_XXAA_NETWORK
+#ifdef NRF91_SERIES
 	return NRF_P0_NS->IN;
-#else
-	if (PortNo & 0x80)
-	{
-		return NRF_P0_NS->IN;
-	}
-	return NRF_P0_S->IN;
-#endif
 #else
 
 #ifdef NRF52840_XXAA
@@ -269,19 +204,8 @@ static inline __attribute__((always_inline)) uint32_t IOPinReadPort(int PortNo) 
  * @Param	Data	: Bit field state of all pins on port
  */
 static inline __attribute__((always_inline)) void IOPinWritePort(int PortNo, uint32_t Data) {
-#if defined(NRF91_SERIES) || defined(NRF53_SERIES)
-#ifdef NRF5340_XXAA_NETWORK
+#ifdef NRF91_SERIES
 	NRF_P0_NS->OUT = Data;
-#else
-	if (PortNo & 0x80)
-	{
-		NRF_P0_NS->OUT = Data;
-	}
-	else
-	{
-		NRF_P0_S->OUT = Data;
-	}
-#endif
 #else
 
 #ifdef NRF52840_XXAA

@@ -10,8 +10,6 @@
 
 #include "blueio_board.h"
 
-#define UART_DEVNO			0
-
 #define NORDIC_DK
 #ifdef NORDIC_DK
 // PCA10056

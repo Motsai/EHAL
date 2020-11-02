@@ -45,7 +45,12 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   * @{
   */
 
-#define BLEINTRF_TRANSBUFF_MAXLEN       509
+#define BLEINTRF_TRANSBUFF_MAXLEN       256
+
+/**
+ * Calculate require mem
+ */
+#define BLEINTRF_CFIFO_TOTAL_MEMSIZE(NbBlk, BlkSize)    CFIFO_TOTAL_MEMSIZE(NbBlk, BlkSize + 2)
 
 /**
  * This structure define the CFIFO data packet
@@ -60,12 +65,6 @@ typedef struct __BleDeviceInterfPacket {
     uint8_t     Data[1];// Data container array
 } BLEINTRF_PKT;
 #pragma pack(pop)
-
-/**
- * Calculate require mem
- */
-#define BLEINTRF_PKHDR_LEN			(sizeof(BLEINTRF_PKT) - 1)
-#define BLEINTRF_CFIFO_TOTAL_MEMSIZE(npk, pksize)	CFIFO_TOTAL_MEMSIZE(npk, pksize + BLEINTRF_PKHDR_LEN)
 
 #pragma pack(push, 4)
 
@@ -90,8 +89,6 @@ typedef struct __BleDeviceInterf {
     int			PacketSize;	//!< BLE packet size
     HCFIFO		hRxFifo;
     HCFIFO		hTxFifo;
-    uint32_t	RxDropCnt;
-    uint32_t	TxDropCnt;
     uint8_t     TransBuff[BLEINTRF_TRANSBUFF_MAXLEN];  //
     int         TransBuffLen;   //!< Data length
 } BLEINTRF;
@@ -106,9 +103,9 @@ public:
 	operator DEVINTRF * const () { return &vBleIntrf.DevIntrf; }	// Get device interface data
 	operator BLESRVC * const () { return vBleIntrf.pBleSrv; }
 	// Set data rate in bits/sec (Hz)
-	virtual uint32_t Rate(uint32_t DataRate) { return DeviceIntrfSetRate(&vBleIntrf.DevIntrf, DataRate); }
+	virtual int Rate(int DataRate) { return DeviceIntrfSetRate(&vBleIntrf.DevIntrf, DataRate); }
 	// Get current data rate in bits/sec (Hz)
-	virtual uint32_t Rate(void) { return DeviceIntrfGetRate(&vBleIntrf.DevIntrf); }
+	virtual int Rate(void) { return DeviceIntrfGetRate(&vBleIntrf.DevIntrf); }
 	// Disable device for power reduction, re-enable with Enable() without
 	// full init
 	virtual void Disable(void) { DeviceIntrfDisable(&vBleIntrf.DevIntrf); }
@@ -116,7 +113,7 @@ public:
 	virtual void Enable(void) { DeviceIntrfEnable(&vBleIntrf.DevIntrf); }
 
 	// Initiate receive
-	virtual bool StartRx(uint32_t DevAddr) { return DeviceIntrfStartRx(&vBleIntrf.DevIntrf, DevAddr); }
+	virtual bool StartRx(int DevAddr) { return DeviceIntrfStartRx(&vBleIntrf.DevIntrf, DevAddr); }
 	// Receive Data only, no Start/Stop condition
 	virtual int RxData(uint8_t *pBuff, int BuffLen) {
 		return DeviceIntrfRxData(&vBleIntrf.DevIntrf, pBuff, BuffLen);
@@ -126,7 +123,7 @@ public:
 	// This functions MUST ONLY be called if StartRx returns true.
 	virtual void StopRx(void) { DeviceIntrfStopRx(&vBleIntrf.DevIntrf); }
 	// Initiate transmit
-	virtual bool StartTx(uint32_t DevAddr) {
+	virtual bool StartTx(int DevAddr) {
 		return DeviceIntrfStartTx(&vBleIntrf.DevIntrf, DevAddr);
 	}
 	// Transmit Data only, no Start/Stop condition

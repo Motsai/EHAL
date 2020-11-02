@@ -43,7 +43,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define ADC_DEMO_INTERRUPT_ENABLE
 
 int nRFUartEvthandler(UARTDEV *pDev, UART_EVT EvtId, uint8_t *pBuffer, int BufferLen);
-void ADVEventHandler(Device *pDevObj, DEV_EVT Evt);
+void ADVEventHandler(AdcDevice *pDevObj, ADC_EVT Evt);
 
 #define FIFOSIZE			CFIFO_MEMSIZE(256)
 
@@ -161,9 +161,9 @@ static const int s_NbChan = sizeof(s_ChanCfg) / sizeof(ADC_CHAN_CFG);
 
 volatile bool g_bDataReady = false;
 
-void ADVEventHandler(Device *pAdcDev, DEV_EVT Evt)
+void ADVEventHandler(AdcDevice *pAdcDev, ADC_EVT Evt)
 {
-	if (Evt == DEV_EVT_DATA_RDY)
+	if (Evt == ADC_EVT_DATA_READY)
 	{
 		g_bDataReady = true;
 #ifdef ADC_DEMO_INTERRUPT_ENABLE

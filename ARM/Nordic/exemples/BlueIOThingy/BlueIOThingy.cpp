@@ -68,12 +68,12 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sensors/tph_ms8607.h"
 #include "sensors/tphg_bme680.h"
 #include "sensors/agm_mpu9250.h"
-#include "sensors/accel_adxl362.h"
-#include "timer_nrfx.h"
+#include "sensors/a_adxl362.h"
+#include "timer_nrf5x.h"
+#include "timer_nrf_app_timer.h"
 #include "board.h"
 #include "idelay.h"
 #include "seep.h"
-#include "diskio_flash.h"
 
 #include "BlueIOThingy.h"
 #include "BlueIOMPU9250.h"
@@ -144,7 +144,7 @@ const static TIMER_CFG s_TimerCfg = {
 #ifdef NRF51
 TimerAppTimer g_Timer;
 #else
-TimerLFnRFx g_Timer;
+TimerLFnRF5x g_Timer;
 //TimerAppTimer g_Timer;
 #endif
 
@@ -202,31 +202,25 @@ static const IOPINCFG s_GpioPins[] = {
 	 IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
 	{BLUEIO_TAG_EVIM_LED2_BLUE_PORT, BLUEIO_TAG_EVIM_LED2_BLUE_PIN, BLUEIO_TAG_EVIM_LED2_BLUE_PINOP,
 	 IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
-	{BLUEIO_TAG_EVIM_EEP_WP_PORT, BLUEIO_TAG_EVIM_EEP_WP_PIN, BLUEIO_TAG_EVIM_EEP_WP_PINOP,				// EEP WP
-	 IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
-	{BLUEIO_TAG_EVIM_BUZZ_PORT, BLUEIO_TAG_EVIM_BUZZ_PIN, BLUEIO_TAG_EVIM_BUZZ_PINOP,
-	 IOPINDIR_OUTPUT, IOPINRES_PULLDOWN, IOPINTYPE_NORMAL},
 };
 
 static const int s_NbGpioPins = sizeof(s_GpioPins) / sizeof(IOPINCFG);
 
 static const IOPINCFG s_SpiPins[] = {
     {SPI2_SCK_PORT, SPI2_SCK_PIN, SPI2_SCK_PINOP,
-		IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
+     IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
     {SPI2_MISO_PORT, SPI2_MISO_PIN, SPI2_MISO_PINOP,
-		IOPINDIR_INPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
+     IOPINDIR_INPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
     {SPI2_MOSI_PORT, SPI2_MOSI_PIN, SPI2_MOSI_PINOP,
-		IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
+     IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
     {BLUEIO_TAG_EVIM_IMU_CS_PORT, BLUEIO_TAG_EVIM_IMU_CS_PIN, BLUEIO_TAG_EVIM_IMU_CS_PINOP,
-		IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
-	{BLUEIO_TAG_EVIM_FLASH_CS_PORT, BLUEIO_TAG_EVIM_FLASH_CS_PIN, BLUEIO_TAG_EVIM_FLASH_CS_PINOP,
-		IOPINDIR_OUTPUT, IOPINRES_PULLUP, IOPINTYPE_NORMAL},	// CS
+     IOPINDIR_OUTPUT, IOPINRES_NONE, IOPINTYPE_NORMAL},
 };
 
 static const SPICFG s_SpiCfg = {
     .DevNo = SPI2_DEVNO,
-    .Phy = SPIPHY_NORMAL,
-	.Mode = SPIMODE_MASTER,
+	.Type = SPITYPE_NORMAL,
+    .Mode = SPIMODE_MASTER,
     .pIOPinMap = s_SpiPins,
     .NbIOPins = sizeof(s_SpiPins) / sizeof(IOPINCFG),
     .Rate = 1000000,   // Speed in Hz
@@ -340,52 +334,7 @@ static const SEEP_CFG s_SeepCfg = {
 
 Seep g_Seep;
 
-FlashDiskIO g_FlashDiskIO;
 
-static uint8_t s_FlashCacheMem[DISKIO_SECT_SIZE];
-DISKIO_CACHE_DESC g_FlashCache = {
-    -1, 0xFFFFFFFF, s_FlashCacheMem
-};
-
-bool MX25U1635E_init(int pDevNo, DeviceIntrf* ppInterface);
-
-static FLASHDISKIO_CFG s_FlashDiskCfg = {
-    .DevNo = 1,
-    .TotalSize = 16 * 1024 * 1024 / 8,      // 256 Mbits
-    .SectSize = 4,
-	.BlkSize = 32,
-    .WriteSize = 128,
-    .AddrSize = 3,                          // 256+ Mbits needs 4 bytes addressing
-    .pInitCB = MX25U1635E_init,//mx66u51235f_init,
-    .pWaitCB = NULL,//FlashWriteDelayCallback,
-};
-
-bool FlashWriteDelayCallback(int DevNo, DeviceIntrf *pInterf)
-{
-	return true;
-}
-
-bool MX25U1635E_init(int DevNo, DeviceIntrf* pInterface)
-{
-    if (pInterface == NULL)
-        return false;
-
-    int cnt = 0;
-
-    uint32_t d;
-    uint32_t r = 0;
-
-    d = FLASH_CMD_READID;
-    cnt = pInterface->Read(DevNo, (uint8_t*)&d, 1, (uint8_t*)&r, 3);
-    if ( r != 0x25C2 )
-    	return false;
-
-    // Enable write
-    d = FLASH_CMD_EN4B;
-    cnt = pInterface->Tx(DevNo, (uint8_t*)&d, 1);
-
-    return true;
-}
 
 void ReadPTHData()
 {
@@ -486,80 +435,6 @@ void BleAppInitUserServices()
     res = ImuSrvcInit();
 }
 
-void FlashTest()
-{
-	g_FlashDiskIO.Init(s_FlashDiskCfg, &g_Spi, &g_FlashCache, 1);
-
-	uint8_t buff[512];
-	uint8_t tmp[512];
-	uint16_t *p = (uint16_t*)buff;
-
-	memset(tmp, 0, 512);
-	for (int i = 0; i < 256; i++)
-	{
-		p[i] = i;
-	}
-
-
-	printf("Erasing... Please wait\r\n");
-
-	// Ease could take a few minutes
-	g_FlashDiskIO.Erase();
-
-	printf("Writing 2KB data...\r\n");
-
-	g_FlashDiskIO.SectWrite(0, buff);
-	g_FlashDiskIO.SectWrite(2, buff);
-	g_FlashDiskIO.SectWrite(4, buff);
-	g_FlashDiskIO.SectWrite(8, buff);
-
-	printf("Validate readback...\r\n");
-
-	g_FlashDiskIO.SectRead(0, tmp);
-
-	if (memcmp(buff, tmp, 512) != 0)
-	{
-		printf("Sector 0 verify failed\r\n");
-	}
-	else
-	{
-		printf("Sector 0 verify success\r\n");
-	}
-
-	memset(tmp, 0, 512);
-	g_FlashDiskIO.SectRead(2, tmp);
-	if (memcmp(buff, tmp, 512) != 0)
-	{
-		printf("Sector 2 verify failed\r\n");
-	}
-	else
-	{
-		printf("Sector 2 verify success\r\n");
-	}
-
-	memset(tmp, 0, 512);
-	g_FlashDiskIO.SectRead(4, tmp);
-	if (memcmp(buff, tmp, 512) != 0)
-	{
-		printf("Sector 4 verify failed\r\n");
-	}
-	else
-	{
-		printf("Sector 4 verify success\r\n");
-	}
-
-	memset(tmp, 0, 512);
-	g_FlashDiskIO.SectRead(8, tmp);
-	if (memcmp(buff, tmp, 512) != 0)
-	{
-		printf("Sector 8 verify failed\r\n");
-	}
-	else
-	{
-		printf("Sector 8 verify success\r\n");
-	}
-}
-
 void HardwareInit()
 {
 	// Set this only if nRF is power at 2V or more
@@ -580,8 +455,6 @@ void HardwareInit()
     g_Timer.Init(s_TimerCfg);
 
     g_Spi.Init(s_SpiCfg);
-
-
     g_I2c.Init(s_I2cCfg);
 
     g_Seep.Init(s_SeepCfg, &g_I2c);

@@ -261,15 +261,15 @@ void IOPinDisableInterrupt(int IntNo)
  */
 bool IOPinEnableInterrupt(int IntNo, int IntPrio, int PortNo, int PinNo, IOPINSENSE Sense, IOPINEVT_CB pEvtCB)
 {
-	if (IntNo < 0 || IntNo >= IOPIN_MAX_INT || IntNo != PinNo)
+	if (IntNo < 0 || IntNo >= IOPIN_MAX_INT)
 	{
 		return false;
 	}
 
 	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGCOMPEN;
 
-	int idx = IntNo >> 2;
-	uint32_t pos = (IntNo & 0x3) << 2;
+	int idx = PinNo >> 2;
+	uint32_t pos = (PinNo & 0x3) << 2;
 	uint32_t mask = 7 << pos;
 
 	SYSCFG->EXTICR[idx] &= ~mask;

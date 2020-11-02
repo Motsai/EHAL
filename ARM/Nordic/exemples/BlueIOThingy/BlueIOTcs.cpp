@@ -83,8 +83,7 @@ BLESRVC_CHAR g_ConfChars[] = {
 /// Service definition
 const BLESRVC_CFG s_ConfSrvcCfg = {
     BLESRVC_SECTYPE_NONE,       	// Secure or Open service/char
-    {THINGY_BASE_UUID},           	// Base UUID
-	1,
+    THINGY_BASE_UUID,           	// Base UUID
     BLE_UUID_TCS_SERVICE,       	// Service UUID
     sizeof(g_ConfChars) / sizeof(BLESRVC_CHAR),  // Total number of characteristics for the service
     g_ConfChars,                 	// Pointer a an array of characteristic

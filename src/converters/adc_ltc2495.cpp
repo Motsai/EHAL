@@ -1,13 +1,9 @@
-/**-------------------------------------------------------------------------
-@file	adc_ltc2495.cpp
+/*--------------------------------------------------------------------------
+File   : adc_ltc2495.cpp
 
-@brief	ADC implementation for LTC2495
+Author : Hoang Nguyen Hoan          June 16, 2017
 
-
-@author	Hoang Nguyen Hoan
-@date	June 16, 2017
-
-@license
+Desc   : ADC implementation for LTC2495
 
 Copyright (c) 2017, I-SYST inc., all rights reserved
 
@@ -31,11 +27,10 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-----------------------------------------------------------------------------*/
-#ifdef __ICCARM__
-#include "intrinsics.h"
-#endif
+----------------------------------------------------------------------------
+Modified by          Date              Description
 
+----------------------------------------------------------------------------*/
 #include "converters/adc_ltc2495.h"
 
 /**
@@ -51,7 +46,7 @@ bool AdcLTC2495::Calibrate()
 bool AdcLTC2495::Init(const ADC_CFG &Cfg, DeviceIntrf *pIntrf)
 {
 	Interface(pIntrf);
-	DeviceAddress(Cfg.DevAddr);
+	DeviceAddess(Cfg.DevAddr);
 
 	if (Cfg.NbRefVolt < 1 || Cfg.pRefVolt == NULL)
 		return false;
@@ -87,11 +82,8 @@ bool AdcLTC2495::OpenChannel(const ADC_CHAN_CFG *pChanCfg, int NbChan)
 
 		uint32_t gain = pChanCfg[i].Gain >> 8;	// Fractional gain not available
 
-#ifdef __ICCARM__
-		d[1] |= 0x80 | ((31 - __CLZ(gain)) & 0xFF);
-#else
 		d[1] |= 0x80 | ((31 - __builtin_clzl(gain)) & 0xFF);
-#endif
+
 		Write(&d[0], 1, &d[1], 1);
 
 		gain = (gain & 0x7) << 2;
@@ -112,7 +104,7 @@ void AdcLTC2495::CloseChannel(int Chan)
 
 bool AdcLTC2495::StartConversion()
 {
-//	uint8_t d[4];
+	uint8_t d[4];
 /*
 	d[0] = Chan;
 	d[1] = Gain;

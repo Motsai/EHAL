@@ -127,7 +127,7 @@ bool AgmInvnIcm20948::Init(uint32_t DevAddr, DeviceIntrf *pIntrf, Timer *pTimer)
 		return false;
 
 	Interface(pIntrf);
-	DeviceAddress(DevAddr);
+	DeviceAddess(DevAddr);
 
 	if (pTimer != NULL)
 	{
@@ -148,7 +148,7 @@ bool AgmInvnIcm20948::Init(uint32_t DevAddr, DeviceIntrf *pIntrf, Timer *pTimer)
 
 	inv_icm20948_register_aux_compass(&vIcmDevice, INV_ICM20948_COMPASS_ID_AK09916, (uint8_t)AK0991x_DEFAULT_I2C_ADDR);
 
-	inv_icm20948_get_whoami(&vIcmDevice, &d);
+	int rc = 	rc = inv_icm20948_get_whoami(&vIcmDevice, &d);
 
 	if (d != ICM20948_WHO_AM_I_ID)
 	{
@@ -172,10 +172,10 @@ bool AgmInvnIcm20948::Init(uint32_t DevAddr, DeviceIntrf *pIntrf, Timer *pTimer)
 		inv_icm20948_set_matrix(&vIcmDevice, s_CfgMountingMatrix, (inv_icm20948_sensor)i);
 	}
 
-	inv_icm20948_initialize(&vIcmDevice, s_Dmp3Image, sizeof(s_Dmp3Image));
+	rc = inv_icm20948_initialize(&vIcmDevice, s_Dmp3Image, sizeof(s_Dmp3Image));
 	/* Initialize auxiliary sensors */
 	inv_icm20948_register_aux_compass( &vIcmDevice, INV_ICM20948_COMPASS_ID_AK09916, AK0991x_DEFAULT_I2C_ADDR);
-	//rc = inv_icm20948_initialize_auxiliary(&vIcmDevice);
+//	rc = inv_icm20948_initialize_auxiliary(&vIcmDevice);
 
 	// re-initialize base state structure
 	inv_icm20948_init_structure(&vIcmDevice);
@@ -187,6 +187,9 @@ bool AgmInvnIcm20948::Init(uint32_t DevAddr, DeviceIntrf *pIntrf, Timer *pTimer)
 
 bool AgmInvnIcm20948::Init(const ACCELSENSOR_CFG &CfgData, DeviceIntrf *pIntrf, Timer *pTimer)
 {
+	uint16_t regaddr;
+	uint8_t d;
+
 	if (Init(CfgData.DevAddr, pIntrf, pTimer) == false)
 		return false;
 
@@ -242,7 +245,7 @@ bool AgmInvnIcm20948::Enable()
 
 	/* Disable all sensors */
 	while(i-- > 0) {
-		inv_icm20948_enable_sensor(&vIcmDevice, (inv_icm20948_sensor)i, 1);
+		int rc = inv_icm20948_enable_sensor(&vIcmDevice, (inv_icm20948_sensor)i, 1);
 	}
 
 	return true;
@@ -254,7 +257,7 @@ void AgmInvnIcm20948::Disable()
 
 	/* Disable all sensors */
 	while(i-- > 0) {
-		inv_icm20948_enable_sensor(&vIcmDevice, (inv_icm20948_sensor)i, 0);
+		int rc = inv_icm20948_enable_sensor(&vIcmDevice, (inv_icm20948_sensor)i, 0);
 	}
 }
 
@@ -292,27 +295,27 @@ bool AgmInvnIcm20948::WakeOnEvent(bool bEnable, int Threshold)
 }
 
 // Accel low pass frequency
-uint32_t AgmInvnIcm20948::FilterFreq(uint32_t Freq)
+uint32_t AgmInvnIcm20948::LowPassFreq(uint32_t Freq)
 {
-	return AccelSensor::FilterFreq(Freq);
+	return AccelSensor::LowPassFreq();
 }
 
 // Accel scale
 uint16_t AgmInvnIcm20948::Scale(uint16_t Value)
 {
-	return AccelSensor::Scale(Value);
+	return AccelSensor::Scale();
 }
 
 // Gyro scale
 uint32_t AgmInvnIcm20948::Sensitivity(uint32_t Value)
 {
 
-	return GyroSensor::Sensitivity(Value);
+	return GyroSensor::Sensitivity();
 }
 
 bool AgmInvnIcm20948::UpdateData()
 {
-	inv_icm20948_poll_sensor(&vIcmDevice, (void*)this, SensorEventHandler);
+//	inv_icm20948_poll_sensor(&vIcmDevice, (void*)this, SensorEventHandler);
 
 	return true;
 }

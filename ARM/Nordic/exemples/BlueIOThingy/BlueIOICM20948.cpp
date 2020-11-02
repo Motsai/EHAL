@@ -49,7 +49,7 @@ static const MAGSENSOR_CFG s_MagCfg = {
 	.DevAddr = 0,
 	.OpMode = SENSOR_OPMODE_SINGLE,
 	.Freq = 50000,
-	.Precision = MAGSENSOR_PRECISION_HIGH,
+	.Precision = 14,
 };
 
 static AgmInvnIcm20948 s_MotSensor;

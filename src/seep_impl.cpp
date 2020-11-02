@@ -36,7 +36,6 @@ Modified by          Date              Description
 #include <algorithm>
 using namespace std;
 
-#include "istddef.h"
 #include "idelay.h"
 #include "seep.h"
 #include "iopinctrl.h"

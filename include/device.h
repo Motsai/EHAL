@@ -43,6 +43,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __DEVICE_H__
 
 #include <stdint.h>
+#include <string.h>
 
 #ifndef __cplusplus
 #include <stdbool.h>
@@ -81,7 +82,6 @@ typedef void (*DEVEVTCB)(Device * const pDev, DEV_EVT Evt);
 class Device {
 public:
 	Device();
-	virtual ~Device() {}
 
 	//
 	// *** Require implementations ***
@@ -116,7 +116,7 @@ public:
 	 * @brief	Power off the device completely.
 	 *
 	 * If supported, this will put the device in complete power down.
-	 * Full re-initialization is required to re-enable the device.
+	 * Full re-intialization is required to re-enable the device.
 	 */
 	virtual void PowerOff() {}
 
@@ -129,7 +129,7 @@ public:
 	 *
 	 * @param 	Addr : Device's address or zero based chip select index
 	 */
-	virtual void DeviceAddress(uint32_t Addr) { vDevAddr =  Addr; }
+	virtual void DeviceAddess(uint32_t Addr) { vDevAddr =  Addr; }
 
 	/**
 	 * @brief	Get device's map address
@@ -270,7 +270,7 @@ public:
 	 */
 	bool Valid() { return vbValid; }
 
-	DEVINTRF_TYPE InterfaceType() { return vpIntrf != nullptr ? vpIntrf->Type() : DEVINTRF_TYPE_UNKOWN; }
+	DEVINTRF_TYPE InterfaceType() { return vpIntrf != NULL ? vpIntrf->Type() : DEVINTRF_TYPE_UNKOWN; }
 
 	/**
 	 * @brief	Get timer pointer used for timestamping
@@ -282,10 +282,8 @@ public:
 	virtual operator Timer * const () { return vpTimer; }	// Get device interface data (handle)
 
 	void SetEvtHandler(DEVEVTCB EvtHandler) { vEvtHandler = EvtHandler; }
-	virtual void EvtHandler(DEV_EVT Evt) { if (vEvtHandler) vEvtHandler(this, Evt); }
 
 protected:
-
 	/**
 	 * @brief	Store device id.
 	 *
@@ -318,16 +316,12 @@ protected:
 	 */
 	DeviceIntrf *Interface() { return vpIntrf; }
 
-	void InterruptEnabled(bool En) { vbIntEn = En; }
-	bool InterruptEnabled() { return vbIntEn; }
-
 	bool		vbValid;		//!< Device is valid ready to use (passed detection)
 	uint32_t 	vDevAddr;		//!< Device address or chip select index
 	DeviceIntrf *vpIntrf;		//!< Device's interface
 	Timer 		*vpTimer;		//!< Timer to use for time stamping data or create a timer event
 	uint64_t	vDevId;			//!< This is implementation specific data for device identifier
 	 	 	 	 	 	 	 	//!< could be value read from hardware register or serial number
-	bool 		vbIntEn;		//!< Interrupt enabled
 	DEVEVTCB 	vEvtHandler;	//!< Event handler callback
 };
 

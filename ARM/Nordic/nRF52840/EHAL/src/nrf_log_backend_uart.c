@@ -45,7 +45,7 @@
 //#include "nrf_drv_uart.h"
 #include "app_error.h"
 
-#include "coredev/uart.h"
+#include "uart.h"
 
 UARTDEV *m_uart = NULL;
 

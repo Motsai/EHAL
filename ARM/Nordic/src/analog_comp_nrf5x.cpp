@@ -115,7 +115,6 @@ bool AnalogCompInit(ANALOG_COMP_DEV * const pDev, const ANALOG_COMP_CFG *pCfg)
 		pDev->EvtHandler = pCfg->EvtHandler;
 	}
 
-#ifdef NRF52_SERIES
 	if (pCfg->bHystersys == true)
 	{
 		NRF_LPCOMP->HYST = 1;
@@ -124,7 +123,6 @@ bool AnalogCompInit(ANALOG_COMP_DEV * const pDev, const ANALOG_COMP_CFG *pCfg)
 	{
 		NRF_LPCOMP->HYST = 0;
 	}
-#endif
 
 	NRF_LPCOMP->SHORTS = LPCOMP_SHORTS_READY_SAMPLE_Msk;
 

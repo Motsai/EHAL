@@ -84,7 +84,7 @@ static TaskHandle_t g_BleTask;  //!< Reference to SoftDevice FreeRTOS task.
 static TaskHandle_t g_RxTask;
 QueueHandle_t g_QueHandle = NULL;
 
-static const ble_uuid_t s_AdvUuids[] = {
+static const ble_uuid_t  s_AdvUuids[] = {
 	{BLUEIO_UUID_UART_SERVICE, BLE_UUID_TYPE_VENDOR_BEGIN}
 };
 
@@ -129,8 +129,7 @@ uint8_t g_LWrBuffer[512];
 
 const BLESRVC_CFG s_UartSrvcCfg = {
 	BLESRVC_SECTYPE_NONE,	    // Secure or Open service/char
-	{BLUEIO_UUID_BASE,},        // Base UUID
-	1,
+	BLUEIO_UUID_BASE,           // Base UUID
 	BLUEIO_UUID_UART_SERVICE,   // Service UUID
 	2,                          // Total number of characteristics for the service
 	g_UartChars,                // Pointer a an array of characteristic
@@ -198,8 +197,8 @@ static IOPINCFG s_UartPins[] = {
 
 const UARTCFG g_UartCfg = {
 	.DevNo = 0,
-	.pIOPinMap = s_UartPins,
-	.NbIOPins = sizeof(s_UartPins) / sizeof(IOPINCFG),
+	.pIoMap = s_UartPins,
+	.IoMapLen = sizeof(s_UartPins) / sizeof(IOPINCFG),
 	.Rate = 1000000,			// Rate
 	.DataBits = 8,
 	.Parity = UART_PARITY_NONE,
@@ -366,7 +365,7 @@ static void RxTask(void * pvParameter)
 /* This function gets events from the SoftDevice and processes them. */
 static void BleTask(void * pvParameter)
 {
-	//g_Uart.printf("UART over BLE with FreeRTOS\r\n");
+	g_Uart.printf("UART over BLE with FreeRTOS\r\n");
 
     BleAppRun();
 }
@@ -381,8 +380,8 @@ void FreeRTOSInit()
     BaseType_t xReturned = xTaskCreate(BleTask,
                                        "BLE",
                                        NRF_BLE_FREERTOS_SDH_TASK_STACK,
-                                       NULL,//g_QueHandle,
-									   configMAX_SYSCALL_INTERRUPT_PRIORITY,
+                                       g_QueHandle,
+                                       2,
                                        &g_BleTask);
     if (xReturned != pdPASS)
     {
@@ -392,7 +391,7 @@ void FreeRTOSInit()
     xReturned = xTaskCreate(RxTask, "RX",
                             NRF_BLE_FREERTOS_SDH_TASK_STACK,
                                        NULL,
-									   tskIDLE_PRIORITY,
+                              2,
                              &g_RxTask);
 }
 
@@ -422,4 +421,3 @@ int main()
 
     return 0;
 }
-

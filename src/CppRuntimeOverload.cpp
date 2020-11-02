@@ -35,7 +35,7 @@ Modified by          Date              Description
 ----------------------------------------------------------------------------*/
 
 #include <stdlib.h>
-#include <string.h>
+#include <memory>
 
 void* operator new[](size_t count ) throw()
 {

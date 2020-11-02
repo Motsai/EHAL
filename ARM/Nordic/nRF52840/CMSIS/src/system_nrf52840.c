@@ -31,7 +31,6 @@ NOTICE: This file has been modified by Nordic Semiconductor ASA.
 /*lint ++flb "Enter library region" */
 
 #define __SYSTEM_CLOCK_64M      (64000000UL)
-#define SYSTEM_NSDELAY_CORE_FACTOR		(46UL)
 
 static bool errata_36(void);
 static bool errata_66(void);
@@ -49,8 +48,6 @@ static bool errata_136(void);
 #elif defined ( __GNUC__ )
     uint32_t SystemCoreClock __attribute__((used)) = __SYSTEM_CLOCK_64M;
 #endif
-
-uint32_t SystemnsDelayFactor = SYSTEM_NSDELAY_CORE_FACTOR;
 
 void SystemCoreClockUpdate(void)
 {

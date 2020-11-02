@@ -1,13 +1,9 @@
-/**-------------------------------------------------------------------------
-@file	system_stm32f0xx.c
+/*--------------------------------------------------------------------------
+File   : system_stm32f0xx.c
 
-@brief	Implementation of CMSIS SystemInit for STM32F0xx Device Series
+Author : Hoang Nguyen Hoan          June 5, 2019
 
-
-@author	Hoang Nguyen Hoan
-@date	June 5, 2019
-
-@license
+Desc   : Implementation of CMSIS SystemInit for STM32F0xx Device Series
 
 Copyright (c) 2019, I-SYST inc., all rights reserved
 
@@ -30,6 +26,9 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+----------------------------------------------------------------------------
+Modified by          Date              Description
 
 ----------------------------------------------------------------------------*/
 

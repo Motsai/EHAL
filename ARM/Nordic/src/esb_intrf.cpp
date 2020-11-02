@@ -40,7 +40,6 @@ Modified by          Date              Description
 #include "nrf_esb_error_codes.h"
 #include "sdk_common.h"
 
-#include "istddef.h"
 #include "esb_intrf.h"
 
 
@@ -111,7 +110,7 @@ void EsbIntrfEnable(DEVINTRF *pDevIntrf)
  *
  * @return Transfer rate per second
  */
-uint32_t EsbIntrfGetRate(DEVINTRF *pDevIntrf)
+int EsbIntrfGetRate(DEVINTRF *pDevIntrf)
 {
     ESBINTRF *dev = (ESBINTRF*)pDevIntrf->pDevData;
     int rate = 0;
@@ -148,7 +147,7 @@ uint32_t EsbIntrfGetRate(DEVINTRF *pDevIntrf)
  * @return  Actual transfer rate per second set.  It is the real capable rate
  *          closes to rate being requested.
  */
-uint32_t EsbIntrfSetRate(DEVINTRF *pDevIntrf, uint32_t Rate)
+int EsbIntrfSetRate(DEVINTRF *pDevIntrf, int Rate)
 {
     // Data rate can't be changed on the fly
     // just return current rate
@@ -170,7 +169,7 @@ uint32_t EsbIntrfSetRate(DEVINTRF *pDevIntrf, uint32_t Rate)
  * @return  true - Success
  *          false - failed.
  */
-bool EsbIntrfStartRx(DEVINTRF *pDevIntrf, uint32_t DevAddr)
+bool EsbIntrfStartRx(DEVINTRF *pDevIntrf, int DevAddr)
 {
     return true;
 }
@@ -240,7 +239,7 @@ void EsbIntrfStopRx(DEVINTRF *pSerDev)
  * @return  true - Success
  *          false - failed
  */
-bool EsbIntrfStartTx(DEVINTRF *pDevIntrf, uint32_t DevAddr)
+bool EsbIntrfStartTx(DEVINTRF *pDevIntrf, int DevAddr)
 {
     return true;
 }
@@ -465,9 +464,9 @@ bool EsbIntrfInit(ESBINTRF *pEsbIntrf, const ESBINTRF_CFG *pCfg)
     pEsbIntrf->DevIntrf.StartTx = EsbIntrfStartTx;
     pEsbIntrf->DevIntrf.TxData = EsbIntrfTxData;
     pEsbIntrf->DevIntrf.StopTx = EsbIntrfStopTx;
+    pEsbIntrf->DevIntrf.bBusy = false;
     pEsbIntrf->DevIntrf.MaxRetry = 0;
     pEsbIntrf->DevIntrf.EvtCB = pCfg->EvtCB;
-	atomic_flag_clear(&pEsbIntrf->DevIntrf.bBusy);
 
     memcpy(&pEsbIntrf->EsbCfg, &esbcfg, sizeof(nrf_esb_config_t));
 

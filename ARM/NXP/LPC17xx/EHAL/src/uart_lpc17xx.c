@@ -92,7 +92,7 @@ bool LpcUARTInit(UARTDEV *pDev, const UARTCFG *pCfg)
 	if (pCfg == NULL)
 		return false;
 
-	if (pCfg->pIOPinMap == NULL || pCfg->NbIOPins == 0)
+	if (pCfg->pIoMap == NULL || pCfg->IoMapLen == 0)
 		return false;
 
 	switch (pCfg->DevNo)
@@ -127,9 +127,9 @@ bool LpcUARTInit(UARTDEV *pDev, const UARTCFG *pCfg)
 
 	// Configure I/O pins
 	int idx = 0;
-	IOPINCFG *pincfg = (IOPINCFG *)pCfg->pIOPinMap;
+	IOPINCFG *pincfg = (IOPINCFG *)pCfg->pIoMap;
 
-	IOPinCfg(pincfg, pCfg->NbIOPins);
+	IOPinCfg(pincfg, pCfg->IoMapLen);
 
 	reg->TER = 0;	// Disable Tx
 	reg->IER = 0;	// Disable all interrupts
@@ -236,7 +236,7 @@ bool LpcUARTInit(UARTDEV *pDev, const UARTCFG *pCfg)
 	pDev->DevIntrf.TxData = LpcUARTTxData;
 	pDev->DevIntrf.StopTx = LpcUARTStopTx;
 	pDev->EvtCallback = pCfg->EvtCallback;
-	atomic_flag_clear(&pDev->DevIntrf.bBusy);
+	pDev->DevIntrf.bBusy = false;
 
 	g_LpcUartDev[pCfg->DevNo].bTxReady = true;
 
