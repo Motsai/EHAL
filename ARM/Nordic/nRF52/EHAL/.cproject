@@ -999,6 +999,8 @@
                                     									
                                     <listOptionValue builtIn="false" value="&quot;../../../../../../external/nRF5_SDK/components/softdevice/s132/headers&quot;"/>
                                     									
+                                    <listOptionValue builtIn="false" value="&quot;../../../../../../external/nRF5_SDK/components/softdevice/s132/headers/nrf52&quot;"/>
+                                    									
                                     <listOptionValue builtIn="false" value="&quot;../../../../../../external/nRF5_SDK/external/fprintf&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;../../../../../../external/nRF5_SDK/external/mbedtls/include&quot;"/>
@@ -1294,6 +1296,8 @@
                                     <listOptionValue builtIn="false" value="&quot;../../../../../../external/nRF5_SDK/components/softdevice/mbr/nrf52832/headers&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;../../../../../../external/nRF5_SDK/components/softdevice/s132/headers&quot;"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="&quot;../../../../../../external/nRF5_SDK/components/softdevice/s132/headers/nrf52&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;../../../../../../external/nRF5_SDK/external/fprintf&quot;"/>
                                     									
