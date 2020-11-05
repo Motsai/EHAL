@@ -1821,9 +1821,14 @@
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/external/mbedtls/library/ecp_curves.c</locationURI>
 		</link>
 		<link>
-			<name>src/nRF5_SDK/mbedtls/library/gcm.c</name>
+			<name>src/nRF5_SDK/mbedtls/library/platform.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/external/mbedtls/library/gcm.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/external/mbedtls/library/platform.c</locationURI>
+		</link>
+		<link>
+			<name>src/nRF5_SDK/mbedtls/library/platform_util.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/external/mbedtls/library/platform_util.c</locationURI>
 		</link>
 		<link>
 			<name>src/nRF5_SDK/nfc/ndef/connection_handover</name>
