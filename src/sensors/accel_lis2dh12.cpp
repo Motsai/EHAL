@@ -378,7 +378,7 @@ void AccelLis2dh12::Reset()
 
 	regaddr = LIS2DH12_CTRL_REG5;
 	Write8(&regaddr, 1, LIS2DH12_CTRL_REG5_BOOT);
-	msDelay(1);
+	msDelay(10);
 	Write8(&regaddr, 1, 0);
 
 	regaddr = LIS2DH12_REFERENCE;
