@@ -78,17 +78,17 @@ static inline uint32_t EndianCvt32(uint32_t x) {
 }
 
 /**
- * @brief	64 bits endianess conversion.
+ * @brief   64 bits endianess conversion.
  *
- * @param	x : 64 bits number to covert.
+ * @param   x : 64 bits number to covert.
  *
- * @return	converted data.
+ * @return  converted data.
  */
 static inline uint64_t EndianCvt64(uint64_t x) {
-	return (((x >> 56ULL) & 0xffULL) | ((x << 56ULL) & 0xff00000000000000ULL) |
-			((x >> 40ULL) & 0xff00ULL) | ((x << 40ULL) & 0xff000000000000ULL) |
-			((x >> 24ULL) & 0xff0000ULL) | ((x << 24ULL) & 0xff0000000000ULL) |
-			((x >> 8ULL) & 0xff000000ULL) | ((x << 8ULL) & 0xff00000000ULL));
+    return (((x >> 56ULL) & 0xffULL) | ((x << 56ULL) & 0xff00000000000000ULL) |
+            ((x >> 40ULL) & 0xff00ULL) | ((x << 40ULL) & 0xff000000000000ULL) |
+            ((x >> 24ULL) & 0xff0000ULL) | ((x << 24ULL) & 0xff0000000000ULL) |
+            ((x >> 8ULL) & 0xff000000ULL) | ((x << 8ULL) & 0xff00000000ULL));
 }
 
 /**
