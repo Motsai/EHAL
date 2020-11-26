@@ -286,7 +286,7 @@ public:
 	 *
 	 * @return	Block size in bytes
 	 */
-	virtual uint32_t GetMinEraseSize() { return vSectSize; }
+	virtual uint32_t GetMinEraseSize() { return vSectSize * 1024; }
 
 	/**
 	 * @brief	Device specific minimum write size in bytes
